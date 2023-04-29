@@ -12,21 +12,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  late final FriendApi _friendsApi;
   Future<List<Friend>>? _friendsFuture;
 
   @override
   void initState() {
     super.initState();
-    _friendsApi = FriendApi(apiClient: AuthenticatedClient
-        .staticOf(context)
-        .client);
     _refreshFriendsList();
   }
 
   void _refreshFriendsList() {
-    _friendsFuture = _friendsApi.getFriendsList().then((Iterable<Friend> value) =>
+    _friendsFuture = FriendApi.getFriendsList().then((Iterable<Friend> value) =>
     value.toList()
       ..sort((a, b) {
         if (a.userStatus.onlineStatus == b.userStatus.onlineStatus) {

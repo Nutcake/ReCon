@@ -43,7 +43,7 @@ class UserStatus {
 
   factory UserStatus.fromMap(Map map) {
     final statusString = map["onlineStatus"] as String?;
-    final status = OnlineStatus.values.firstWhere((element) => element.name == statusString?.toLowerCase(),
+    final status = OnlineStatus.values.firstWhere((element) => element.name.toLowerCase() == statusString?.toLowerCase(),
       orElse: () => OnlineStatus.unknown,
     );
     if (status == OnlineStatus.unknown && statusString != null) {

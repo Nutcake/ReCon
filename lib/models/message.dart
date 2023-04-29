@@ -4,6 +4,8 @@ enum MessageType {
   unknown,
   text,
   sound,
+  sessionInvite,
+  object,
 }
 
 class Message {
@@ -17,7 +19,7 @@ class Message {
 
   factory Message.fromMap(Map map) {
     final typeString = map["messageType"] as String?;
-    final type = MessageType.values.firstWhere((element) => element.name == typeString?.toLowerCase(),
+    final type = MessageType.values.firstWhere((element) => element.name.toLowerCase() == typeString?.toLowerCase(),
       orElse: () => MessageType.unknown,
     );
     if (type == MessageType.unknown && typeString != null) {
@@ -25,8 +27,8 @@ class Message {
     }
     return Message(
       id: map["id"],
-      recipientId: map["recipient_id"],
-      senderId: map["sender_id"],
+      recipientId: map["recipientId"],
+      senderId: map["senderId"],
       type: type,
       content: map["content"],
     );

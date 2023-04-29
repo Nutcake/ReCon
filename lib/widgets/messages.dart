@@ -1,5 +1,5 @@
+import 'package:contacts_plus/api_client.dart';
 import 'package:contacts_plus/apis/message_api.dart';
-import 'package:contacts_plus/main.dart';
 import 'package:contacts_plus/models/friend.dart';
 import 'package:contacts_plus/models/message.dart';
 import 'package:flutter/material.dart';
@@ -16,26 +16,20 @@ class Messages extends StatefulWidget {
 
 class _MessagesState extends State<Messages> {
   Future<Iterable<Message>>? _messagesFuture;
-  late final MessageApi _messageApi;
 
   void _refreshMessages() {
-    _messagesFuture = _messageApi.getUserMessages(userId: widget.friend.id)..then((value) => value.toList());
+    _messagesFuture = MessageApi.getUserMessages(userId: widget.friend.id)..then((value) => value.toList());
   }
 
   @override
   void initState() {
     super.initState();
-    _messageApi = MessageApi(
-      apiClient: AuthenticatedClient
-      .staticOf(context)
-      .client,
-    );
     _refreshMessages();
   }
 
   @override
   Widget build(BuildContext context) {
-    final apiClient = AuthenticatedClient.of(context).client;
+    final apiClient = ApiClient();
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.friend.username),
@@ -46,14 +40,13 @@ class _MessagesState extends State<Messages> {
           if (snapshot.hasData) {
             final data = snapshot.data as Iterable<Message>;
             return ListView.builder(
+              reverse: true,
               itemCount: data.length,
               itemBuilder: (context, index) {
                 final entry = data.elementAt(index);
-                if (entry.senderId == apiClient.userId) {
-                  return MyMessageBubble(message: entry);
-                } else {
-                  return OtherMessageBubble(message: entry);
-                }
+                return entry.senderId == apiClient.userId
+                      ? MyMessageBubble(message: entry)
+                      : OtherMessageBubble(message: entry);
               },
             );
           } else if (snapshot.hasError) {
@@ -85,15 +78,35 @@ class MyMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var content = message.content;
+    if (message.type == MessageType.sessionInvite) {
+      content = "<Session Invite>";
+    } else if (message.type == MessageType.sound) {
+      content = "<Voice Message>";
+    } else if (message.type == MessageType.object) {
+      content = "<Asset>";
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          margin: const EdgeInsets.only(left:16),
-          padding: const EdgeInsets.all(12),
-          child: Text(message.content, softWrap: true,),
+        Flexible(
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            color: Theme.of(context).colorScheme.primaryContainer,
+            margin: const EdgeInsets.only(left: 32, bottom: 16, right: 8),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                content,
+                softWrap: true,
+                maxLines: null,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -108,14 +121,38 @@ class OtherMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var content = message.content;
+    if (message.type == MessageType.sessionInvite) {
+      content = "<Session Invite>";
+    } else if (message.type == MessageType.sound) {
+      content = "<Voice Message>";
+    } else if (message.type == MessageType.object) {
+      content = "<Asset>";
+    }
     return Row(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Container(
-          color: Theme.of(context).colorScheme.secondaryContainer,
-          margin: const EdgeInsets.only(right: 16),
-          padding: const EdgeInsets.all(12),
-          child: Text(message.content, softWrap: true,),
+        Flexible(
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            color: Theme
+                .of(context)
+                .colorScheme
+                .secondaryContainer,
+            margin: const EdgeInsets.only(right: 32, bottom: 16, left: 8),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                content,
+                softWrap: true,
+                maxLines: null,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+          ),
         ),
       ],
     );

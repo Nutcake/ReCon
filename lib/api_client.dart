@@ -13,11 +13,20 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  final AuthenticationData _authenticationData;
+  static final ApiClient _singleton = ApiClient._internal();
 
-  String get userId => _authenticationData.userId;
+  factory ApiClient() {
+    return _singleton;
+  }
 
-  const ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  ApiClient._internal();
+
+  AuthenticationData? _authenticationData;
+
+  set authenticationData(value) => _authenticationData = value;
+
+  String get userId => _authenticationData!.userId;
+  bool get isAuthenticated => _authenticationData?.isAuthenticated ?? false;
 
   static Future<AuthenticationData> tryLogin({
     required String username,
@@ -90,7 +99,7 @@ class ApiClient {
   }
 
   Map<String, String> get authorizationHeader => {
-    "Authorization": "neos ${_authenticationData.userId}:${_authenticationData.token}"
+    "Authorization": "neos ${_authenticationData!.userId}:${_authenticationData!.token}"
   };
 
   static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}/api$path");
@@ -119,4 +128,8 @@ class ApiClient {
     headers.addAll(authorizationHeader);
     return http.delete(buildFullUri(path), headers: headers);
   }
+}
+
+class BaseClient {
+  static final client = ApiClient();
 }
