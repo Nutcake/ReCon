@@ -9,10 +9,10 @@ class AuthenticationData {
     required this.userId, required this.token, required this.secretMachineId, required this.isAuthenticated
   });
   
-  factory AuthenticationData.fromJson(Map json) {
-    final userId = json["userId"];
-    final token = json["token"];
-    final machineId = json["secretMachineId"];
+  factory AuthenticationData.fromMap(Map map) {
+    final userId = map["userId"];
+    final token = map["token"];
+    final machineId = map["secretMachineId"];
     if (userId == null || token == null || machineId == null) {
       return _unauthenticated;
     }

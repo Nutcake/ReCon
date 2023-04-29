@@ -70,6 +70,12 @@ class AuthenticatedClient extends InheritedWidget {
     return result!;
   }
 
+  static AuthenticatedClient staticOf(BuildContext context) {
+    final result = context.findAncestorWidgetOfExactType<AuthenticatedClient>();
+    assert(result != null, 'No AuthenticatedClient found in context');
+    return result!;
+  }
+
   @override
   bool updateShouldNotify(covariant AuthenticatedClient oldWidget) => oldWidget.client != client;
 }
