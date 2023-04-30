@@ -3,6 +3,7 @@ import 'package:contacts_plus/apis/message_api.dart';
 import 'package:contacts_plus/models/friend.dart';
 import 'package:contacts_plus/models/message.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Messages extends StatefulWidget {
   const Messages({required this.friend, super.key});
@@ -16,6 +17,9 @@ class Messages extends StatefulWidget {
 
 class _MessagesState extends State<Messages> {
   Future<Iterable<Message>>? _messagesFuture;
+  final TextEditingController _messageTextController = TextEditingController();
+
+  bool _isSendable = false;
 
   void _refreshMessages() {
     _messagesFuture = MessageApi.getUserMessages(userId: widget.friend.id)..then((value) => value.toList());
@@ -55,7 +59,9 @@ class _MessagesState extends State<Messages> {
                 Text("Failed to load messages:\n${snapshot.error}"),
                 TextButton.icon(
                   onPressed: () {
-
+                    setState(() {
+                      _refreshMessages();
+                    });
                   },
                   icon: const Icon(Icons.refresh),
                   label: const Text("Retry"),
@@ -67,14 +73,60 @@ class _MessagesState extends State<Messages> {
           }
         },
       ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                child: TextField(
+                  controller: _messageTextController,
+                  maxLines: 4,
+                  minLines: 1,
+                  onChanged: (text) {
+                    if (text.isNotEmpty && !_isSendable) {
+                      setState(() {
+                        _isSendable = true;
+                      });
+                    } else if (text.isEmpty && _isSendable) {
+                      setState(() {
+                        _isSendable = false;
+                      });
+                    }
+                  },
+                  decoration: InputDecoration(
+                    isDense: true,
+                    hintText: "Send a message to ${widget.friend.username}...",
+                    hintStyle: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white54),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                splashRadius: 24,
+                onPressed: _isSendable ? () {} : null,
+                iconSize: 28,
+                icon: const Icon(Icons.send),
+              ),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
 
 class MyMessageBubble extends StatelessWidget {
-  const MyMessageBubble({required this.message, super.key});
+  MyMessageBubble({required this.message, super.key});
 
   final Message message;
+  final DateFormat _dateFormat = DateFormat.Hm();
 
   @override
   Widget build(BuildContext context) {
@@ -98,12 +150,22 @@ class MyMessageBubble extends StatelessWidget {
             color: Theme.of(context).colorScheme.primaryContainer,
             margin: const EdgeInsets.only(left: 32, bottom: 16, right: 8),
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                content,
-                softWrap: true,
-                maxLines: null,
-                style: Theme.of(context).textTheme.bodyLarge,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    content,
+                    softWrap: true,
+                    maxLines: null,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 6,),
+                  Text(
+                    _dateFormat.format(message.sendTime),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white54),
+                  ),
+                ],
               ),
             ),
           ),
@@ -115,9 +177,10 @@ class MyMessageBubble extends StatelessWidget {
 
 
 class OtherMessageBubble extends StatelessWidget {
-  const OtherMessageBubble({required this.message, super.key});
+  OtherMessageBubble({required this.message, super.key});
 
   final Message message;
+  final DateFormat _dateFormat = DateFormat.Hm();
 
   @override
   Widget build(BuildContext context) {
@@ -144,12 +207,22 @@ class OtherMessageBubble extends StatelessWidget {
                 .secondaryContainer,
             margin: const EdgeInsets.only(right: 32, bottom: 16, left: 8),
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                content,
-                softWrap: true,
-                maxLines: null,
-                style: Theme.of(context).textTheme.bodyLarge,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    content,
+                    softWrap: true,
+                    maxLines: null,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 6,),
+                  Text(
+                    _dateFormat.format(message.sendTime),
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white54),
+                  ),
+                ],
               ),
             ),
           ),
@@ -157,4 +230,15 @@ class OtherMessageBubble extends StatelessWidget {
       ],
     );
   }
+}
+
+class MessageStatusIndicator extends StatelessWidget {
+  const MessageStatusIndicator({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+
 }

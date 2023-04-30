@@ -14,8 +14,10 @@ class Message {
   final String senderId;
   final MessageType type;
   final String content;
+  final DateTime sendTime;
 
-  Message({required this.id, required this.recipientId, required this.senderId, required this.type, required this.content});
+  Message({required this.id, required this.recipientId, required this.senderId, required this.type,
+    required this.content, required this.sendTime});
 
   factory Message.fromMap(Map map) {
     final typeString = map["messageType"] as String?;
@@ -31,6 +33,7 @@ class Message {
       senderId: map["senderId"],
       type: type,
       content: map["content"],
+      sendTime: DateTime.parse(map["sendTime"]),
     );
   }
 }

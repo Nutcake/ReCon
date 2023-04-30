@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:contacts_plus/models/authentication_data.dart';
+import 'package:signalr_netcore/http_connection_options.dart';
+import 'package:signalr_netcore/hub_connection.dart';
+import 'package:signalr_netcore/hub_connection_builder.dart';
 import 'package:uuid/uuid.dart';
 
 import 'config.dart';
@@ -21,6 +25,7 @@ class ApiClient {
 
   ApiClient._internal();
 
+  final NeosHub _hub = NeosHub();
   AuthenticationData? _authenticationData;
 
   set authenticationData(value) => _authenticationData = value;
@@ -127,6 +132,20 @@ class ApiClient {
     headers ??= {};
     headers.addAll(authorizationHeader);
     return http.delete(buildFullUri(path), headers: headers);
+  }
+}
+
+class NeosHub {
+  final HubConnection hubConnection;
+  late final Future<void>? _hubConnectedFuture;
+
+  NeosHub() : hubConnection = HubConnectionBuilder()
+      .withUrl(Config.neosHubUrl, options: HttpConnectionOptions())
+      .withAutomaticReconnect()
+      .build() {
+    _hubConnectedFuture = hubConnection.start()?.whenComplete(() {
+      log("Hub connection established");
+    });
   }
 }
 
