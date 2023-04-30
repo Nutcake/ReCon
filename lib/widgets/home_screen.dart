@@ -1,9 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+
 import 'package:contacts_plus/apis/friend_api.dart';
-import 'package:contacts_plus/aux.dart';
+import 'package:contacts_plus/apis/user_api.dart';
 import 'package:contacts_plus/main.dart';
 import 'package:contacts_plus/models/friend.dart';
-import 'package:contacts_plus/widgets/messages.dart';
+import 'package:contacts_plus/models/user.dart';
+import 'package:contacts_plus/widgets/expanding_input_fab.dart';
+import 'package:contacts_plus/widgets/friend_list_tile.dart';
+import 'package:contacts_plus/widgets/user_list_tile.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,8 +18,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Future<List<Friend>>? _friendsFuture;
+  Future<List>? _listFuture;
+  Future<List>? _friendFuture;
   ClientHolder? _clientHolder;
+  Timer? _debouncer;
+
+  @override
+  void dispose() {
+    _debouncer?.cancel();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -28,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _refreshFriendsList() {
-    _friendsFuture = FriendApi.getFriendsList(_clientHolder!.client).then((Iterable<Friend> value) =>
+    _listFuture = FriendApi.getFriendsList(_clientHolder!.client).then((Iterable<Friend> value) =>
     value.toList()
       ..sort((a, b) {
         if (a.userStatus.onlineStatus == b.userStatus.onlineStatus) {
@@ -43,73 +55,101 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       ),
     );
+    _friendFuture = _listFuture;
+  }
+
+  void _searchForUsers(String needle) {
+    _listFuture = UserApi.searchUsers(_clientHolder!.client, needle: needle).then((value) =>
+    value.toList()
+      ..sort((a, b) {
+        return a.username.length.compareTo(b.username.length);
+      },)
+    );
+  }
+
+  void _restoreFriendsList() {
+    _listFuture = _friendFuture;
   }
 
   @override
   Widget build(BuildContext context) {
-    final apiClient = ClientHolder.of(context).client;
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Contacts+"),
+        title: const Text("Contacts++"),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _refreshFriendsList();
-          await _friendsFuture;
-        },
-        child: FutureBuilder(
-            future: _friendsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final data = snapshot.data as Iterable<Friend>;
-                return ListView.builder(
-                  itemCount: data.length,
-                  itemBuilder: (context, index) {
-                    final entry = data.elementAt(index);
-                    final iconUri = entry.userProfile.httpIconUri.toString();
-                    return ListTile(
-                      leading: CachedNetworkImage(
-                        imageBuilder: (context, imageProvider) {
-                          return CircleAvatar(
-                            foregroundImage: imageProvider,
-                          );
-                        },
-                          imageUrl: iconUri,
-                        placeholder: (context, url) {
-                          return const CircleAvatar(backgroundColor: Colors.white54,);
-                        },
-                        errorWidget: (context, error, what) => const CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          child: Icon(Icons.person),
-                        ),
-                      ),
-                      title: Text(entry.username),
-                      subtitle: Text(entry.userStatus.onlineStatus.name),
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => Messages(friend: entry)));
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: () async {
+              _refreshFriendsList();
+              await _listFuture;
+            },
+            child: FutureBuilder(
+                future: _listFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final data = snapshot.data as Iterable;
+                    return ListView.builder(
+                      itemCount: data.length,
+                      itemBuilder: (context, index) {
+                        final entry = data.elementAt(index);
+                        if (entry is Friend) {
+                          return FriendListTile(friend: entry);
+                        } else if (entry is User) {
+                          return UserListTile(user: entry);
+                        }
+                        return null;
                       },
                     );
-                  },
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(64),
-                    child: Text(
-                      "Something went wrong: ${snapshot.error}",
-                      softWrap: true,
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .labelMedium,
-                    ),
-                  ),
-                );
-              } else {
-                return const LinearProgressIndicator();
-              }
-            }
-        ),
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(64),
+                        child: Text(
+                          "Something went wrong: ${snapshot.error}",
+                          softWrap: true,
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .labelMedium,
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const LinearProgressIndicator();
+                  }
+                }
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: ExpandingInputFab(
+              onInputChanged: (String text) {
+                if (_debouncer?.isActive ?? false) _debouncer?.cancel();
+                if (text.isEmpty) {
+                  setState(() {
+                    _restoreFriendsList();
+                  });
+                }
+                _debouncer = Timer(const Duration(milliseconds: 500), () {
+                  setState(() {
+                    if (text.isNotEmpty) {
+                      _searchForUsers(text);
+                    }
+                  });
+                });
+              },
+              onExpansionChanged: (expanded) {
+                if (_debouncer?.isActive ?? false) _debouncer?.cancel();
+                if (!expanded) {
+                  setState(() {
+                    _restoreFriendsList();
+                  });
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
