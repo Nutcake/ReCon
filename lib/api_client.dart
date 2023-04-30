@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:contacts_plus/models/message.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +8,11 @@ import 'package:contacts_plus/models/authentication_data.dart';
 import 'package:signalr_netcore/http_connection_options.dart';
 import 'package:signalr_netcore/hub_connection.dart';
 import 'package:signalr_netcore/hub_connection_builder.dart';
+import 'package:signalr_netcore/ihub_protocol.dart';
+import 'package:signalr_netcore/msgpack_hub_protocol.dart';
+import 'package:signalr_netcore/web_supporting_http_client.dart';
 import 'package:uuid/uuid.dart';
+import 'package:logging/logging.dart';
 
 import 'config.dart';
 
@@ -17,21 +22,17 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  static final ApiClient _singleton = ApiClient._internal();
-
-  factory ApiClient() {
-    return _singleton;
+  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData {
+    if (_authenticationData.isAuthenticated) {
+      hub.start();
+    }
   }
 
-  ApiClient._internal();
+  late final NeosHub hub = NeosHub(token: authorizationHeader.values.first);
+  final AuthenticationData _authenticationData;
 
-  final NeosHub _hub = NeosHub();
-  AuthenticationData? _authenticationData;
-
-  set authenticationData(value) => _authenticationData = value;
-
-  String get userId => _authenticationData!.userId;
-  bool get isAuthenticated => _authenticationData?.isAuthenticated ?? false;
+  String get userId => _authenticationData.userId;
+  bool get isAuthenticated => _authenticationData.isAuthenticated;
 
   static Future<AuthenticationData> tryLogin({
     required String username,
@@ -104,7 +105,7 @@ class ApiClient {
   }
 
   Map<String, String> get authorizationHeader => {
-    "Authorization": "neos ${_authenticationData!.userId}:${_authenticationData!.token}"
+    "Authorization": "neos ${_authenticationData.userId}:${_authenticationData.token}"
   };
 
   static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}/api$path");
@@ -136,19 +137,38 @@ class ApiClient {
 }
 
 class NeosHub {
-  final HubConnection hubConnection;
-  late final Future<void>? _hubConnectedFuture;
+  late final HubConnection hubConnection;
+  final Logger _logger = Logger("NeosHub");
 
-  NeosHub() : hubConnection = HubConnectionBuilder()
-      .withUrl(Config.neosHubUrl, options: HttpConnectionOptions())
-      .withAutomaticReconnect()
-      .build() {
-    _hubConnectedFuture = hubConnection.start()?.whenComplete(() {
+  NeosHub({required String token}) {
+    hubConnection = HubConnectionBuilder()
+        .withUrl(
+      Config.neosHubUrl,
+      options: HttpConnectionOptions(
+          headers: MessageHeaders()
+            ..setHeaderValue("Authorization", token),
+          httpClient: WebSupportingHttpClient(
+            _logger,
+          ),
+          logger: _logger,
+          logMessageContent: true
+      ),
+    ).withAutomaticReconnect().build();
+    hubConnection.onreconnecting(({error}) {
+      log("onreconnecting called with error $error");
+    });
+    hubConnection.onreconnected(({connectionId}) {
+      log("onreconnected called");
+    });
+  }
+
+  void start() {
+    hubConnection.start()?.onError((error, stackTrace) => log(error.toString())).whenComplete(() {
       log("Hub connection established");
     });
   }
-}
 
-class BaseClient {
-  static final client = ApiClient();
+  Future<void> sendMessage(Message message) async {
+    await hubConnection.send("SendMessage", args: [message.toMap()]);
+  }
 }

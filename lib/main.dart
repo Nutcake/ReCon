@@ -5,50 +5,62 @@ import 'api_client.dart';
 import 'models/authentication_data.dart';
 
 void main() {
-  runApp(ContactsPlus());
+  runApp(const ContactsPlus());
 }
 
-class ContactsPlus extends StatelessWidget {
-  ContactsPlus({super.key});
+class ContactsPlus extends StatefulWidget {
+  const ContactsPlus({super.key});
+
+  @override
+  State<ContactsPlus> createState() => _ContactsPlusState();
+}
+
+class _ContactsPlusState extends State<ContactsPlus> {
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
+  AuthenticationData _authData = AuthenticationData.unauthenticated();
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Contacts+',
-      theme: ThemeData(
-        textTheme: _typography.white,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
+    return ClientHolder(
+      authenticationData: _authData,
+      child: MaterialApp(
+        title: 'Contacts+',
+        theme: ThemeData(
+            textTheme: _typography.white,
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
+        ),
+        home: _authData.isAuthenticated ?
+        const HomeScreen() :
+        LoginScreen(
+          onLoginSuccessful: (AuthenticationData authData) {
+            if (authData.isAuthenticated) {
+              setState(() {
+                _authData = authData;
+              });
+            }
+          },
+        ),
       ),
-      home: const SplashScreen(),
     );
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+class ClientHolder extends InheritedWidget {
+  final ApiClient client;
 
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
+  ClientHolder({super.key, required AuthenticationData authenticationData, required super.child})
+      : client = ApiClient(authenticationData: authenticationData);
 
-class _SplashScreenState extends State<SplashScreen> {
-  final ApiClient _apiClient = ApiClient();
-
-  @override
-  Widget build(BuildContext context) {
-    if (_apiClient.isAuthenticated) {
-      return const HomeScreen();
-    } else {
-      return LoginScreen(
-        onLoginSuccessful: (AuthenticationData authData) {
-          if (authData.isAuthenticated) {
-            setState(() {
-              _apiClient.authenticationData = authData;
-            });
-          }
-        },
-      );
-    }
+  static ClientHolder? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ClientHolder>();
   }
+
+  static ClientHolder of(BuildContext context) {
+    final ClientHolder? result = maybeOf(context);
+    assert(result != null, 'No AuthenticatedClient found in context');
+    return result!;
+  }
+
+  @override
+  bool updateShouldNotify(covariant ClientHolder oldWidget) => oldWidget.client != client;
 }

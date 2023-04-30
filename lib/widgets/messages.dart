@@ -1,5 +1,5 @@
-import 'package:contacts_plus/api_client.dart';
 import 'package:contacts_plus/apis/message_api.dart';
+import 'package:contacts_plus/main.dart';
 import 'package:contacts_plus/models/friend.dart';
 import 'package:contacts_plus/models/message.dart';
 import 'package:flutter/material.dart';
@@ -18,22 +18,27 @@ class Messages extends StatefulWidget {
 class _MessagesState extends State<Messages> {
   Future<Iterable<Message>>? _messagesFuture;
   final TextEditingController _messageTextController = TextEditingController();
+  ClientHolder? _clientHolder;
 
   bool _isSendable = false;
 
   void _refreshMessages() {
-    _messagesFuture = MessageApi.getUserMessages(userId: widget.friend.id)..then((value) => value.toList());
+    _messagesFuture = MessageApi.getUserMessages(_clientHolder!.client, userId: widget.friend.id)..then((value) => value.toList());
   }
 
   @override
-  void initState() {
-    super.initState();
-    _refreshMessages();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final clientHolder = ClientHolder.of(context);
+    if (_clientHolder != clientHolder) {
+      _clientHolder = clientHolder;
+      _refreshMessages();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final apiClient = ApiClient();
+    final apiClient = ClientHolder.of(context).client;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.friend.username),
@@ -110,7 +115,33 @@ class _MessagesState extends State<Messages> {
               padding: const EdgeInsets.only(right: 8.0),
               child: IconButton(
                 splashRadius: 24,
-                onPressed: _isSendable ? () {} : null,
+                onPressed: _isSendable ? () async {
+                  setState(() {
+                    _isSendable = false;
+                  });
+                  final message = Message(
+                    id: Message.generateId(),
+                    recipientId: widget.friend.id,
+                    senderId: apiClient.userId, type: MessageType.text,
+                    content: _messageTextController.text,
+                    sendTime: DateTime.now().toUtc(),
+                  );
+                  try {
+                    await apiClient.hub.sendMessage(message);
+                    _messageTextController.clear();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Failed to send message\n$e",
+                          maxLines: null,
+                        ),
+                      ),
+                    );
+                    setState(() {
+                      _isSendable = true;
+                    });
+                  }
+                } : null,
                 iconSize: 28,
                 icon: const Icon(Icons.send),
               ),

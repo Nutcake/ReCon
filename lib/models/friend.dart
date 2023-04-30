@@ -1,16 +1,22 @@
 import 'dart:developer';
 
-import 'package:flutter/foundation.dart';
+import 'package:contacts_plus/models/user_profile.dart';
 
 class Friend extends Comparable {
   final String id;
   final String username;
   final UserStatus userStatus;
+  final UserProfile userProfile;
 
-  Friend({required this.id, required this.username, required this.userStatus});
+  Friend({required this.id, required this.username, required this.userStatus, required this.userProfile});
 
   factory Friend.fromMap(Map map) {
-    return Friend(id: map["id"], username: map["friendUsername"], userStatus: UserStatus.fromMap(map["userStatus"]));
+    return Friend(
+      id: map["id"],
+      username: map["friendUsername"],
+      userStatus: UserStatus.fromMap(map["userStatus"]),
+      userProfile: UserProfile.fromMap(map["profile"] ?? {"iconUrl": ""}),
+    );
   }
 
   @override
