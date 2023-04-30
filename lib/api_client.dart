@@ -9,7 +9,6 @@ import 'package:signalr_netcore/http_connection_options.dart';
 import 'package:signalr_netcore/hub_connection.dart';
 import 'package:signalr_netcore/hub_connection_builder.dart';
 import 'package:signalr_netcore/ihub_protocol.dart';
-import 'package:signalr_netcore/msgpack_hub_protocol.dart';
 import 'package:signalr_netcore/web_supporting_http_client.dart';
 import 'package:uuid/uuid.dart';
 import 'package:logging/logging.dart';
@@ -24,7 +23,7 @@ class ApiClient {
 
   ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData {
     if (_authenticationData.isAuthenticated) {
-      hub.start();
+      //hub.start();
     }
   }
 
@@ -160,6 +159,7 @@ class NeosHub {
     hubConnection.onreconnected(({connectionId}) {
       log("onreconnected called");
     });
+    hubConnection.on("ReceiveMessage", _handleReceiveMessage);
   }
 
   void start() {
@@ -170,5 +170,13 @@ class NeosHub {
 
   Future<void> sendMessage(Message message) async {
     await hubConnection.send("SendMessage", args: [message.toMap()]);
+  }
+
+  void _handleReceiveMessage(List<Object?>? params) {
+    log("Message received.");
+    if (params == null) return;
+    for(var obj in params) {
+      log("$obj");
+    }
   }
 }

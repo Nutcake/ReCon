@@ -22,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<List>? _friendFuture;
   ClientHolder? _clientHolder;
   Timer? _debouncer;
+  bool _searchIsLoading = false;
 
   @override
   void dispose() {
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _refreshFriendsList() {
+    _searchIsLoading = true;
     _listFuture = FriendApi.getFriendsList(_clientHolder!.client).then((Iterable<Friend> value) =>
     value.toList()
       ..sort((a, b) {
@@ -54,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       ),
-    );
+    ).whenComplete(() => setState((){ _searchIsLoading = false; }));
     _friendFuture = _listFuture;
   }
 
@@ -64,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ..sort((a, b) {
         return a.username.length.compareTo(b.username.length);
       },)
-    );
+    ).whenComplete(() => setState((){ _searchIsLoading = false; }));
   }
 
   void _restoreFriendsList() {
@@ -102,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     );
                   } else if (snapshot.hasError) {
+                    FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(64),
@@ -116,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   } else {
-                    return const LinearProgressIndicator();
+                    return const SizedBox.shrink();
                   }
                 }
             ),
@@ -128,15 +131,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (_debouncer?.isActive ?? false) _debouncer?.cancel();
                 if (text.isEmpty) {
                   setState(() {
+                    _searchIsLoading = false;
                     _restoreFriendsList();
                   });
+                  return;
                 }
+                setState(() {
+                  _searchIsLoading = true;
+                });
                 _debouncer = Timer(const Duration(milliseconds: 500), () {
-                  setState(() {
-                    if (text.isNotEmpty) {
-                      _searchForUsers(text);
-                    }
-                  });
+                    setState(() {
+                      if(text.isNotEmpty) {
+                        _searchForUsers(text);
+                      } else {
+                        _searchIsLoading = false;
+                      }
+                    });
                 });
               },
               onExpansionChanged: (expanded) {
@@ -149,6 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
+          if (_searchIsLoading) const Align(alignment: Alignment.topCenter, child: LinearProgressIndicator(),)
         ],
       ),
     );

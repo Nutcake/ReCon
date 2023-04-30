@@ -1,8 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus/apis/message_api.dart';
+import 'package:contacts_plus/aux.dart';
 import 'package:contacts_plus/main.dart';
 import 'package:contacts_plus/models/friend.dart';
 import 'package:contacts_plus/models/message.dart';
+import 'package:contacts_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
 class Messages extends StatefulWidget {
@@ -12,36 +16,111 @@ class Messages extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() => _MessagesState();
-
 }
 
 class _MessagesState extends State<Messages> {
+  static const double headerItemSize = 300.0;
   Future<Iterable<Message>>? _messagesFuture;
   final TextEditingController _messageTextController = TextEditingController();
   ClientHolder? _clientHolder;
+  MessageCacheHolder? _cacheHolder;
 
+  bool _headerExpanded = false;
   bool _isSendable = false;
 
+  double get _headerHeight => _headerExpanded ? headerItemSize : 0;
+  double get _chevronTurns => _headerExpanded ? -1/4 : 1/4;
+
   void _refreshMessages() {
-    _messagesFuture = MessageApi.getUserMessages(_clientHolder!.client, userId: widget.friend.id)..then((value) => value.toList());
+    final cache = _cacheHolder?.getCache(widget.friend.id);
+    if (cache?.isValid ?? false) {
+      _messagesFuture = Future(() => cache!.messages);
+    } else {
+      _messagesFuture = MessageApi.getUserMessages(_clientHolder!.client, userId: widget.friend.id)
+        ..then((value) {
+          final list = value.toList();
+          _cacheHolder?.setCache(widget.friend.id, list);
+          return list;
+        });
+    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final clientHolder = ClientHolder.of(context);
+    bool dirty = false;
     if (_clientHolder != clientHolder) {
       _clientHolder = clientHolder;
-      _refreshMessages();
+      dirty = true;
     }
+    final cacheHolder = MessageCacheHolder.of(context);
+    if (_cacheHolder != cacheHolder) {
+      _cacheHolder = cacheHolder;
+      dirty = true;
+    }
+    if (dirty) _refreshMessages();
   }
 
   @override
   Widget build(BuildContext context) {
     final apiClient = ClientHolder.of(context).client;
+    var sessions = widget.friend.userStatus.activeSessions;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.friend.username),
+        actions: [
+          if(sessions.isNotEmpty) AnimatedRotation(
+            turns: _chevronTurns,
+            curve: Curves.easeOutCirc,
+            duration: const Duration(milliseconds: 250),
+            child: IconButton(
+              onPressed: () {
+              setState(() {
+                _headerExpanded = !_headerExpanded;
+              });
+            },
+              icon: const Icon(Icons.chevron_right),
+            ),
+          )
+        ],
+        scrolledUnderElevation: 0.0,
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        bottom: sessions.isEmpty ? null : PreferredSize(
+          preferredSize: Size.fromHeight(_headerHeight),
+          child: AnimatedContainer(
+            height: _headerHeight,
+            duration: const Duration(milliseconds: 400),
+            child: Column(
+              children: sessions.getRange(0, _headerExpanded ? sessions.length : 1).map((e) => Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GenericAvatar(imageUri: Aux.neosDbToHttp(e.thumbnail),),
+                  ),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(e.name),
+                        Text("${e.sessionUsers.length} users active"),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  if (sessions.length > 1) TextButton(onPressed: (){
+                    setState(() {
+                      _headerExpanded = !_headerExpanded;
+                    });
+                  }, child: Text("+${sessions.length-1}"),)
+                ],
+              )).toList(),
+            ),
+          ),
+        ),
       ),
       body: FutureBuilder(
         future: _messagesFuture,
@@ -59,19 +138,34 @@ class _MessagesState extends State<Messages> {
               },
             );
           } else if (snapshot.hasError) {
-            return Column(
-              children: [
-                Text("Failed to load messages:\n${snapshot.error}"),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _refreshMessages();
-                    });
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("Retry"),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("Failed to load messages:", style: Theme.of(context).textTheme.titleMedium,),
+                    const SizedBox(height: 16,),
+                    Text("${snapshot.error}"),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _refreshMessages();
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      ),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text("Retry"),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             );
           } else {
             return const LinearProgressIndicator();
@@ -79,11 +173,12 @@ class _MessagesState extends State<Messages> {
         },
       ),
       bottomNavigationBar: BottomAppBar(
+        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 6),
         child: Row(
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                padding: const EdgeInsets.all(8),
                 child: TextField(
                   controller: _messageTextController,
                   maxLines: 4,
@@ -102,17 +197,16 @@ class _MessagesState extends State<Messages> {
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: "Send a message to ${widget.friend.username}...",
-                    hintStyle: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white54),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.all(16),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
+                      borderRadius: BorderRadius.circular(24)
+                    )
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: const EdgeInsets.only(left: 8, right: 4.0),
               child: IconButton(
                 splashRadius: 24,
                 onPressed: _isSendable ? () async {

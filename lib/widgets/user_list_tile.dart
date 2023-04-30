@@ -1,6 +1,5 @@
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus/models/user.dart';
+import 'package:contacts_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -20,21 +19,7 @@ class _UserListTileState extends State<UserListTile> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CachedNetworkImage(
-        imageBuilder: (context, imageProvider) {
-          return CircleAvatar(
-            foregroundImage: imageProvider,
-          );
-        },
-        imageUrl: widget.user.userProfile?.httpIconUri.toString() ?? "",
-        placeholder: (context, url) {
-          return const CircleAvatar(backgroundColor: Colors.white54,);
-        },
-        errorWidget: (context, error, what) => const CircleAvatar(
-          backgroundColor: Colors.transparent,
-          child: Icon(Icons.person),
-        ),
-      ),
+      leading: GenericAvatar(imageUri: widget.user.userProfile?.iconUrl ?? "",),
       title: Text(widget.user.username),
       subtitle: Text(_regDateFormat.format(widget.user.registrationDate)),
       trailing: IconButton(
@@ -43,6 +28,7 @@ class _UserListTileState extends State<UserListTile> {
             _localAdded = !_localAdded;
           });
         },
+        splashRadius: 24,
         icon: _localAdded ? const Icon(Icons.person_remove_alt_1) : const Icon(Icons.person_add_alt_1),
       ),
     );

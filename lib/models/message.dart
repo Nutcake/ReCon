@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:developer';
 
+import 'package:contacts_plus/config.dart';
 import 'package:uuid/uuid.dart';
 
 enum MessageType {
@@ -66,5 +68,20 @@ class Message {
 
   static String generateId() {
     return "MSG-${const Uuid().v4()}";
+  }
+}
+
+class MessageCache {
+  late final Timer _timer;
+  final List<Message> _messages;
+  bool get isValid => _timer.isActive;
+
+  List<Message> get messages => _messages;
+
+  MessageCache({required List<Message> messages})
+      : _messages = messages, _timer = Timer(const Duration(seconds: Config.messageCacheValiditySeconds),() {});
+
+  void invalidate() {
+    _timer.cancel();
   }
 }

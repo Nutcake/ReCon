@@ -26,10 +26,10 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
         children: [
           AnimatedSize(
             alignment: Alignment.bottomRight,
-            duration: const Duration(milliseconds: 300),
-            reverseDuration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            child:  Container(
+            duration: const Duration(milliseconds: 200),
+            reverseDuration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 color: Theme.of(context).colorScheme.secondaryContainer,

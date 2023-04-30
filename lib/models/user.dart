@@ -22,4 +22,13 @@ class User {
       userProfile: profile,
     );
   }
+
+  Map toMap() {
+    return {
+      "id": id,
+      "username": username,
+      "registrationDate": registrationDate.toIso8601String(),
+      "profile": userProfile?.toMap(),
+    };
+  }
 }

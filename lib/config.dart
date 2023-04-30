@@ -6,4 +6,6 @@ class Config {
   static const String neosCdnUrl = "https://cloudx.azureedge.net/assets/";
   static const String neosAssetsUrl = "https://cloudxstorage.blob.core.windows.net/assets/";
   static const String neosHubUrl = "$apiBaseUrl/hub";
+
+  static const int messageCacheValiditySeconds = 90;
 }
