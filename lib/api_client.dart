@@ -1,17 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
-import 'package:contacts_plus/models/message.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:contacts_plus/models/authentication_data.dart';
-import 'package:signalr_netcore/http_connection_options.dart';
-import 'package:signalr_netcore/hub_connection.dart';
-import 'package:signalr_netcore/hub_connection_builder.dart';
-import 'package:signalr_netcore/ihub_protocol.dart';
-import 'package:signalr_netcore/web_supporting_http_client.dart';
 import 'package:uuid/uuid.dart';
-import 'package:logging/logging.dart';
 
 import 'config.dart';
 
@@ -21,13 +15,8 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData {
-    if (_authenticationData.isAuthenticated) {
-      //hub.start();
-    }
-  }
+  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
 
-  late final NeosHub hub = NeosHub(token: authorizationHeader.values.first);
   final AuthenticationData _authenticationData;
 
   String get userId => _authenticationData.userId;
@@ -103,9 +92,7 @@ class ApiClient {
     }
   }
 
-  Map<String, String> get authorizationHeader => {
-    "Authorization": "neos ${_authenticationData.userId}:${_authenticationData.token}"
-  };
+  Map<String, String> get authorizationHeader => _authenticationData.authorizationHeader;
 
   static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}/api$path");
 
@@ -135,48 +122,22 @@ class ApiClient {
   }
 }
 
-class NeosHub {
-  late final HubConnection hubConnection;
-  final Logger _logger = Logger("NeosHub");
+class ClientHolder extends InheritedWidget {
+  final ApiClient client;
 
-  NeosHub({required String token}) {
-    hubConnection = HubConnectionBuilder()
-        .withUrl(
-      Config.neosHubUrl,
-      options: HttpConnectionOptions(
-          headers: MessageHeaders()
-            ..setHeaderValue("Authorization", token),
-          httpClient: WebSupportingHttpClient(
-            _logger,
-          ),
-          logger: _logger,
-          logMessageContent: true
-      ),
-    ).withAutomaticReconnect().build();
-    hubConnection.onreconnecting(({error}) {
-      log("onreconnecting called with error $error");
-    });
-    hubConnection.onreconnected(({connectionId}) {
-      log("onreconnected called");
-    });
-    hubConnection.on("ReceiveMessage", _handleReceiveMessage);
+  ClientHolder({super.key, required AuthenticationData authenticationData, required super.child})
+      : client = ApiClient(authenticationData: authenticationData);
+
+  static ClientHolder? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ClientHolder>();
   }
 
-  void start() {
-    hubConnection.start()?.onError((error, stackTrace) => log(error.toString())).whenComplete(() {
-      log("Hub connection established");
-    });
+  static ClientHolder of(BuildContext context) {
+    final ClientHolder? result = maybeOf(context);
+    assert(result != null, 'No AuthenticatedClient found in context');
+    return result!;
   }
 
-  Future<void> sendMessage(Message message) async {
-    await hubConnection.send("SendMessage", args: [message.toMap()]);
-  }
-
-  void _handleReceiveMessage(List<Object?>? params) {
-    log("Message received.");
-    if (params == null) return;
-    for(var obj in params) {
-      log("$obj");
-    }
-  }
+  @override
+  bool updateShouldNotify(covariant ClientHolder oldWidget) => oldWidget.client != client;
 }

@@ -20,4 +20,8 @@ class AuthenticationData {
   }
 
   factory AuthenticationData.unauthenticated() => _unauthenticated;
+
+  Map<String, String> get authorizationHeader => {
+    "Authorization": "neos $userId:$token"
+  };
 }

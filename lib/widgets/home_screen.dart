@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:contacts_plus/api_client.dart';
 import 'package:contacts_plus/apis/friend_api.dart';
 import 'package:contacts_plus/apis/user_api.dart';
-import 'package:contacts_plus/main.dart';
 import 'package:contacts_plus/models/friend.dart';
 import 'package:contacts_plus/models/user.dart';
 import 'package:contacts_plus/widgets/expanding_input_fab.dart';

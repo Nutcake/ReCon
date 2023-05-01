@@ -29,18 +29,25 @@ enum MessageType {
   }
 }
 
-class Message {
+enum MessageState {
+  local,
+  sent,
+  read,
+}
+
+class Message extends Comparable {
   final String id;
   final String recipientId;
   final String senderId;
   final MessageType type;
   final String content;
   final DateTime sendTime;
+  final MessageState state;
 
   Message({required this.id, required this.recipientId, required this.senderId, required this.type,
-    required this.content, required this.sendTime});
+    required this.content, required this.sendTime, this.state=MessageState.local});
 
-  factory Message.fromMap(Map map) {
+  factory Message.fromMap(Map map, {MessageState? withState}) {
     final typeString = (map["messageType"] as String?) ?? "";
     final type = MessageType.fromName(typeString);
     if (type == MessageType.unknown && typeString.isNotEmpty) {
@@ -53,6 +60,17 @@ class Message {
       type: type,
       content: map["content"],
       sendTime: DateTime.parse(map["sendTime"]),
+      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.local)
+    );
+  }
+
+  Message copy() => copyWith();
+
+  Message copyWith({String? id, String? recipientId, String? senderId, MessageType? type, String? content,
+    DateTime? sendTime, MessageState? state}) {
+    return Message(id: id ?? this.id, recipientId: recipientId ?? this.recipientId, senderId: senderId ?? this.senderId,
+        type: type ?? this.type, content: content ?? this.content, sendTime: sendTime ?? this.sendTime,
+        state: state ?? this.state
     );
   }
 
@@ -69,19 +87,18 @@ class Message {
   static String generateId() {
     return "MSG-${const Uuid().v4()}";
   }
+
+  @override
+  int compareTo(other) {
+    return other.sendTime.compareTo(sendTime);
+  }
 }
 
 class MessageCache {
-  late final Timer _timer;
   final List<Message> _messages;
-  bool get isValid => _timer.isActive;
 
   List<Message> get messages => _messages;
 
   MessageCache({required List<Message> messages})
-      : _messages = messages, _timer = Timer(const Duration(seconds: Config.messageCacheValiditySeconds),() {});
-
-  void invalidate() {
-    _timer.cancel();
-  }
+      : _messages = messages;
 }

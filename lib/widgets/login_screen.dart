@@ -15,9 +15,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  late final Future<AuthenticationData> _cachedLoginFuture = ApiClient.tryCachedLogin().then((value) {
+  late final Future<AuthenticationData> _cachedLoginFuture = ApiClient.tryCachedLogin().then((value) async {
     if (value.isAuthenticated) {
-      widget.onLoginSuccessful?.call(value);
+      await widget.onLoginSuccessful?.call(value);
     }
     return value;
   });
@@ -68,8 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
         _error = "";
         _isLoading = false;
       });
-      widget.onLoginSuccessful?.call(authData);
-    } catch (e) {
+      await widget.onLoginSuccessful?.call(authData);
+    } catch (e, s) {
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
       setState(() {
         _error = "Login unsuccessful: $e.";
         _isLoading = false;
