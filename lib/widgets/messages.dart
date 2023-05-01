@@ -1,7 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/api_client.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/neos_hub.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
@@ -17,29 +20,29 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
-  static const double headerItemSize = 120.0;
   Future<Iterable<Message>>? _messagesFuture;
   final TextEditingController _messageTextController = TextEditingController();
+  final ScrollController _sessionListScrollController = ScrollController();
   ClientHolder? _clientHolder;
   HubHolder? _cacheHolder;
 
-  bool _headerExpanded = false;
   bool _isSendable = false;
-
-  double get _headerHeight => _headerExpanded ? headerItemSize : 0;
-  double get _chevronTurns => _headerExpanded ? -1/4 : 1/4;
+  bool _showSessionListChevron = false;
+  double get _shevronOpacity => _showSessionListChevron ? 1.0 : 0.0;
 
   void _loadMessages() {
     final cache = _cacheHolder?.hub.getCache(widget.friend.id);
     if (cache != null) {
       _messagesFuture = Future(() => cache.messages);
     } else {
-      _messagesFuture = MessageApi.getUserMessages(_clientHolder!.client, userId: widget.friend.id)
+      _messagesFuture = MessageApi.getUserMessages(
+          _clientHolder!.client, userId: widget.friend.id)
         ..then((value) {
           final list = value.toList();
           list.sort();
           _cacheHolder?.hub.setCache(widget.friend.id, list);
-          _cacheHolder?.hub.registerListener(widget.friend.id, () => setState(() {}));
+          _cacheHolder?.hub.registerListener(
+              widget.friend.id, () => setState(() {}));
           return list;
         });
     }
@@ -65,18 +68,44 @@ class _MessagesState extends State<Messages> {
   @override
   void dispose() {
     _cacheHolder?.hub.unregisterListener(widget.friend.id);
+    _messageTextController.dispose();
+    _sessionListScrollController.dispose();
     super.dispose();
   }
 
   @override
+  void initState() {
+    super.initState();
+    _sessionListScrollController.addListener(() {
+      if (_sessionListScrollController.position.maxScrollExtent > 0 && !_showSessionListChevron) {
+        setState(() {
+          _showSessionListChevron = true;
+        });
+      }
+      if (_sessionListScrollController.position.atEdge && _sessionListScrollController.position.pixels > 0
+          && _showSessionListChevron) {
+        setState(() {
+          _showSessionListChevron = false;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final apiClient = ClientHolder.of(context).client;
+    final apiClient = ClientHolder
+        .of(context)
+        .client;
     var sessions = widget.friend.userStatus.activeSessions;
+    final appBarColor = Theme
+        .of(context)
+        .colorScheme
+        .surfaceVariant;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.friend.username),
         scrolledUnderElevation: 0.0,
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        backgroundColor: appBarColor,
         /*bottom: sessions.isEmpty ? null : PreferredSize(
           preferredSize: Size.fromHeight(_headerHeight),
           child: Column(
@@ -109,131 +138,200 @@ class _MessagesState extends State<Messages> {
           ),
         ),*/
       ),
-      body: FutureBuilder(
-        future: _messagesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final data = _cacheHolder?.hub.getCache(widget.friend.id)?.messages ?? [];
-            return Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: ListView.builder(
-                reverse: true,
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  final entry = data.elementAt(index);
-                  return entry.senderId == apiClient.userId
+      body: Stack(
+        children: [
+          FutureBuilder(
+            future: _messagesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final data = _cacheHolder?.hub
+                    .getCache(widget.friend.id)
+                    ?.messages ?? [];
+                return ListView.builder(
+                  reverse: true,
+                  itemCount: data.length,
+                  itemBuilder: (context, index) {
+                    final entry = data.elementAt(index);
+                    return entry.senderId == apiClient.userId
                         ? MyMessageBubble(message: entry)
                         : OtherMessageBubble(message: entry);
-                },
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text("Failed to load messages:", style: Theme.of(context).textTheme.titleMedium,),
-                    const SizedBox(height: 16,),
-                    Text("${snapshot.error}"),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _loadMessages();
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                      ),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text("Retry"),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          } else {
-            return const LinearProgressIndicator();
-          }
-        },
-      ),
-      bottomNavigationBar: BottomAppBar(
-        padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 6),
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextField(
-                  controller: _messageTextController,
-                  maxLines: 4,
-                  minLines: 1,
-                  onChanged: (text) {
-                    if (text.isNotEmpty && !_isSendable) {
-                      setState(() {
-                        _isSendable = true;
-                      });
-                    } else if (text.isEmpty && _isSendable) {
-                      setState(() {
-                        _isSendable = false;
-                      });
-                    }
                   },
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: "Send a message to ${widget.friend.username}...",
-                    contentPadding: const EdgeInsets.all(16),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24)
-                    )
+                );
+              } else if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128,),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text("Failed to load messages:", style: Theme
+                            .of(context)
+                            .textTheme
+                            .titleMedium,),
+                        const SizedBox(height: 16,),
+                        Text("${snapshot.error}"),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _loadMessages();
+                            });
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme
+                                .of(context)
+                                .colorScheme
+                                .secondaryContainer,
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 16),
+                          ),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text("Retry"),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              } else {
+                return Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: const [
+                    LinearProgressIndicator(),
+                  ],
+                );
+              }
+            },
+          ),
+          if (sessions.isNotEmpty) Positioned(
+            top: 0.0,
+            left: 0.0,
+            right: 0.0,
+            child: Container(
+              constraints: const BoxConstraints(maxHeight: 64),
+              decoration: BoxDecoration(
+                color: appBarColor,
+                border: const Border(top: BorderSide(width: 1, color: Colors.black26), )
+              ),
+              child: Stack(
+                children: [
+                  ListView.builder(
+                    controller: _sessionListScrollController,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: sessions.length,
+                    itemBuilder: (context, index) => SessionTile(session: sessions[index]),
+                  ),
+                  AnimatedOpacity(
+                    opacity: _shevronOpacity,
+                    curve: Curves.easeOut,
+                    duration: const Duration(milliseconds: 200),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [
+                              appBarColor.withOpacity(0),
+                              appBarColor,
+                              appBarColor,
+                            ],
+                          ),
+                        ),
+                        height: double.infinity,
+                        child: const Icon(Icons.chevron_right),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: MediaQuery
+            .of(context)
+            .viewInsets,
+        child: BottomAppBar(
+          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: TextField(
+                    controller: _messageTextController,
+                    maxLines: 4,
+                    minLines: 1,
+                    onChanged: (text) {
+                      if (text.isNotEmpty && !_isSendable) {
+                        setState(() {
+                          _isSendable = true;
+                        });
+                      } else if (text.isEmpty && _isSendable) {
+                        setState(() {
+                          _isSendable = false;
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                        isDense: true,
+                        hintText: "Send a message to ${widget.friend
+                            .username}...",
+                        contentPadding: const EdgeInsets.all(16),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24)
+                        )
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8, right: 4.0),
-              child: IconButton(
-                splashRadius: 24,
-                onPressed: _isSendable ? () async {
-                  setState(() {
-                    _isSendable = false;
-                  });
-                  final message = Message(
-                    id: Message.generateId(),
-                    recipientId: widget.friend.id,
-                    senderId: apiClient.userId, type: MessageType.text,
-                    content: _messageTextController.text,
-                    sendTime: DateTime.now().toUtc(),
-                  );
-                  try {
-                    if (_cacheHolder == null) {
-                      throw "Hub not connected.";
-                    }
-                    _cacheHolder!.hub.sendMessage(message);
-                    _messageTextController.clear();
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Failed to send message\n$e",
-                          maxLines: null,
-                        ),
-                      ),
-                    );
+              Padding(
+                padding: const EdgeInsets.only(left: 8, right: 4.0),
+                child: IconButton(
+                  splashRadius: 24,
+                  onPressed: _isSendable ? () async {
                     setState(() {
-                      _isSendable = true;
+                      _isSendable = false;
                     });
-                  }
-                } : null,
-                iconSize: 28,
-                icon: const Icon(Icons.send),
-              ),
-            )
-          ],
+                    final message = Message(
+                      id: Message.generateId(),
+                      recipientId: widget.friend.id,
+                      senderId: apiClient.userId,
+                      type: MessageType.text,
+                      content: _messageTextController.text,
+                      sendTime: DateTime.now().toUtc(),
+                    );
+                    try {
+                      if (_cacheHolder == null) {
+                        throw "Hub not connected.";
+                      }
+                      _cacheHolder!.hub.sendMessage(message);
+                      _messageTextController.clear();
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Failed to send message\n$e",
+                            maxLines: null,
+                          ),
+                        ),
+                      );
+                      setState(() {
+                        _isSendable = true;
+                      });
+                    }
+                  } : null,
+                  iconSize: 28,
+                  icon: const Icon(Icons.send),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -383,5 +481,129 @@ class MessageStateIndicator extends StatelessWidget {
       color: messageState == MessageState.read ? Theme.of(context).colorScheme.primary : null,
     );
   }
+}
 
+class SessionTile extends StatelessWidget {
+  const SessionTile({required this.session, super.key});
+  final Session session;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        showDialog(context: context, builder: (context) {
+          final ScrollController userListScrollController = ScrollController();
+          final thumbnailUri = Aux.neosDbToHttp(session.thumbnail);
+          return Dialog(
+            insetPadding: const EdgeInsets.all(32),
+            child: Container(
+              constraints: const BoxConstraints(maxHeight: 400),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: ListView(
+                            children: [
+                              Text(session.name, style: Theme.of(context).textTheme.titleMedium),
+                              Text(session.description.isEmpty ? "No description." : session.description, style: Theme.of(context).textTheme.labelMedium),
+                              Text("Tags: ${session.tags.isEmpty ? "None" : session.tags.join(", ")}",
+                                style: Theme.of(context).textTheme.labelMedium,
+                                softWrap: true,
+                              ),
+                              Text("Users: ${session.sessionUsers.length}", style: Theme.of(context).textTheme.labelMedium),
+                              Text("Maximum users: ${session.maxUsers}", style: Theme.of(context).textTheme.labelMedium),
+                              Text("Headless: ${session.headlessHost ? "Yes" : "No"}", style: Theme.of(context).textTheme.labelMedium),
+                            ],
+                          ),
+                        ),
+                        if (session.sessionUsers.isNotEmpty) Expanded(
+                          child: Scrollbar(
+                            trackVisibility: true,
+                            controller: userListScrollController,
+                            thumbVisibility: true,
+                            child: ListView.builder(
+                              controller: userListScrollController,
+                              shrinkWrap: true,
+                              itemCount: session.sessionUsers.length,
+                              itemBuilder: (context, index) {
+                                final user = session.sessionUsers[index];
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(user.username, textAlign: TextAlign.end,),
+                                  subtitle: Text(user.isPresent ? "Active" : "Inactive", textAlign: TextAlign.end,),
+                                );
+                              },
+                            ),
+                          ),
+                        ) else Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.person_remove_alt_1_rounded),
+                                Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text("No one is currently playing.", textAlign: TextAlign.center,),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: thumbnailUri.isEmpty ? const Text("No Image") : CachedNetworkImage(
+                        imageUrl: thumbnailUri,
+                        placeholder: (context, url) {
+                          return const CircularProgressIndicator();
+                        },
+                        errorWidget: (context, error, what) => Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(Icons.no_photography),
+                            Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text("Failed to load Image"),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GenericAvatar(imageUri: Aux.neosDbToHttp(session.thumbnail), placeholderIcon: Icons.no_photography),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(session.name),
+                Text("${session.sessionUsers.length}/${session.maxUsers} active users")
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }

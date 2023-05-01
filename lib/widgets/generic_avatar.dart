@@ -1,17 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class GenericAvatar extends StatelessWidget {
-  const GenericAvatar({this.imageUri="", super.key});
+  const GenericAvatar({this.imageUri="", super.key, this.placeholderIcon=Icons.person});
 
   final String imageUri;
+  final IconData placeholderIcon;
 
   @override
   Widget build(BuildContext context) {
-    return imageUri.isEmpty ? const CircleAvatar(
+    return imageUri.isEmpty ? CircleAvatar(
       backgroundColor: Colors.transparent,
-      child: Icon(Icons.person),
+      child: Icon(placeholderIcon),
     ) : CachedNetworkImage(
       imageBuilder: (context, imageProvider) {
         return CircleAvatar(
@@ -21,11 +21,16 @@ class GenericAvatar extends StatelessWidget {
       },
       imageUrl: imageUri,
       placeholder: (context, url) {
-        return const CircleAvatar(backgroundColor: Colors.white54,);
+        return const CircleAvatar(
+            backgroundColor: Colors.white54,
+            child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: CircularProgressIndicator(color: Colors.black38, strokeWidth: 2),
+        ));
       },
-      errorWidget: (context, error, what) => const CircleAvatar(
+      errorWidget: (context, error, what) => CircleAvatar(
         backgroundColor: Colors.transparent,
-        child: Icon(Icons.person),
+        child: Icon(placeholderIcon),
       ),
     );
   }

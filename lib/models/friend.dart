@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
 
 class Friend extends Comparable {
@@ -34,42 +35,6 @@ class Friend extends Comparable {
         return 1;
       }
     }
-  }
-}
-
-class Session {
-  final String id;
-  final String name;
-  final List<SessionUser> sessionUsers;
-  final String thumbnail;
-  
-  Session({required this.id, required this.name, required this.sessionUsers, required this.thumbnail});
-  
-  factory Session.fromMap(Map map) {
-    return Session(
-      id: map["sessionId"],
-      name: map["name"],
-      sessionUsers: (map["sessionUsers"] as List? ?? []).map((entry) => SessionUser.fromMap(entry)).toList(),
-      thumbnail: map["thumbnail"]
-    );
-  }
-}
-
-class SessionUser {
-  final String id;
-  final String username;
-  final bool isPresent;
-  final int outputDevice;
-
-  SessionUser({required this.id, required this.username, required this.isPresent, required this.outputDevice});
-
-  factory SessionUser.fromMap(Map map) {
-    return SessionUser(
-      id: map["userID"],
-      username: map["username"],
-      isPresent: map["isPresent"],
-      outputDevice: map["outputDevice"],
-    );
   }
 }
 
