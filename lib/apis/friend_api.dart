@@ -1,9 +1,9 @@
 
 import 'dart:convert';
 
-import 'package:contacts_plus/api_client.dart';
-import 'package:contacts_plus/models/friend.dart';
-import 'package:contacts_plus/models/user.dart';
+import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/user.dart';
 
 class FriendApi {
   static Future<Iterable<Friend>> getFriendsList(ApiClient client) async {

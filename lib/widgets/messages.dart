@@ -1,10 +1,9 @@
-import 'package:contacts_plus/api_client.dart';
-import 'package:contacts_plus/apis/message_api.dart';
-import 'package:contacts_plus/aux.dart';
-import 'package:contacts_plus/models/friend.dart';
-import 'package:contacts_plus/models/message.dart';
-import 'package:contacts_plus/neos_hub.dart';
-import 'package:contacts_plus/widgets/generic_avatar.dart';
+import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/apis/message_api.dart';
+import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/neos_hub.dart';
+import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

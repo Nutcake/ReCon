@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:contacts_plus/models/user_profile.dart';
+import 'package:contacts_plus_plus/models/user_profile.dart';
 
 class Friend extends Comparable {
   final String id;

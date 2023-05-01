@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:contacts_plus/config.dart';
+import 'package:contacts_plus_plus/config.dart';
 import 'package:uuid/uuid.dart';
 
 enum MessageType {

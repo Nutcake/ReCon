@@ -1,4 +1,4 @@
-import 'package:contacts_plus/models/user_profile.dart';
+import 'package:contacts_plus_plus/models/user_profile.dart';
 
 class User {
   final String id;

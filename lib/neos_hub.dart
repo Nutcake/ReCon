@@ -1,13 +1,13 @@
 
 import 'dart:convert';
 import 'dart:developer';
-import 'package:contacts_plus/models/authentication_data.dart';
+import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:contacts_plus/api_client.dart';
-import 'package:contacts_plus/config.dart';
-import 'package:contacts_plus/models/message.dart';
+import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/config.dart';
+import 'package:contacts_plus_plus/models/message.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 enum EventType {

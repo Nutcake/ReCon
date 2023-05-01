@@ -1,5 +1,5 @@
-import 'package:contacts_plus/api_client.dart';
-import 'package:contacts_plus/models/authentication_data.dart';
+import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {

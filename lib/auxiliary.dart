@@ -1,4 +1,4 @@
-import 'package:contacts_plus/config.dart';
+import 'package:contacts_plus_plus/config.dart';
 import 'package:path/path.dart' as p;
 
 enum NeosDBEndpoint

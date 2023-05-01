@@ -1,23 +1,23 @@
-import 'package:contacts_plus/models/message.dart';
-import 'package:contacts_plus/neos_hub.dart';
-import 'package:contacts_plus/widgets/home_screen.dart';
-import 'package:contacts_plus/widgets/login_screen.dart';
+import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/neos_hub.dart';
+import 'package:contacts_plus_plus/widgets/home_screen.dart';
+import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'api_client.dart';
 import 'models/authentication_data.dart';
 
 void main() {
-  runApp(const ContactsPlus());
+  runApp(const ContactsPlusPlus());
 }
 
-class ContactsPlus extends StatefulWidget {
-  const ContactsPlus({super.key});
+class ContactsPlusPlus extends StatefulWidget {
+  const ContactsPlusPlus({super.key});
 
   @override
-  State<ContactsPlus> createState() => _ContactsPlusState();
+  State<ContactsPlusPlus> createState() => _ContactsPlusPlusState();
 }
 
-class _ContactsPlusState extends State<ContactsPlus> {
+class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
   AuthenticationData _authData = AuthenticationData.unauthenticated();
   final Map<String, MessageCache> _messageCache = {};
@@ -31,7 +31,7 @@ class _ContactsPlusState extends State<ContactsPlus> {
         authenticationData: _authData,
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Contacts+',
+          title: 'Contacts++',
           theme: ThemeData(
             useMaterial3: true,
             textTheme: _typography.white,
