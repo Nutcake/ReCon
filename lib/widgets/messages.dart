@@ -92,6 +92,24 @@ class _MessagesState extends State<Messages> {
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 final cache = snapshot.data as MessageCache;
+                if (cache.messages.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.message_outlined),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            "There are no messages here\nWhy not say hello?",
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                }
                 return ListView.builder(
                   reverse: true,
                   itemCount: cache.messages.length,
@@ -115,9 +133,10 @@ class _MessagesState extends State<Messages> {
                             .of(context)
                             .textTheme
                             .titleMedium,),
-                        const SizedBox(height: 16,),
-                        Text("${snapshot.error}"),
-                        const Spacer(),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text("${snapshot.error}"),
+                        ),
                         TextButton.icon(
                           onPressed: () {
                             setState(() {
@@ -125,10 +144,7 @@ class _MessagesState extends State<Messages> {
                             });
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: Theme
-                                .of(context)
-                                .colorScheme
-                                .secondaryContainer,
+
                             padding: const EdgeInsets.symmetric(
                                 vertical: 16, horizontal: 16),
                           ),
