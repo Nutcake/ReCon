@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:contacts_plus_plus/neos_hub.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -124,9 +125,13 @@ class ApiClient {
 
 class ClientHolder extends InheritedWidget {
   final ApiClient client;
+  late final NeosHub hub;
 
   ClientHolder({super.key, required AuthenticationData authenticationData, required super.child})
-      : client = ApiClient(authenticationData: authenticationData);
+      : client = ApiClient(authenticationData: authenticationData) {
+    hub = NeosHub(apiClient: client);
+  }
+
 
   static ClientHolder? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ClientHolder>();

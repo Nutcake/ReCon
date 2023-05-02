@@ -1,7 +1,6 @@
 
 import 'dart:convert';
 import 'dart:developer';
-import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -32,30 +31,34 @@ enum EventTarget {
 class NeosHub {
   static const String eofChar = "";
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
-  final AuthenticationData _authenticationData;
-  final Map<String, MessageCache> _messageCache;
+  final ApiClient _apiClient;
+  final Map<String, MessageCache> _messageCache = {};
   final Map<String, Function> _updateListeners = {};
   WebSocketChannel? _wsChannel;
 
-  NeosHub({required AuthenticationData authenticationData, required Map<String, MessageCache> messageCache})
-      : _authenticationData = authenticationData, _messageCache = messageCache {
+  NeosHub({required ApiClient apiClient})
+      : _apiClient = apiClient {
     start();
   }
 
-  MessageCache? getCache(String index) => _messageCache[index];
-
-  void setCache(String index, List<Message> messages) {
-    _messageCache[index] = MessageCache(messages: messages);
+  Future<MessageCache> getCache(String userId) async {
+    var cache = _messageCache[userId];
+    if (cache == null){
+      cache = MessageCache(apiClient: _apiClient, userId: userId);
+      await cache.loadInitialMessages();
+      _messageCache[userId] = cache;
+    }
+    return cache;
   }
 
   Future<void> start() async {
-    if (!_authenticationData.isAuthenticated) {
+    if (!_apiClient.isAuthenticated) {
       log("Hub not authenticated.");
       return;
     }
     final response = await http.post(
       Uri.parse("${Config.neosHubUrl}/negotiate"),
-      headers: _authenticationData.authorizationHeader,
+      headers: _apiClient.authorizationHeader,
     );
 
     ApiClient.checkResponse(response);
@@ -94,7 +97,7 @@ class NeosHub {
     }
   }
 
-  void _handleMessageEvent(body) {
+  void _handleMessageEvent(body) async {
     final target = EventTarget.parse(body["target"]);
     final args = body["arguments"];
     switch (target) {
@@ -104,49 +107,30 @@ class NeosHub {
       case EventTarget.messageSent:
         final msg = args[0];
         final message = Message.fromMap(msg, withState: MessageState.sent);
-        var cache = getCache(message.recipientId);
-        if (cache == null) {
-          setCache(message.recipientId, [message]);
-        } else {
-          // Possible race condition
-          final existingIndex = cache.messages.indexWhere((element) => element.id == message.id);
-          if (existingIndex == -1) {
-            cache.messages.add(message);
-          } else {
-            cache.messages[existingIndex] = message;
-          }
-          cache.messages.sort();
-        }
+        final cache = await getCache(message.recipientId);
+        cache.addMessage(message);
         notifyListener(message.recipientId);
         break;
       case EventTarget.messageReceived:
         final msg = args[0];
         final message = Message.fromMap(msg);
-        var cache = getCache(message.senderId);
-        if (cache == null) {
-          setCache(message.senderId, [message]);
-        } else {
-          cache.messages.add(message);
-          cache.messages.sort();
-        }
+        final cache = await getCache(message.senderId);
+        cache.addMessage(message);
         notifyListener(message.senderId);
         break;
       case EventTarget.messagesRead:
         final messageIds = args[0]["ids"] as List;
         final recipientId = args[0]["recipientId"];
-        final cache = getCache(recipientId ?? "");
-        if (cache == null) return;
+        final cache = await getCache(recipientId ?? "");
         for (var id in messageIds) {
-          final idx = cache.messages.indexWhere((element) => element.id == id);
-          if (idx == -1) continue;
-          cache.messages[idx] = cache.messages[idx].copyWith(state: MessageState.read);
+          cache.setMessageState(id, MessageState.read);
         }
         notifyListener(recipientId);
         break;
     }
   }
 
-  void sendMessage(Message message) {
+  void sendMessage(Message message) async {
     if (_wsChannel == null) throw "Neos Hub is not connected";
     final msgBody = message.toMap();
     final data = {
@@ -156,35 +140,9 @@ class NeosHub {
         msgBody
       ],
     };
+    final cache = await getCache(message.recipientId);
+    cache.messages.add(message);
     _wsChannel!.sink.add(jsonEncode(data)+eofChar);
-    var cache = _messageCache[message.recipientId];
-    if (cache == null) {
-      setCache(message.recipientId, [message]);
-      cache = getCache(message.recipientId);
-    } else {
-      cache.messages.add(message);
-    }
     notifyListener(message.recipientId);
   }
-}
-
-class HubHolder extends InheritedWidget {
-  HubHolder({super.key, required AuthenticationData authenticationData, required Map<String, MessageCache> messageCache, required super.child})
-      : hub = NeosHub(authenticationData: authenticationData, messageCache: messageCache);
-
-  final NeosHub hub;
-
-  static HubHolder? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<HubHolder>();
-  }
-
-  static HubHolder of(BuildContext context) {
-    final HubHolder? result = maybeOf(context);
-    assert(result != null, 'No HubHolder found in context');
-    return result!;
-  }
-
-  @override
-  bool updateShouldNotify(covariant HubHolder oldWidget) => hub._authenticationData != oldWidget.hub._authenticationData
-      || hub._messageCache != oldWidget.hub._messageCache;
 }

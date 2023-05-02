@@ -1,14 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/api_client.dart';
-import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
-import 'package:contacts_plus_plus/neos_hub.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class Messages extends StatefulWidget {
@@ -21,54 +18,34 @@ class Messages extends StatefulWidget {
 }
 
 class _MessagesState extends State<Messages> {
-  Future<Iterable<Message>>? _messagesFuture;
+  Future<MessageCache>? _messageCacheFuture;
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
   ClientHolder? _clientHolder;
-  HubHolder? _cacheHolder;
 
   bool _isSendable = false;
   bool _showSessionListChevron = false;
   double get _shevronOpacity => _showSessionListChevron ? 1.0 : 0.0;
 
-  void _loadMessages() {
-    final cache = _cacheHolder?.hub.getCache(widget.friend.id);
-    if (cache != null) {
-      _messagesFuture = Future(() => cache.messages);
-    } else {
-      _messagesFuture = MessageApi.getUserMessages(
-          _clientHolder!.client, userId: widget.friend.id)
-        ..then((value) {
-          final list = value.toList();
-          list.sort();
-          _cacheHolder?.hub.setCache(widget.friend.id, list);
-          _cacheHolder?.hub.registerListener(
-              widget.friend.id, () => setState(() {}));
-          return list;
-        });
-    }
-  }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final clientHolder = ClientHolder.of(context);
-    bool dirty = false;
     if (_clientHolder != clientHolder) {
       _clientHolder = clientHolder;
-      dirty = true;
     }
-    final cacheHolder = HubHolder.of(context);
-    if (_cacheHolder != cacheHolder) {
-      _cacheHolder = cacheHolder;
-      dirty = true;
-    }
-    if (dirty) _loadMessages();
+    _loadMessages();
+  }
+
+  void _loadMessages() {
+    _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id);
+    _clientHolder?.hub.registerListener(
+        widget.friend.id, () => setState(() {}));
   }
 
   @override
   void dispose() {
-    _cacheHolder?.hub.unregisterListener(widget.friend.id);
+    _clientHolder?.hub.unregisterListener(widget.friend.id);
     _messageTextController.dispose();
     _sessionListScrollController.dispose();
     super.dispose();
@@ -107,52 +84,19 @@ class _MessagesState extends State<Messages> {
         title: Text(widget.friend.username),
         scrolledUnderElevation: 0.0,
         backgroundColor: appBarColor,
-        /*bottom: sessions.isEmpty ? null : PreferredSize(
-          preferredSize: Size.fromHeight(_headerHeight),
-          child: Column(
-            children: sessions.getRange(0, _headerExpanded ? sessions.length : 1).map((e) => Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GenericAvatar(imageUri: Aux.neosDbToHttp(e.thumbnail),),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(e.name),
-                      Text("${e.sessionUsers.length} users active"),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                if (sessions.length > 1) TextButton(onPressed: (){
-                  setState(() {
-                    _headerExpanded = !_headerExpanded;
-                  });
-                }, child: Text("+${sessions.length-1}"),)
-              ],
-            )).toList(),
-          ),
-        ),*/
       ),
       body: Stack(
         children: [
           FutureBuilder(
-            future: _messagesFuture,
+            future: _messageCacheFuture,
             builder: (context, snapshot) {
               if (snapshot.hasData) {
-                final data = _cacheHolder?.hub
-                    .getCache(widget.friend.id)
-                    ?.messages ?? [];
+                final cache = snapshot.data as MessageCache;
                 return ListView.builder(
                   reverse: true,
-                  itemCount: data.length,
+                  itemCount: cache.messages.length,
                   itemBuilder: (context, index) {
-                    final entry = data.elementAt(index);
+                    final entry = cache.messages[index];
                     return entry.senderId == apiClient.userId
                         ? MyMessageBubble(message: entry)
                         : OtherMessageBubble(message: entry);
@@ -298,7 +242,7 @@ class _MessagesState extends State<Messages> {
                 padding: const EdgeInsets.only(left: 8, right: 4.0),
                 child: IconButton(
                   splashRadius: 24,
-                  onPressed: _isSendable ? () async {
+                  onPressed: _isSendable && _clientHolder != null ? () async {
                     setState(() {
                       _isSendable = false;
                     });
@@ -311,10 +255,7 @@ class _MessagesState extends State<Messages> {
                       sendTime: DateTime.now().toUtc(),
                     );
                     try {
-                      if (_cacheHolder == null) {
-                        throw "Hub not connected.";
-                      }
-                      _cacheHolder!.hub.sendMessage(message);
+                      _clientHolder!.hub.sendMessage(message);
                       _messageTextController.clear();
                       setState(() {});
                     } catch (e) {

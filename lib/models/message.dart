@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/apis/message_api.dart';
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:uuid/uuid.dart';
 
@@ -95,10 +98,54 @@ class Message extends Comparable {
 }
 
 class MessageCache {
-  final List<Message> _messages;
+  final List<Message> _messages = [];
+  final ApiClient _apiClient;
+  final String _userId;
+  Future? currentOperation;
 
   List<Message> get messages => _messages;
 
-  MessageCache({required List<Message> messages})
-      : _messages = messages;
+  MessageCache({required ApiClient apiClient, required String userId}) : _apiClient = apiClient, _userId = userId;
+
+  /// Adds a message to the cache, ensuring integrity of the message cache.
+  /// Returns true if the message was inserted into the cache and false if an existing message was overwritten.
+  bool addMessage(Message message) {
+    final existingIdx = _messages.indexWhere((element) => element.id == message.id);
+    if (existingIdx == -1) {
+      _messages.add(message);
+      _ensureIntegrity();
+    } else {
+      _messages[existingIdx] = message;
+      _messages.sort(); // Overwriting can't create duplicates, so we just need to sort.
+    }
+    return existingIdx == -1;
+  }
+
+  /// Sets the state of an existing message by id.
+  /// Returns true if a message with the specified id exists and was modified and false if the message doesn't exist.
+  bool setMessageState(String messageId, MessageState state) {
+    final messageIdx = _messages.indexWhere((element) => element.id == messageId);
+    if (messageIdx == -1) return false;
+    _messages[messageIdx] = _messages[messageIdx].copyWith(state: state);
+    return true;
+  }
+
+  Future<void> loadOlderMessages() async {
+    final oldest = _messages.first;
+    final olderMessages = await MessageApi.getUserMessages(_apiClient, userId: _userId, fromTime: oldest.sendTime);
+    _messages.insertAll(0, olderMessages);
+    _ensureIntegrity();
+  }
+
+  Future<void> loadInitialMessages() async {
+    final messages = await MessageApi.getUserMessages(_apiClient, userId: _userId);
+    _messages.clear();
+    _messages.addAll(messages);
+    _ensureIntegrity();
+  }
+
+  void _ensureIntegrity() {
+    _messages.sort();
+    _messages.unique((element) => element.id);
+  }
 }
