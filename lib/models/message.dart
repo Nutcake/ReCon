@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:contacts_plus_plus/api_client.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/config.dart';
 import 'package:uuid/uuid.dart';
 
 enum MessageType {
@@ -130,11 +129,15 @@ class MessageCache {
     return true;
   }
 
-  Future<void> loadOlderMessages() async {
-    final oldest = _messages.first;
-    final olderMessages = await MessageApi.getUserMessages(_apiClient, userId: _userId, fromTime: oldest.sendTime);
-    _messages.insertAll(0, olderMessages);
+  Future<MessageCache> loadOlderMessages() async {
+    // final olderMessages = await MessageApi.getUserMessages(_apiClient, userId: _userId, fromTime: _messages.last.sendTime);
+    // Loading older messages is not conveniently supported by the Neos api from what I can tell.
+    // We could just extend the amount of messages loaded from today, but that gets extremely inefficient very quickly.
+    // For now, just pretend there are no more messages.
+    final olderMessages = <Message>[];
+    _messages.addAll(olderMessages);
     _ensureIntegrity();
+    return this; //lmao
   }
 
   Future<void> loadInitialMessages() async {

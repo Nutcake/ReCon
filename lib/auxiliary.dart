@@ -1,5 +1,6 @@
 import 'package:contacts_plus_plus/config.dart';
 import 'package:path/path.dart' as p;
+import 'package:html/parser.dart' as htmlparser;
 
 enum NeosDBEndpoint
 {
@@ -61,5 +62,12 @@ extension Unique<E, Id> on List<E> {
     var list = inplace ? this : List<E>.from(this);
     list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
     return list;
+  }
+}
+
+extension StripHTLM on String {
+  String stripHtml() {
+    final document = htmlparser.parse(this);
+    return htmlparser.parse(document.body?.text).documentElement?.text ?? "";
   }
 }

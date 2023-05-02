@@ -44,6 +44,7 @@ dependencies:
   logging: ^1.1.1
   cached_network_image: ^3.2.3
   web_socket_channel: ^2.4.0
+  html: ^0.15.2
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/api_client.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
@@ -21,10 +23,13 @@ class _MessagesState extends State<Messages> {
   Future<MessageCache>? _messageCacheFuture;
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
+  final ScrollController _messageScrollController = ScrollController();
   ClientHolder? _clientHolder;
 
   bool _isSendable = false;
   bool _showSessionListChevron = false;
+  bool _messageCacheFutureComplete = false;
+
   double get _shevronOpacity => _showSessionListChevron ? 1.0 : 0.0;
 
   @override
@@ -38,7 +43,9 @@ class _MessagesState extends State<Messages> {
   }
 
   void _loadMessages() {
-    _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id);
+    _messageCacheFutureComplete = false;
+    _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id)
+        .whenComplete(() => _messageCacheFutureComplete = true);
     _clientHolder?.hub.registerListener(
         widget.friend.id, () => setState(() {}));
   }
@@ -67,6 +74,18 @@ class _MessagesState extends State<Messages> {
         });
       }
     });
+    _messageScrollController.addListener(() {
+      if (_messageScrollController.position.atEdge && _messageScrollController.position.pixels > 0 &&
+          _messageScrollController.position.maxScrollExtent > 0 && _messageCacheFutureComplete) {
+        log("Top edge hit.");
+
+        setState(() {
+          _messageCacheFutureComplete = false;
+          _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id)
+              .then((value) => value.loadOlderMessages()).whenComplete(() => _messageCacheFutureComplete = true);
+        });
+      }
+    });
   }
 
   @override
@@ -85,131 +104,138 @@ class _MessagesState extends State<Messages> {
         scrolledUnderElevation: 0.0,
         backgroundColor: appBarColor,
       ),
-      body: Stack(
+      body: Column(
         children: [
-          FutureBuilder(
-            future: _messageCacheFuture,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final cache = snapshot.data as MessageCache;
-                if (cache.messages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.message_outlined),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Text(
-                            "There are no messages here\nWhy not say hello?",
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        )
-                      ],
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  reverse: true,
-                  itemCount: cache.messages.length,
-                  itemBuilder: (context, index) {
-                    final entry = cache.messages[index];
-                    return entry.senderId == apiClient.userId
-                        ? MyMessageBubble(message: entry)
-                        : OtherMessageBubble(message: entry);
-                  },
-                );
-              } else if (snapshot.hasError) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128,),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text("Failed to load messages:", style: Theme
-                            .of(context)
-                            .textTheme
-                            .titleMedium,),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text("${snapshot.error}"),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _loadMessages();
-                            });
-                          },
-                          style: TextButton.styleFrom(
-
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 16, horizontal: 16),
-                          ),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text("Retry"),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              } else {
-                return Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    LinearProgressIndicator(),
-                  ],
-                );
-              }
-            },
-          ),
-          if (sessions.isNotEmpty) Positioned(
-            top: 0.0,
-            left: 0.0,
-            right: 0.0,
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 64),
-              decoration: BoxDecoration(
+          if (sessions.isNotEmpty) Container(
+            constraints: const BoxConstraints(maxHeight: 64),
+            decoration: BoxDecoration(
                 color: appBarColor,
-                border: const Border(top: BorderSide(width: 1, color: Colors.black26), )
-              ),
-              child: Stack(
-                children: [
-                  ListView.builder(
-                    controller: _sessionListScrollController,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: sessions.length,
-                    itemBuilder: (context, index) => SessionTile(session: sessions[index]),
-                  ),
-                  AnimatedOpacity(
-                    opacity: _shevronOpacity,
-                    curve: Curves.easeOut,
-                    duration: const Duration(milliseconds: 200),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              appBarColor.withOpacity(0),
-                              appBarColor,
-                              appBarColor,
-                            ],
-                          ),
+                border: const Border(top: BorderSide(width: 1, color: Colors.black26),)
+            ),
+            child: Stack(
+              children: [
+                ListView.builder(
+                  controller: _sessionListScrollController,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: sessions.length,
+                  itemBuilder: (context, index) => SessionTile(session: sessions[index]),
+                ),
+                AnimatedOpacity(
+                  opacity: _shevronOpacity,
+                  curve: Curves.easeOut,
+                  duration: const Duration(milliseconds: 200),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            appBarColor.withOpacity(0),
+                            appBarColor,
+                            appBarColor,
+                          ],
                         ),
-                        height: double.infinity,
-                        child: const Icon(Icons.chevron_right),
+                      ),
+                      height: double.infinity,
+                      child: const Icon(Icons.chevron_right),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder(
+              future: _messageCacheFuture,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final cache = snapshot.data as MessageCache;
+                  if (cache.messages.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.message_outlined),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              "There are no messages here\nWhy not say hello?",
+                              textAlign: TextAlign.center,
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .titleMedium,
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: _messageScrollController,
+                    reverse: true,
+                    itemCount: cache.messages.length,
+                    itemBuilder: (context, index) {
+                      final entry = cache.messages[index];
+                      final widget = entry.senderId == apiClient.userId
+                          ? MyMessageBubble(message: entry)
+                          : OtherMessageBubble(message: entry);
+                      if (index == cache.messages.length-1) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: widget,
+                        );
+                      }
+                      return widget;
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128,),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text("Failed to load messages:", style: Theme
+                              .of(context)
+                              .textTheme
+                              .titleMedium,),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text("${snapshot.error}"),
+                          ),
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _loadMessages();
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 16),
+                            ),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text("Retry"),
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                ],
-              ),
+                  );
+                } else {
+                  return Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: const [
+                      LinearProgressIndicator(),
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ],
@@ -371,11 +397,11 @@ class OtherMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     var content = message.content;
     if (message.type == MessageType.sessionInvite) {
-      content = "<Session Invite>";
+      content = "[Session Invite]";
     } else if (message.type == MessageType.sound) {
-      content = "<Voice Message>";
+      content = "[Voice Message]";
     } else if (message.type == MessageType.object) {
-      content = "<Asset>";
+      content = "[Asset]";
     }
     return Row(
       mainAxisSize: MainAxisSize.min,

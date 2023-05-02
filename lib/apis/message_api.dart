@@ -4,7 +4,8 @@ import 'package:contacts_plus_plus/api_client.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 
 class MessageApi {
-  static Future<Iterable<Message>> getUserMessages(ApiClient client, {String userId="", DateTime? fromTime, int maxItems=50, bool unreadOnly=false}) async {
+  static Future<Iterable<Message>> getUserMessages(ApiClient client, {String userId = "", DateTime? fromTime,
+    int maxItems = 50, bool unreadOnly = false}) async {
     final response = await client.get("/users/${client.userId}/messages"
         "?maxItems=$maxItems"
         "${fromTime == null ? "" : "&fromTime${fromTime.toLocal().toIso8601String()}"}"
