@@ -152,3 +152,17 @@ class MessageCache {
     _messages.unique((element) => element.id);
   }
 }
+
+class AudioClipContent {
+  final String id;
+  final String assetUri;
+
+  AudioClipContent({required this.id, required this.assetUri});
+
+  factory AudioClipContent.fromMap(Map map) {
+    return AudioClipContent(
+      id: map["id"],
+      assetUri: map["assetUri"],
+    );
+  }
+}

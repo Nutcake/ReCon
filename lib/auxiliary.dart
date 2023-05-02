@@ -71,3 +71,16 @@ extension StripHTLM on String {
     return htmlparser.parse(document.body?.text).documentElement?.text ?? "";
   }
 }
+
+extension Format on Duration {
+  String format() {
+    final hh = (inHours).toString().padLeft(2, '0');
+    final mm = (inMinutes % 60).toString().padLeft(2, '0');
+    final ss = (inSeconds % 60).toString().padLeft(2, '0');
+    if (inHours == 0) {
+      return "$mm:$ss";
+    } else {
+      return "$hh:$mm:$ss";
+    }
+  }
+}

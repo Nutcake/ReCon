@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -6,6 +7,7 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
+import 'package:contacts_plus_plus/widgets/audio_clip_player.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -334,55 +336,92 @@ class MyMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var content = message.content;
-    if (message.type == MessageType.sessionInvite) {
-      content = "<Session Invite>";
-    } else if (message.type == MessageType.sound) {
-      content = "<Voice Message>";
-    } else if (message.type == MessageType.object) {
-      content = "<Asset>";
-    }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            color: Theme.of(context).colorScheme.primaryContainer,
-            margin: const EdgeInsets.only(left: 32, bottom: 16, right: 12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    content,
-                    softWrap: true,
-                    maxLines: null,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 6,),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
+    switch (message.type) {
+      case MessageType.sessionInvite:
+        content = "[Session Invite]";
+        continue rawText;
+      case MessageType.object:
+        content = "[Asset]";
+        continue rawText;
+      case MessageType.unknown:
+      rawText:
+      case MessageType.text:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                color: Theme
+                    .of(context)
+                    .colorScheme
+                    .primaryContainer,
+                margin: const EdgeInsets.only(left: 32, bottom: 16, right: 12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        _dateFormat.format(message.sendTime),
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white54),
+                        content,
+                        softWrap: true,
+                        maxLines: null,
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .bodyLarge,
                       ),
-                      const SizedBox(width: 4,),
-                      MessageStateIndicator(messageState: message.state),
+                      const SizedBox(height: 6,),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: Text(
+                              _dateFormat.format(message.sendTime),
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(color: Colors.white54),
+                            ),
+                          ),
+                          MessageStateIndicator(messageState: message.state),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
-      ],
-    );
+          ],
+        );
+      case MessageType.sound:
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: Theme
+                  .of(context)
+                  .colorScheme
+                  .primaryContainer,
+              margin: const EdgeInsets.only(left: 32, bottom: 16, right: 12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: MessageAudioPlayer(message: message,),
+              ),
+            ),
+          ],
+        );
+    }
   }
 }
 
@@ -403,12 +442,65 @@ class OtherMessageBubble extends StatelessWidget {
     } else if (message.type == MessageType.object) {
       content = "[Asset]";
     }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Flexible(
-          child: Card(
+    switch (message.type) {
+      case MessageType.sessionInvite:
+        content = "[Session Invite]";
+        continue rawText;
+      case MessageType.object:
+        content = "[Asset]";
+        continue rawText;
+      case MessageType.unknown:
+      rawText:
+      case MessageType.text:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                color: Theme
+                    .of(context)
+                    .colorScheme
+                    .secondaryContainer,
+                margin: const EdgeInsets.only(right: 32, bottom: 16, left: 12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        content,
+                        softWrap: true,
+                        maxLines: null,
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .bodyLarge,
+                      ),
+                      const SizedBox(height: 6,),
+                      Text(
+                        _dateFormat.format(message.sendTime),
+                        style: Theme
+                            .of(context)
+                            .textTheme
+                            .labelMedium
+                            ?.copyWith(color: Colors.white54),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      case MessageType.sound:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -419,27 +511,12 @@ class OtherMessageBubble extends StatelessWidget {
             margin: const EdgeInsets.only(right: 32, bottom: 16, left: 12),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    content,
-                    softWrap: true,
-                    maxLines: null,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 6,),
-                  Text(
-                    _dateFormat.format(message.sendTime),
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white54),
-                  ),
-                ],
-              ),
+              child: MessageAudioPlayer(message: message,),
             ),
           ),
-        ),
-      ],
-    );
+          ],
+        );
+    }
   }
 }
 

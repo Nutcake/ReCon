@@ -45,6 +45,7 @@ dependencies:
   cached_network_image: ^3.2.3
   web_socket_channel: ^2.4.0
   html: ^0.15.2
+  just_audio: ^0.9.32
 
 dev_dependencies:
   flutter_test:
