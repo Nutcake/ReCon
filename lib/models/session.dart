@@ -9,10 +9,11 @@ class Session {
   final String description;
   final List<String> tags;
   final bool headlessHost;
+  final String hostUsername;
 
   Session({required this.id, required this.name, required this.sessionUsers, required this.thumbnail,
     required this.maxUsers, required this.hasEnded, required this.isValid, required this.description,
-    required this.tags, required this.headlessHost,
+    required this.tags, required this.headlessHost, required this.hostUsername,
   });
 
   factory Session.fromMap(Map map) {
@@ -21,12 +22,13 @@ class Session {
       name: map["name"],
       sessionUsers: (map["sessionUsers"] as List? ?? []).map((entry) => SessionUser.fromMap(entry)).toList(),
       thumbnail: map["thumbnail"] ?? "",
-      maxUsers: map["maxUsers"],
-      hasEnded: map["hasEnded"],
-      isValid: map["isValid"],
+      maxUsers: map["maxUsers"] ?? 0,
+      hasEnded: map["hasEnded"] ?? false,
+      isValid: map["isValid"] ?? true,
       description: map["description"] ?? "",
       tags: ((map["tags"] as List?) ?? []).map((e) => e.toString()).toList(),
-      headlessHost: map["headlessHost"],
+      headlessHost: map["headlessHost"] ?? false,
+      hostUsername: map["hostUsername"] ?? "",
     );
   }
 
