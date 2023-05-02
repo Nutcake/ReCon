@@ -8,6 +8,7 @@ import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/neos_hub.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class Messages extends StatefulWidget {
@@ -258,6 +259,7 @@ class _MessagesState extends State<Messages> {
             .of(context)
             .viewInsets,
         child: BottomAppBar(
+          elevation: 0.0,
           padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 6),
           child: Row(
             children: [
@@ -265,6 +267,7 @@ class _MessagesState extends State<Messages> {
                 child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: TextField(
+                    autocorrect: true,
                     controller: _messageTextController,
                     maxLines: 4,
                     minLines: 1,
@@ -313,6 +316,7 @@ class _MessagesState extends State<Messages> {
                       }
                       _cacheHolder!.hub.sendMessage(message);
                       _messageTextController.clear();
+                      setState(() {});
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
