@@ -34,7 +34,7 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
                 borderRadius: BorderRadius.circular(20),
                 color: Theme.of(context).colorScheme.secondaryContainer,
               ),
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
@@ -66,6 +66,7 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
                         widget.onExpansionChanged?.call(_isExtended);
                       },
                       splashRadius: 16,
+                      iconSize: 28,
                       icon: _isExtended ? const Icon(Icons.close) : const Icon(Icons.search),
                     ),
                   )

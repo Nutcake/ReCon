@@ -65,6 +65,17 @@ enum OnlineStatus {
       orElse: () => OnlineStatus.unknown,
     );
   }
+
+  int compareTo(OnlineStatus other) {
+    if (this == other) return 0;
+    if (this == OnlineStatus.online) return -1;
+    if (other == OnlineStatus.online) return 1;
+    if (this == OnlineStatus.away) return -1;
+    if (other == OnlineStatus.away) return 1;
+    if (this == OnlineStatus.busy) return -1;
+    if (other == OnlineStatus.busy) return 1;
+    return 0;
+  }
 }
 
 class UserStatus {

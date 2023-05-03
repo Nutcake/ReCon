@@ -142,7 +142,6 @@ class MessageCache {
 
   Future<void> loadInitialMessages() async {
     final messages = await MessageApi.getUserMessages(_apiClient, userId: _userId);
-    _messages.clear();
     _messages.addAll(messages);
     _ensureIntegrity();
   }

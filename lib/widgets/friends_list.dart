@@ -2,13 +2,10 @@ import 'dart:async';
 
 import 'package:contacts_plus_plus/api_client.dart';
 import 'package:contacts_plus_plus/apis/friend_api.dart';
-import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
-import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
-import 'package:contacts_plus_plus/widgets/user_list_tile.dart';
 import 'package:flutter/material.dart';
 
 class FriendsList extends StatefulWidget {
@@ -19,11 +16,10 @@ class FriendsList extends StatefulWidget {
 }
 
 class _FriendsListState extends State<FriendsList> {
-  Future<List>? _listFuture;
-  Future<List>? _friendFuture;
+  Future<List<Friend>>? _friendsFuture;
   ClientHolder? _clientHolder;
   Timer? _debouncer;
-  bool _searchIsLoading = false;
+  String _searchFilter = "";
 
   @override
   void dispose() {
@@ -42,36 +38,17 @@ class _FriendsListState extends State<FriendsList> {
   }
 
   void _refreshFriendsList() {
-    _searchIsLoading = true;
-    _listFuture = FriendApi.getFriendsList(_clientHolder!.client).then((Iterable<Friend> value) =>
+    _friendsFuture = FriendApi.getFriendsList(_clientHolder!.client).then((Iterable<Friend> value) =>
     value.toList()
       ..sort((a, b) {
         if (a.userStatus.onlineStatus == b.userStatus.onlineStatus) {
           return a.userStatus.lastStatusChange.compareTo(b.userStatus.lastStatusChange);
         } else {
-          if (a.userStatus.onlineStatus == OnlineStatus.online) {
-            return -1;
-          } else {
-            return 1;
-          }
+          return a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus);
         }
       },
       ),
-    ).whenComplete(() => setState((){ _searchIsLoading = false; }));
-    _friendFuture = _listFuture;
-  }
-
-  void _searchForUsers(String needle) {
-    _listFuture = UserApi.searchUsers(_clientHolder!.client, needle: needle).then((value) =>
-    value.toList()
-      ..sort((a, b) {
-        return a.username.length.compareTo(b.username.length);
-      },)
-    ).whenComplete(() => setState((){ _searchIsLoading = false; }));
-  }
-
-  void _restoreFriendsList() {
-    _listFuture = _friendFuture;
+    );
   }
 
   @override
@@ -93,24 +70,20 @@ class _FriendsListState extends State<FriendsList> {
           RefreshIndicator(
             onRefresh: () async {
               _refreshFriendsList();
-              await _listFuture;
+              await _friendsFuture;
             },
             child: FutureBuilder(
-                future: _listFuture,
+                future: _friendsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    final data = snapshot.data as Iterable;
+                    var data = (snapshot.data as List<Friend>);
+                    if (_searchFilter.isNotEmpty) {
+                      data = data.where((element) => element.username.contains(_searchFilter)).toList();
+                      data.sort((a, b) => a.username.length.compareTo(b.username.length));
+                    }
                     return ListView.builder(
                       itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        final entry = data.elementAt(index);
-                        if (entry is Friend) {
-                          return FriendListTile(friend: entry);
-                        } else if (entry is User) {
-                          return UserListTile(user: entry);
-                        }
-                        return null;
-                      },
+                      itemBuilder: (context, index) => FriendListTile(friend: data[index]),
                     );
                   } else if (snapshot.hasError) {
                     FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
@@ -137,38 +110,20 @@ class _FriendsListState extends State<FriendsList> {
             alignment: Alignment.bottomCenter,
             child: ExpandingInputFab(
               onInputChanged: (String text) {
-                if (_debouncer?.isActive ?? false) _debouncer?.cancel();
-                if (text.isEmpty) {
-                  setState(() {
-                    _searchIsLoading = false;
-                    _restoreFriendsList();
-                  });
-                  return;
-                }
                 setState(() {
-                  _searchIsLoading = true;
-                });
-                _debouncer = Timer(const Duration(milliseconds: 500), () {
-                    setState(() {
-                      if(text.isNotEmpty) {
-                        _searchForUsers(text);
-                      } else {
-                        _searchIsLoading = false;
-                      }
-                    });
+                  _searchFilter = text;
                 });
               },
               onExpansionChanged: (expanded) {
                 if (_debouncer?.isActive ?? false) _debouncer?.cancel();
                 if (!expanded) {
                   setState(() {
-                    _restoreFriendsList();
+                    _searchFilter = "";
                   });
                 }
               },
             ),
           ),
-          if (_searchIsLoading) const Align(alignment: Alignment.topCenter, child: LinearProgressIndicator(),)
         ],
       ),
     );
