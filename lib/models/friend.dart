@@ -25,16 +25,8 @@ class Friend extends Comparable {
   }
 
   @override
-  int compareTo(other) {
-    if (userStatus.onlineStatus == other.userStatus.onlineStatus) {
-      return userStatus.lastStatusChange.compareTo(other.userStatus.lastStatusChange);
-    } else {
-      if (userStatus.onlineStatus == OnlineStatus.online) {
-        return -1;
-      } else {
-        return 1;
-      }
-    }
+  int compareTo(covariant Friend other) {
+    return username.compareTo(other.username);
   }
 }
 

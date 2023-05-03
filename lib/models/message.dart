@@ -165,3 +165,19 @@ class AudioClipContent {
     );
   }
 }
+
+class MarkReadBatch {
+  final String senderId;
+  final List<String> ids;
+  final DateTime readTime;
+
+  MarkReadBatch({required this.senderId, required this.ids, required this.readTime});
+
+  Map toMap() {
+    return {
+      "senderId": senderId,
+      "ids": ids,
+      "readTime": readTime.toUtc().toIso8601String(),
+    };
+  }
+}

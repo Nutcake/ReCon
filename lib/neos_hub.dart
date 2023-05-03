@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/api_client.dart';
@@ -42,6 +43,11 @@ class NeosHub {
     start();
   }
 
+  void _sendData(data) {
+    if (_wsChannel == null) throw "Neos Hub is not connected";
+    _wsChannel!.add(jsonEncode(data)+eofChar);
+  }
+
   Future<MessageCache> getCache(String userId) async {
     var cache = _messageCache[userId];
     if (cache == null){
@@ -50,6 +56,13 @@ class NeosHub {
       _messageCache[userId] = cache;
     }
     return cache;
+  }
+
+  Future<void> checkUnreads() async {
+    final unreads = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
+    for (var message in unreads) {
+      throw UnimplementedError();
+    }
   }
 
   void _onDisconnected(error) {
@@ -161,7 +174,6 @@ class NeosHub {
   }
 
   void sendMessage(Message message) async {
-    if (_wsChannel == null) throw "Neos Hub is not connected";
     final msgBody = message.toMap();
     final data = {
       "type": EventType.message.index,
@@ -170,9 +182,21 @@ class NeosHub {
         msgBody
       ],
     };
+    _sendData(data);
     final cache = await getCache(message.recipientId);
     cache.messages.add(message);
-    _wsChannel!.add(jsonEncode(data)+eofChar);
     notifyListener(message.recipientId);
+  }
+
+  void markMessagesRead(MarkReadBatch batch) {
+    final msgBody = batch.toMap();
+    final data = {
+      "type": EventType.message.index,
+      "target": "MarkMessagesRead",
+      "arguments": [
+        msgBody
+      ],
+    };
+    _sendData(data);
   }
 }
