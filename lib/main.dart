@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:contacts_plus_plus/widgets/home_screen.dart';
+import 'package:contacts_plus_plus/widgets/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';

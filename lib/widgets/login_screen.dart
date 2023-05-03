@@ -81,6 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Contacts++"),
+      ),
       body: FutureBuilder(
         future: _cachedLoginFuture,
         builder: (context, snapshot) {
@@ -126,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               if (_isLoading)
-                const Center(child: CircularProgressIndicator())
+                const LinearProgressIndicator()
               else
                 TextButton.icon(
                   onPressed: submit,
@@ -144,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           );
           }
-          return const Center(child: CircularProgressIndicator(),);
+          return const LinearProgressIndicator();
         }
       ),
     );
