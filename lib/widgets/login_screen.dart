@@ -1,6 +1,7 @@
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({this.onLoginSuccessful, this.cachedUsername, super.key});
@@ -17,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   late final Future<AuthenticationData> _cachedLoginFuture = ApiClient.tryCachedLogin().then((value) async {
     if (value.isAuthenticated) {
-      await widget.onLoginSuccessful?.call(value);
+      await loginSuccessful(value);
     }
     return value;
   });
@@ -68,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _error = "";
         _isLoading = false;
       });
-      await widget.onLoginSuccessful?.call(authData);
+      await loginSuccessful(authData);
     } catch (e, s) {
       FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
       setState(() {
@@ -76,6 +77,44 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> loginSuccessful(AuthenticationData authData) async {
+    final settingsClient = ClientHolder.of(context).settingsClient;
+    final notificationManager = FlutterLocalNotificationsPlugin();
+    if (settingsClient.currentSettings.notificationsDenied.value == null) {
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("This app needs to ask your permission to send background notifications."),
+              content: const Text("Are you okay with that?"),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: true));
+                  },
+                  child: const Text("No"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    final requestResult = await notificationManager.resolvePlatformSpecificImplementation<
+                        AndroidFlutterLocalNotificationsPlugin>()
+                        ?.requestPermission();
+                    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: requestResult));
+                  },
+                  child: const Text("Yes"),
+                )
+              ],
+            );
+          },
+        );
+      }
+    }
+    await widget.onLoginSuccessful?.call(authData);
   }
 
   @override
@@ -129,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               if (_isLoading)
-                const LinearProgressIndicator()
+                const CircularProgressIndicator()
               else
                 TextButton.icon(
                   onPressed: submit,

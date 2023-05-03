@@ -10,6 +10,7 @@ import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 
 class FriendsList extends StatefulWidget {
   const FriendsList({super.key});
@@ -32,7 +33,7 @@ class _FriendsListState extends State<FriendsList> {
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
     final clientHolder = ClientHolder.of(context);
     if (_clientHolder != clientHolder) {
@@ -89,7 +90,7 @@ class _FriendsListState extends State<FriendsList> {
           RefreshIndicator(
             onRefresh: () async {
               _refreshFriendsList();
-              await _friendsFuture;
+              await _friendsFuture; // Keep the indicator running until everything's loaded
             },
             child: FutureBuilder(
                 future: _friendsFuture,
@@ -133,7 +134,7 @@ class _FriendsListState extends State<FriendsList> {
                       },
                     );
                   } else {
-                    return const SizedBox.shrink();
+                    return const LinearProgressIndicator();
                   }
                 }
             ),
