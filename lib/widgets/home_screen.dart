@@ -7,17 +7,18 @@ import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
+import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:contacts_plus_plus/widgets/user_list_tile.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class FriendsList extends StatefulWidget {
+  const FriendsList({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<FriendsList> createState() => _FriendsListState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _FriendsListState extends State<FriendsList> {
   Future<List>? _listFuture;
   Future<List>? _friendFuture;
   ClientHolder? _clientHolder;
@@ -78,6 +79,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Contacts++"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
+            },
+            icon: const Icon(Icons.settings),
+          )
+        ],
       ),
       body: Stack(
         children: [

@@ -1,13 +1,11 @@
-
 import 'dart:convert';
-import 'dart:developer';
-import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:logging/logging.dart';
 
 enum EventType {
   unknown,
@@ -31,10 +29,13 @@ enum EventTarget {
 class NeosHub {
   static const String eofChar = "";
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
+  static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
   final ApiClient _apiClient;
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, Function> _updateListeners = {};
-  WebSocketChannel? _wsChannel;
+  final Logger _logger = Logger("NeosHub");
+  WebSocket? _wsChannel;
+  bool _isConnecting = false;
 
   NeosHub({required ApiClient apiClient})
       : _apiClient = apiClient {
@@ -51,29 +52,58 @@ class NeosHub {
     return cache;
   }
 
+  void _onDisconnected(error) {
+    _logger.warning("Neos Hub connection died with error '$error', reconnecting...");
+    start();
+  }
+
   Future<void> start() async {
     if (!_apiClient.isAuthenticated) {
-      log("Hub not authenticated.");
+      _logger.info("Tried to connect to Neos Hub without authentication, this is probably fine for now.");
       return;
     }
-    final response = await http.post(
-      Uri.parse("${Config.neosHubUrl}/negotiate"),
-      headers: _apiClient.authorizationHeader,
-    );
-
-    ApiClient.checkResponse(response);
-    final body = jsonDecode(response.body);
-    final url = (body["url"] as String?)?.replaceFirst("https://", "wss://");
-    final wsToken = body["accessToken"];
-
-    if (url == null || wsToken == null) {
-      throw "Invalid response from server";
+    if (_isConnecting) {
+      return;
     }
+    _isConnecting = true;
+    _wsChannel = await _tryConnect();
+    _isConnecting = false;
+    _logger.info("Connected to Neos Hub.");
+    _wsChannel!.done.then((error) => _onDisconnected(error));
+    _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
+    _wsChannel!.add(_negotiationPacket);
+  }
 
-    _wsChannel = WebSocketChannel.connect(Uri.parse("$url&access_token=$wsToken"));
-    _wsChannel!.stream.listen(_handleEvent);
-    _wsChannel!.sink.add(_negotiationPacket);
-    log("[Hub]: Connected!");
+  Future<WebSocket> _tryConnect() async {
+    int attempts = 0;
+    while (true) {
+      try {
+        final http.Response response;
+        try {
+          response = await http.post(
+            Uri.parse("${Config.neosHubUrl}/negotiate"),
+            headers: _apiClient.authorizationHeader,
+          );
+          ApiClient.checkResponse(response);
+        } catch (e) {
+          throw "Failed to acquire connection info from Neos API: $e";
+        }
+        final body = jsonDecode(response.body);
+        final url = (body["url"] as String?)?.replaceFirst("https://", "wss://");
+        final wsToken = body["accessToken"];
+
+        if (url == null || wsToken == null) {
+          throw "Invalid response from server.";
+        }
+        return await WebSocket.connect("$url&access_token=$wsToken");
+      } catch (e) {
+        final timeout = _reconnectTimeoutsSeconds[attempts.clamp(0, _reconnectTimeoutsSeconds.length - 1)];
+        _logger.severe(e);
+        _logger.severe("Retrying in $timeout seconds");
+        await Future.delayed(Duration(seconds: timeout));
+        attempts++;
+      }
+    }
   }
 
   void registerListener(String userId, Function function) => _updateListeners[userId] = function;
@@ -84,12 +114,12 @@ class NeosHub {
     final body = jsonDecode((event.toString().replaceAll(eofChar, "")));
     final int rawType = body["type"] ?? 0;
     if (rawType > EventType.values.length) {
-      log("[Hub]: Unhandled event type $rawType: $body");
+      _logger.info("Unhandled event type $rawType: $body");
       return;
     }
     switch (EventType.values[rawType]) {
       case EventType.unknown:
-        log("[Hub]: Unknown event received: $rawType");
+        _logger.info("[Hub]: Unknown event received: $rawType: $body");
         break;
       case EventType.message:
         _handleMessageEvent(body);
@@ -102,7 +132,7 @@ class NeosHub {
     final args = body["arguments"];
     switch (target) {
       case EventTarget.unknown:
-        log("Unknown event-target in message: $body");
+        _logger.info("Unknown event-target in message: $body");
         return;
       case EventTarget.messageSent:
         final msg = args[0];
@@ -142,7 +172,7 @@ class NeosHub {
     };
     final cache = await getCache(message.recipientId);
     cache.messages.add(message);
-    _wsChannel!.sink.add(jsonEncode(data)+eofChar);
+    _wsChannel!.add(jsonEncode(data)+eofChar);
     notifyListener(message.recipientId);
   }
 }

@@ -46,6 +46,7 @@ dependencies:
   web_socket_channel: ^2.4.0
   html: ^0.15.2
   just_audio: ^0.9.32
+  flutter_phoenix: ^1.1.1
 
 dev_dependencies:
   flutter_test:

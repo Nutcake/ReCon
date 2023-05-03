@@ -1,11 +1,16 @@
+import 'dart:developer';
+
 import 'package:contacts_plus_plus/widgets/home_screen.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:logging/logging.dart';
 import 'api_client.dart';
 import 'models/authentication_data.dart';
 
 void main() {
-  runApp(const ContactsPlusPlus());
+  Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName));
+  runApp(Phoenix(child: const ContactsPlusPlus()));
 }
 
 class ContactsPlusPlus extends StatefulWidget {
@@ -32,7 +37,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
         ),
         home: _authData.isAuthenticated ?
-        const HomeScreen() :
+        const FriendsList() :
         LoginScreen(
           onLoginSuccessful: (AuthenticationData authData) async {
             if (authData.isAuthenticated) {
