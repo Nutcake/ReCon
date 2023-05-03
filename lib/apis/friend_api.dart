@@ -1,7 +1,7 @@
 
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 

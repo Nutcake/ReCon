@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:uuid/uuid.dart';

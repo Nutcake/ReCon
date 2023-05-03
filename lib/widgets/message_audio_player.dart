@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/widgets/messages.dart';
+import 'package:contacts_plus_plus/widgets/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:just_audio/just_audio.dart';
@@ -114,7 +114,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                       ),
                     ),
                     const SizedBox(width: 4,),
-                    if (widget.message.senderId == ClientHolder.of(context).client.userId) Padding(
+                    if (widget.message.senderId == ClientHolder.of(context).apiClient.userId) Padding(
                       padding: const EdgeInsets.only(right: 12.0),
                       child: MessageStateIndicator(messageState: widget.message.state),
                     ),

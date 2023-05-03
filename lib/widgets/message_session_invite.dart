@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
-import 'package:contacts_plus_plus/widgets/messages.dart';
+import 'package:contacts_plus_plus/widgets/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -68,7 +68,7 @@ class MessageSessionInvite extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4,),
-                if (message.senderId == ClientHolder.of(context).client.userId) Padding(
+                if (message.senderId == ClientHolder.of(context).apiClient.userId) Padding(
                   padding: const EdgeInsets.only(right: 12.0),
                   child: MessageStateIndicator(messageState: message.state),
                 ),

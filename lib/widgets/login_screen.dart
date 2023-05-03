@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:flutter/material.dart';
 

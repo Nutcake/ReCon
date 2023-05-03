@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
@@ -41,12 +42,12 @@ class _FriendsListState extends State<FriendsList> {
   }
 
   void _refreshFriendsList() {
-    _friendsFuture = FriendApi.getFriendsList(_clientHolder!.client).then((Iterable<Friend> value) async {
-      final unreadMessages = await MessageApi.getUserMessages(_clientHolder!.client, unreadOnly: true);
+    _friendsFuture = FriendApi.getFriendsList(_clientHolder!.apiClient).then((Iterable<Friend> value) async {
+      final unreadMessages = await MessageApi.getUserMessages(_clientHolder!.apiClient, unreadOnly: true);
       _unreads.clear();
 
       for (final msg in unreadMessages) {
-        if (msg.senderId != _clientHolder!.client.userId) {
+        if (msg.senderId != _clientHolder!.apiClient.userId) {
           final value = _unreads[msg.senderId];
           if (value == null) {
             _unreads[msg.senderId] = [msg];
@@ -110,7 +111,7 @@ class _FriendsListState extends State<FriendsList> {
                           onTap: () async {
                             if (unread.isNotEmpty) {
                               final readBatch = MarkReadBatch(
-                                senderId: _clientHolder!.client.userId,
+                                senderId: _clientHolder!.apiClient.userId,
                                 ids: unread.map((e) => e.id).toList(),
                                 readTime: DateTime.now(),
                               );
@@ -125,18 +126,11 @@ class _FriendsListState extends State<FriendsList> {
                     );
                   } else if (snapshot.hasError) {
                     FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(64),
-                        child: Text(
-                          "Something went wrong: ${snapshot.error}",
-                          softWrap: true,
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .labelMedium,
-                        ),
-                      ),
+                    return DefaultErrorWidget(
+                      message: "${snapshot.error}",
+                      onRetry: () {
+                        _refreshFriendsList();
+                      },
                     );
                   } else {
                     return const SizedBox.shrink();

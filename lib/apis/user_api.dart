@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 
 class UserApi {

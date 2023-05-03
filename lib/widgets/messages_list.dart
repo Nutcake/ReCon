@@ -1,27 +1,26 @@
-import 'dart:developer';
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
+import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/message_audio_player.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/message_session_invite.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class Messages extends StatefulWidget {
-  const Messages({required this.friend, super.key});
+class MessagesList extends StatefulWidget {
+  const MessagesList({required this.friend, super.key});
 
   final Friend friend;
 
   @override
-  State<StatefulWidget> createState() => _MessagesState();
+  State<StatefulWidget> createState() => _MessagesListState();
 }
 
-class _MessagesState extends State<Messages> {
+class _MessagesListState extends State<MessagesList> {
   Future<MessageCache>? _messageCacheFuture;
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
@@ -79,8 +78,6 @@ class _MessagesState extends State<Messages> {
     _messageScrollController.addListener(() {
       if (_messageScrollController.position.atEdge && _messageScrollController.position.pixels > 0 &&
           _messageScrollController.position.maxScrollExtent > 0 && _messageCacheFutureComplete) {
-        log("Top edge hit.");
-
         setState(() {
           _messageCacheFutureComplete = false;
           _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id)
@@ -94,7 +91,7 @@ class _MessagesState extends State<Messages> {
   Widget build(BuildContext context) {
     final apiClient = ClientHolder
         .of(context)
-        .client;
+        .apiClient;
     var sessions = widget.friend.userStatus.activeSessions;
     final appBarColor = Theme
         .of(context)
@@ -195,38 +192,13 @@ class _MessagesState extends State<Messages> {
                     },
                   );
                 } else if (snapshot.hasError) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128,),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text("Failed to load messages:", style: Theme
-                              .of(context)
-                              .textTheme
-                              .titleMedium,),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text("${snapshot.error}"),
-                          ),
-                          TextButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _loadMessages();
-                              });
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 16, horizontal: 16),
-                            ),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text("Retry"),
-                          ),
-                        ],
-                      ),
-                    ),
+                  return DefaultErrorWidget(
+                    message: "${snapshot.error}",
+                    onRetry: () {
+                      setState(() {
+                        _loadMessages();
+                      });
+                    },
                   );
                 } else {
                   return Column(

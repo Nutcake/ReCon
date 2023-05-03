@@ -1,7 +1,7 @@
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
-import 'package:contacts_plus_plus/widgets/messages.dart';
+import 'package:contacts_plus_plus/widgets/messages_list.dart';
 import 'package:flutter/material.dart';
 
 class FriendListTile extends StatelessWidget {
@@ -23,7 +23,7 @@ class FriendListTile extends StatelessWidget {
       title: Text(friend.username),
       subtitle: Text(friend.userStatus.onlineStatus.name),
       onTap: () async {
-         Navigator.of(context).push(MaterialPageRoute(builder: (context) => Messages(friend: friend)));
+         Navigator.of(context).push(MaterialPageRoute(builder: (context) => MessagesList(friend: friend)));
          await onTap?.call();
       },
     );

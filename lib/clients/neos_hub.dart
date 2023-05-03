@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:contacts_plus_plus/api_client.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:logging/logging.dart';

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:contacts_plus_plus/neos_hub.dart';
+import 'package:contacts_plus_plus/clients/neos_hub.dart';
+import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
@@ -9,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:uuid/uuid.dart';
 
-import 'config.dart';
+import '../config.dart';
 
 class ApiClient {
   static const String userIdKey = "userId";
@@ -144,14 +145,18 @@ class ApiClient {
 }
 
 class ClientHolder extends InheritedWidget {
-  final ApiClient client;
+  final ApiClient apiClient;
+  final SettingsClient settingsClient;
   late final NeosHub hub;
 
-  ClientHolder({super.key, required AuthenticationData authenticationData, required super.child})
-      : client = ApiClient(authenticationData: authenticationData) {
-    hub = NeosHub(apiClient: client);
+  ClientHolder({
+    super.key,
+    required AuthenticationData authenticationData,
+    required this.settingsClient,
+    required super.child
+  }) : apiClient = ApiClient(authenticationData: authenticationData) {
+    hub = NeosHub(apiClient: apiClient);
   }
-
 
   static ClientHolder? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ClientHolder>();
@@ -164,5 +169,8 @@ class ClientHolder extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(covariant ClientHolder oldWidget) => oldWidget.client != client;
+  bool updateShouldNotify(covariant ClientHolder oldWidget) =>
+      oldWidget.apiClient != apiClient
+      || oldWidget.settingsClient != settingsClient
+      || oldWidget.hub != hub;
 }
