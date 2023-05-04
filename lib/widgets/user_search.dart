@@ -25,12 +25,13 @@ class UserSearch extends StatefulWidget {
 class _UserSearchState extends State<UserSearch> {
   final TextEditingController _searchInputController = TextEditingController();
   Timer? _searchDebouncer;
-  late Future<List<User>>? _usersFuture = _emptySearch;
-  bool _isLoading = false;
+  late Future<List<User>?>? _usersFuture = _emptySearch;
 
-  Future<List<User>> get _emptySearch => Future(() => throw const SearchError(
-      message: "Start typing to search for users", icon: Icons.search)
-  );
+  Future<List<User>> get _emptySearch =>
+      Future(() =>
+      throw const SearchError(
+          message: "Start typing to search for users", icon: Icons.search)
+      );
 
   void _querySearch(BuildContext context, String needle) {
     if (needle.isEmpty) {
@@ -38,60 +39,61 @@ class _UserSearchState extends State<UserSearch> {
       return;
     }
     _usersFuture = UserApi.searchUsers(ClientHolder
-        .of(context).apiClient, needle: needle).then((value) {
+        .of(context)
+        .apiClient, needle: needle).then((value) {
       final res = value.toList();
       if (res.isEmpty) throw SearchError(message: "No user found with username '$needle'", icon: Icons.search_off);
       res.sort(
               (a, b) => a.username.length.compareTo(b.username.length)
       );
       return res;
-    }).whenComplete(() => setState(() => _isLoading = false));
-  }
-
-  @override
-  void initState() {
-    super.initState();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final mClient = ClientHolder
+        .of(context)
+        .messagingClient;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Find Users"),
       ),
       body: Column(
         children: [
-          if(_isLoading) const LinearProgressIndicator(),
           Expanded(
             child: FutureBuilder(
-                future: _usersFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final users = (snapshot.data as List<User>);
-                    final mClient = ClientHolder.of(context).messagingClient;
-                    return ListView.builder(
-                      itemCount: users.length,
-                      itemBuilder: (context, index) {
-                        final user = users[index];
-                        return UserListTile(user: user, isFriend: mClient.getAsFriend(user.id) != null,);
-                      },
+              future: _usersFuture,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final users = snapshot.data as List<User>;
+                  return ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return UserListTile(user: user, isFriend: mClient.getAsFriend(user.id) != null,);
+                    },
+                  );
+                } else if (snapshot.hasError) {
+                  final err = snapshot.error;
+                  if (err is SearchError) {
+                    return DefaultErrorWidget(
+                      title: err.message,
+                      iconOverride: err.icon,
                     );
-                  } else if (snapshot.hasError) {
-                    final err = snapshot.error;
-                    if (err is SearchError) {
-                      return DefaultErrorWidget(
-                        title: err.message,
-                        iconOverride: err.icon,
-                      );
-                    } else {
-                      FlutterError.reportError(
-                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
-                      return DefaultErrorWidget(title: "${snapshot.error}",);
-                    }
                   } else {
-                    return const SizedBox.shrink();
+                    FlutterError.reportError(
+                        FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+                    return DefaultErrorWidget(title: "${snapshot.error}",);
                   }
+                } else {
+                  return Column(
+                    children: const [
+                      LinearProgressIndicator(),
+                    ],
+                  );
                 }
+              },
             ),
           ),
           Padding(
@@ -111,13 +113,12 @@ class _UserSearchState extends State<UserSearch> {
                 _searchDebouncer?.cancel();
                 if (value.isEmpty) {
                   setState(() {
-                    _isLoading = false;
                     _querySearch(context, value);
                   });
                   return;
                 }
                 setState(() {
-                  _isLoading = true;
+                  _usersFuture = Future(() => null);
                 });
                 _searchDebouncer = Timer(const Duration(milliseconds: 300), () {
                   setState(() {

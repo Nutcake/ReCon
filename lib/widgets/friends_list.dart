@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 class MenuItemDefinition {
   final String name;
   final IconData icon;
-  final void Function() onTap;
+  final Function() onTap;
 
   const MenuItemDefinition({required this.name, required this.icon, required this.onTap});
 }
@@ -100,15 +100,20 @@ class _FriendsListState extends State<FriendsList> {
             padding: const EdgeInsets.only(right: 4),
             child: PopupMenuButton<MenuItemDefinition>(
               icon: const Icon(Icons.more_vert),
-              onSelected: (MenuItemDefinition itemDef) {
-                itemDef.onTap();
+              onSelected: (MenuItemDefinition itemDef) async {
+                await itemDef.onTap();
               },
               itemBuilder: (BuildContext context) => [
-                    MenuItemDefinition(name: "Settings", icon: Icons.settings, onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
+                    MenuItemDefinition(name: "Settings", icon: Icons.settings, onTap: () async {
+                      _autoRefresh?.cancel();
+                      await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
+                      _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
                     }),
-                    MenuItemDefinition(name: "Find Users", icon: Icons.person_add, onTap: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UserSearch()));
+                    MenuItemDefinition(name: "Find Users", icon: Icons.person_add, onTap: () async {
+                      _autoRefresh?.cancel();
+                      await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UserSearch()));
+                      _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
+
                     })
                   ].map((item) =>
                       PopupMenuItem<MenuItemDefinition>(
