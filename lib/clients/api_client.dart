@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:contacts_plus_plus/clients/neos_hub.dart';
+import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -148,7 +148,7 @@ class ApiClient {
 class ClientHolder extends InheritedWidget {
   final ApiClient apiClient;
   final SettingsClient settingsClient;
-  late final NeosHub hub;
+  late final MessagingClient messagingClient;
 
   ClientHolder({
     super.key,
@@ -156,7 +156,7 @@ class ClientHolder extends InheritedWidget {
     required this.settingsClient,
     required super.child
   }) : apiClient = ApiClient(authenticationData: authenticationData) {
-    hub = NeosHub(apiClient: apiClient);
+    messagingClient = MessagingClient(apiClient: apiClient);
   }
 
   static ClientHolder? maybeOf(BuildContext context) {
@@ -173,5 +173,5 @@ class ClientHolder extends InheritedWidget {
   bool updateShouldNotify(covariant ClientHolder oldWidget) =>
       oldWidget.apiClient != apiClient
       || oldWidget.settingsClient != settingsClient
-      || oldWidget.hub != hub;
+      || oldWidget.messagingClient != messagingClient;
 }

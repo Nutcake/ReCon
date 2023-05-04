@@ -47,15 +47,15 @@ class _MessagesListState extends State<MessagesList> {
 
   void _loadMessages() {
     _messageCacheFutureComplete = false;
-    _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id)
+    _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
         .whenComplete(() => _messageCacheFutureComplete = true);
-    _clientHolder?.hub.registerListener(
+    _clientHolder?.messagingClient.registerListener(
         widget.friend.id, () => setState(() {}));
   }
 
   @override
   void dispose() {
-    _clientHolder?.hub.unregisterListener(widget.friend.id);
+    _clientHolder?.messagingClient.unregisterListener(widget.friend.id);
     _messageTextController.dispose();
     _sessionListScrollController.dispose();
     super.dispose();
@@ -82,7 +82,7 @@ class _MessagesListState extends State<MessagesList> {
           _messageScrollController.position.maxScrollExtent > 0 && _messageCacheFutureComplete) {
         setState(() {
           _messageCacheFutureComplete = false;
-          _messageCacheFuture = _clientHolder?.hub.getCache(widget.friend.id)
+          _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
               .then((value) => value.loadOlderMessages()).whenComplete(() => _messageCacheFutureComplete = true);
         });
       }
@@ -273,7 +273,7 @@ class _MessagesListState extends State<MessagesList> {
                       sendTime: DateTime.now().toUtc(),
                     );
                     try {
-                      _clientHolder!.hub.sendMessage(message);
+                      _clientHolder!.messagingClient.sendMessage(message);
                       _messageTextController.clear();
                       setState(() {});
                     } catch (e) {

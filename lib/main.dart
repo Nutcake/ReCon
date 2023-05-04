@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:io' show Platform;
 
-import 'package:contacts_plus_plus/clients/neos_hub.dart';
+import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/widgets/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
@@ -31,8 +31,8 @@ void main() async {
 void callbackDispatcher() {
   Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
     debugPrint("Native called background task: $task"); //simpleTask will be emitted here.
-    if (task == NeosHub.taskName) {
-      final unreads = NeosHub.backgroundCheckUnreads(inputData);
+    if (task == MessagingClient.taskName) {
+      final unreads = MessagingClient.backgroundCheckUnreads(inputData);
     }
     return Future.value(true);
   });

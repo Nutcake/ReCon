@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
+import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
@@ -29,12 +30,13 @@ enum EventTarget {
   }
 }
 
-class NeosHub {
+class MessagingClient {
   static const String eofChar = "";
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
   static const String taskName = "periodic-unread-check";
   final ApiClient _apiClient;
+  final Map<String, Friend> _friendsCache = {};
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, Function> _updateListeners = {};
   final Logger _logger = Logger("NeosHub");
@@ -42,7 +44,7 @@ class NeosHub {
   WebSocket? _wsChannel;
   bool _isConnecting = false;
 
-  NeosHub({required ApiClient apiClient})
+  MessagingClient({required ApiClient apiClient})
       : _apiClient = apiClient {
     start();
   }
@@ -52,7 +54,16 @@ class NeosHub {
     _wsChannel!.add(jsonEncode(data)+eofChar);
   }
 
-  Future<MessageCache> getCache(String userId) async {
+  void updateFriendsCache(List<Friend> friends) {
+    _friendsCache.clear();
+    for (final friend in friends) {
+      _friendsCache[friend.id] = friend;
+    }
+  }
+
+  Friend? getAsFriend(String userId) => _friendsCache[userId];
+
+  Future<MessageCache> getMessageCache(String userId) async {
     var cache = _messageCache[userId];
     if (cache == null){
       cache = MessageCache(apiClient: _apiClient, userId: userId);
@@ -168,21 +179,21 @@ class NeosHub {
       case EventTarget.messageSent:
         final msg = args[0];
         final message = Message.fromMap(msg, withState: MessageState.sent);
-        final cache = await getCache(message.recipientId);
+        final cache = await getMessageCache(message.recipientId);
         cache.addMessage(message);
         notifyListener(message.recipientId);
         break;
       case EventTarget.messageReceived:
         final msg = args[0];
         final message = Message.fromMap(msg);
-        final cache = await getCache(message.senderId);
+        final cache = await getMessageCache(message.senderId);
         cache.addMessage(message);
         notifyListener(message.senderId);
         break;
       case EventTarget.messagesRead:
         final messageIds = args[0]["ids"] as List;
         final recipientId = args[0]["recipientId"];
-        final cache = await getCache(recipientId ?? "");
+        final cache = await getMessageCache(recipientId ?? "");
         for (var id in messageIds) {
           cache.setMessageState(id, MessageState.read);
         }
@@ -201,7 +212,7 @@ class NeosHub {
       ],
     };
     _sendData(data);
-    final cache = await getCache(message.recipientId);
+    final cache = await getMessageCache(message.recipientId);
     cache.messages.add(message);
     notifyListener(message.recipientId);
   }

@@ -85,6 +85,7 @@ class _FriendsListState extends State<FriendsList> {
       _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
       _refreshTimeout?.cancel();
       _refreshTimeout = Timer(_refreshTimeoutDuration, () {});
+      _clientHolder?.messagingClient.updateFriendsCache(friends);
       return friends;
     });
   }
@@ -156,7 +157,7 @@ class _FriendsListState extends State<FriendsList> {
                                 ids: unread.map((e) => e.id).toList(),
                                 readTime: DateTime.now(),
                               );
-                              _clientHolder!.hub.markMessagesRead(readBatch);
+                              _clientHolder!.messagingClient.markMessagesRead(readBatch);
                             }
                             setState(() {
                               unread.clear();
@@ -171,7 +172,10 @@ class _FriendsListState extends State<FriendsList> {
                     return DefaultErrorWidget(
                       message: "${snapshot.error}",
                       onRetry: () {
-                        _refreshFriendsList();
+                        _refreshTimeout?.cancel();
+                        setState(() {
+                          _refreshFriendsList();
+                        });
                       },
                     );
                   } else {

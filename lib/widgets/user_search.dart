@@ -68,15 +68,15 @@ class _UserSearchState extends State<UserSearch> {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final users = (snapshot.data as List<User>);
+                    final mClient = ClientHolder.of(context).messagingClient;
                     return ListView.builder(
                       itemCount: users.length,
                       itemBuilder: (context, index) {
-                        return UserListTile(user: users[index]);
+                        final user = users[index];
+                        return UserListTile(user: user, isFriend: mClient.getAsFriend(user.id) != null,);
                       },
                     );
                   } else if (snapshot.hasError) {
-                    FlutterError.reportError(
-                        FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                     final err = snapshot.error;
                     if (err is SearchError) {
                       return DefaultErrorWidget(
@@ -84,6 +84,8 @@ class _UserSearchState extends State<UserSearch> {
                         iconOverride: err.icon,
                       );
                     } else {
+                      FlutterError.reportError(
+                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                       return DefaultErrorWidget(title: "${snapshot.error}",);
                     }
                   } else {
