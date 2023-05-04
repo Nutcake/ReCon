@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     final requestResult = await notificationManager.resolvePlatformSpecificImplementation<
                         AndroidFlutterLocalNotificationsPlugin>()
                         ?.requestPermission();
-                    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: requestResult == null ? null : !requestResult));
+                    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: requestResult == null ? false : !requestResult));
                   },
                   child: const Text("Yes"),
                 )

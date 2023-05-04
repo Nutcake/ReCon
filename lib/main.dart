@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io' show Platform;
 
 import 'package:contacts_plus_plus/clients/neos_hub.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
@@ -12,12 +13,15 @@ import 'clients/api_client.dart';
 import 'models/authentication_data.dart';
 
 void main() async {
-  await Workmanager().initialize(
-      callbackDispatcher, // The top level function, aka callbackDispatcher
-      isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
-  );
-  Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName));
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isAndroid) {
+    await Workmanager().initialize(
+        callbackDispatcher, // The top level function, aka callbackDispatcher
+        isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+    );
+  }
+
+  Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));

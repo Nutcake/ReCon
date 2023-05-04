@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
@@ -25,13 +26,32 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
   @override
   void initState() {
     super.initState();
-    _audioPlayer.setAudioSource(AudioSource.uri(Uri.parse(
+    if (Platform.isAndroid) {
+      _audioPlayer.setAudioSource(AudioSource.uri(Uri.parse(
         Aux.neosDbToHttp(AudioClipContent.fromMap(jsonDecode(widget.message.content)).assetUri)
     ))).whenComplete(() => _audioPlayer.setLoopMode(LoopMode.off));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!Platform.isAndroid) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error,),
+            const SizedBox(height: 4,),
+            Text("Sorry, audio-messages are not\n supported on this platform.", textAlign: TextAlign.center,
+              softWrap: true,
+              maxLines: 3,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ),
+      );
+    }
     return IntrinsicWidth(
       child: StreamBuilder<PlayerState>(
         stream: _audioPlayer.playerStateStream,

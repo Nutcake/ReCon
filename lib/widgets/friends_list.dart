@@ -19,15 +19,19 @@ class FriendsList extends StatefulWidget {
 }
 
 class _FriendsListState extends State<FriendsList> {
+  static const Duration _autoRefreshDuration = Duration(seconds: 90);
+  static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
+  final _unreads = <String, List<Message>>{};
   Future<List<Friend>>? _friendsFuture;
   ClientHolder? _clientHolder;
-  Timer? _debouncer;
+  Timer? _autoRefresh;
+  Timer? _refreshTimeout;
   String _searchFilter = "";
-  final _unreads = <String, List<Message>>{};
 
   @override
   void dispose() {
-    _debouncer?.cancel();
+    _autoRefresh?.cancel();
+    _refreshTimeout?.cancel();
     super.dispose();
   }
 
@@ -42,6 +46,7 @@ class _FriendsListState extends State<FriendsList> {
   }
 
   void _refreshFriendsList() {
+    if (_refreshTimeout?.isActive == true) return;
     _friendsFuture = FriendApi.getFriendsList(_clientHolder!.apiClient).then((Iterable<Friend> value) async {
       final unreadMessages = await MessageApi.getUserMessages(_clientHolder!.apiClient, unreadOnly: true);
       _unreads.clear();
@@ -66,6 +71,10 @@ class _FriendsListState extends State<FriendsList> {
           aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
           return aVal.compareTo(bVal);
         });
+      _autoRefresh?.cancel();
+      _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
+      _refreshTimeout?.cancel();
+      _refreshTimeout = Timer(_refreshTimeoutDuration, () {});
       return friends;
     });
   }
@@ -147,7 +156,6 @@ class _FriendsListState extends State<FriendsList> {
                 });
               },
               onExpansionChanged: (expanded) {
-                if (_debouncer?.isActive ?? false) _debouncer?.cancel();
                 if (!expanded) {
                   setState(() {
                     _searchFilter = "";
