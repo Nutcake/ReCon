@@ -10,7 +10,6 @@ import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 
 class FriendsList extends StatefulWidget {
   const FriendsList({super.key});

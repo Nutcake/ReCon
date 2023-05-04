@@ -18,6 +18,7 @@ class SettingsClient {
       _currentSettings = Settings.fromMap(jsonDecode(data));
     } catch (_) {
       _storage.delete(key: _settingsKey);
+      rethrow;
     }
   }
 

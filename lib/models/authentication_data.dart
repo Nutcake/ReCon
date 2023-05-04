@@ -24,4 +24,12 @@ class AuthenticationData {
   Map<String, String> get authorizationHeader => {
     "Authorization": "neos $userId:$token"
   };
+
+  Map<String, dynamic> toMap() {
+    return {
+      "userId": userId,
+      "token": token,
+      "secretMachineId": secretMachineId,
+    };
+  }
 }

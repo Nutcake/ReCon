@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:contacts_plus_plus/apis/message_api.dart';
+import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:logging/logging.dart';
+import 'package:workmanager/workmanager.dart';
 
 enum EventType {
   unknown,
@@ -31,10 +33,12 @@ class NeosHub {
   static const String eofChar = "";
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
+  static const String taskName = "periodic-unread-check";
   final ApiClient _apiClient;
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, Function> _updateListeners = {};
   final Logger _logger = Logger("NeosHub");
+  final Workmanager _workmanager = Workmanager();
   WebSocket? _wsChannel;
   bool _isConnecting = false;
 
@@ -58,11 +62,25 @@ class NeosHub {
     return cache;
   }
 
-  Future<void> checkUnreads() async {
-    final unreads = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
+  static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
+    if (inputData == null) return;
+    final auth = AuthenticationData.fromMap(inputData);
+    final unreads = await MessageApi.getUserMessages(ApiClient(authenticationData: auth), unreadOnly: true);
     for (var message in unreads) {
       throw UnimplementedError();
     }
+  }
+
+  Future<void> _updateNotificationTask(int minuteInterval) async {
+    final auth = _apiClient.authenticationData;
+    if (!auth.isAuthenticated) throw "Unauthenticated";
+    await _workmanager.cancelByUniqueName(taskName);
+    _workmanager.registerPeriodicTask(
+      taskName,
+      taskName,
+      frequency: Duration(minutes: minuteInterval),
+      inputData: auth.toMap(),
+    );
   }
 
   void _onDisconnected(error) {

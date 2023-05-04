@@ -1,21 +1,37 @@
 import 'dart:developer';
 
+import 'package:contacts_plus_plus/clients/neos_hub.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/widgets/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:logging/logging.dart';
+import 'package:workmanager/workmanager.dart';
 import 'clients/api_client.dart';
 import 'models/authentication_data.dart';
 
 void main() async {
+  await Workmanager().initialize(
+      callbackDispatcher, // The top level function, aka callbackDispatcher
+      isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+  );
   Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName));
   WidgetsFlutterBinding.ensureInitialized();
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));
+}
+
+@pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
+void callbackDispatcher() {
+  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+    debugPrint("Native called background task: $task"); //simpleTask will be emitted here.
+    if (task == NeosHub.taskName) {
+      final unreads = NeosHub.backgroundCheckUnreads(inputData);
+    }
+    return Future.value(true);
+  });
 }
 
 class ContactsPlusPlus extends StatefulWidget {

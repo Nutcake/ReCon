@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class SettingsEntry<T> {
   final T? value;
   final T deflt;
@@ -6,7 +8,7 @@ class SettingsEntry<T> {
 
   factory SettingsEntry.fromMap(Map map) {
     return SettingsEntry<T>(
-      value: map["value"] as T,
+      value: jsonDecode(map["value"]) as T?,
       deflt: map["default"],
     );
   }

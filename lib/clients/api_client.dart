@@ -22,6 +22,7 @@ class ApiClient {
 
   final AuthenticationData _authenticationData;
 
+  AuthenticationData get authenticationData => _authenticationData;
   String get userId => _authenticationData.userId;
   bool get isAuthenticated => _authenticationData.isAuthenticated;
 
