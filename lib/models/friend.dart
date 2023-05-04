@@ -6,11 +6,12 @@ import 'package:contacts_plus_plus/models/user_profile.dart';
 class Friend extends Comparable {
   final String id;
   final String username;
+  final String ownerId;
   final UserStatus userStatus;
   final UserProfile userProfile;
   final FriendStatus friendStatus;
 
-  Friend({required this.id, required this.username, required this.userStatus, required this.userProfile,
+  Friend({required this.id, required this.username, required this.ownerId, required this.userStatus, required this.userProfile,
     required this.friendStatus,
   });
 
@@ -18,10 +19,22 @@ class Friend extends Comparable {
     return Friend(
       id: map["id"],
       username: map["friendUsername"],
+      ownerId: map["ownerId"] ?? map["id"],
       userStatus: UserStatus.fromMap(map["userStatus"]),
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
       friendStatus: FriendStatus.fromString(map["friendStatus"]),
     );
+  }
+
+  Map toMap({bool shallow=false}) {
+    return {
+      "id": id,
+      "username": username,
+      "ownerId": ownerId,
+      "userStatus": userStatus.toMap(shallow: shallow),
+      "profile": userProfile.toMap(),
+      "friendStatus": friendStatus.name,
+    };
   }
 
   @override
@@ -75,8 +88,13 @@ class UserStatus {
   final DateTime lastStatusChange;
   final List<Session> activeSessions;
 
-
   UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions});
+
+  factory UserStatus.empty() => UserStatus(
+    onlineStatus: OnlineStatus.unknown,
+    lastStatusChange: DateTime.now(),
+    activeSessions: [],
+  );
 
   factory UserStatus.fromMap(Map map) {
     final statusString = map["onlineStatus"] as String?;
@@ -89,5 +107,13 @@ class UserStatus {
       lastStatusChange: DateTime.parse(map["lastStatusChange"]),
       activeSessions: (map["activeSessions"] as List? ?? []).map((e) => Session.fromMap(e)).toList(),
     );
+  }
+
+  Map toMap({bool shallow=false}) {
+    return {
+      "onlineStatus": onlineStatus.index,
+      "lastStatusChange": lastStatusChange.toIso8601String(),
+      "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),)
+    };
   }
 }

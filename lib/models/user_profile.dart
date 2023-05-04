@@ -3,6 +3,8 @@ class UserProfile {
 
   UserProfile({required this.iconUrl});
 
+  factory UserProfile.empty() => UserProfile(iconUrl: "");
+
   factory UserProfile.fromMap(Map map) {
     return UserProfile(iconUrl: map["iconUrl"] ?? "");
   }

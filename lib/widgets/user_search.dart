@@ -16,7 +16,9 @@ class SearchError {
 }
 
 class UserSearch extends StatefulWidget {
-  const UserSearch({super.key});
+  const UserSearch({required this.onFriendsChanged, super.key});
+
+  final Function()? onFriendsChanged;
 
   @override
   State<StatefulWidget> createState() => _UserSearchState();
@@ -71,7 +73,7 @@ class _UserSearchState extends State<UserSearch> {
                     itemCount: users.length,
                     itemBuilder: (context, index) {
                       final user = users[index];
-                      return UserListTile(user: user, isFriend: mClient.getAsFriend(user.id) != null,);
+                      return UserListTile(user: user, isFriend: mClient.getAsFriend(user.id) != null, onChange: widget.onFriendsChanged);
                     },
                   );
                 } else if (snapshot.hasError) {

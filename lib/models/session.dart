@@ -32,6 +32,22 @@ class Session {
     );
   }
 
+  Map toMap({bool shallow=false}) {
+    return {
+      "sessionId": id,
+      "name": name,
+      "sessionUsers": shallow ? [] : throw UnimplementedError(),
+      "thumbnail": thumbnail,
+      "maxUsers": maxUsers,
+      "hasEnded": hasEnded,
+      "isValid": isValid,
+      "description": description,
+      "tags": shallow ? [] : throw UnimplementedError(),
+      "headlessHost": headlessHost,
+      "hostUsername": hostUsername,
+    };
+  }
+
   bool get isLive => !hasEnded && isValid;
 }
 

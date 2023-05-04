@@ -110,10 +110,24 @@ class _FriendsListState extends State<FriendsList> {
                       _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
                     }),
                     MenuItemDefinition(name: "Find Users", icon: Icons.person_add, onTap: () async {
+                      bool changed = false;
                       _autoRefresh?.cancel();
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UserSearch()));
-                      _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
-
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              UserSearch(
+                                onFriendsChanged: () => changed = true,
+                              ),
+                        ),
+                      );
+                      if (changed) {
+                        _refreshTimeout?.cancel();
+                        setState(() {
+                          _refreshFriendsList();
+                        });
+                      } else {
+                        _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
+                      }
                     })
                   ].map((item) =>
                       PopupMenuItem<MenuItemDefinition>(
@@ -144,7 +158,7 @@ class _FriendsListState extends State<FriendsList> {
                   if (snapshot.hasData) {
                     var friends = (snapshot.data as List<Friend>);
                     if (_searchFilter.isNotEmpty) {
-                      friends = friends.where((element) => element.username.contains(_searchFilter)).toList();
+                      friends = friends.where((element) => element.username.toLowerCase().contains(_searchFilter.toLowerCase())).toList();
                       friends.sort((a, b) => a.username.length.compareTo(b.username.length));
                     }
                     return ListView.builder(

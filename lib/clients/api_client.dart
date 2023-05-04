@@ -134,6 +134,7 @@ class ApiClient {
 
   Future<http.Response> put(String path, {Object? body, Map<String, String>? headers}) {
     headers ??= {};
+    headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
     return http.put(buildFullUri(path), headers: headers, body: body);
   }
