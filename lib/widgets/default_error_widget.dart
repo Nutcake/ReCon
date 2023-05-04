@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 class DefaultErrorWidget extends StatelessWidget {
-  const DefaultErrorWidget({required this.message, this.onRetry, super.key});
+  const DefaultErrorWidget({this.title, this.message, this.onRetry, this.iconOverride, super.key});
 
-  final String message;
+  final String? title;
+  final String? message;
   final void Function()? onRetry;
+  final IconData? iconOverride;
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +18,19 @@ class DefaultErrorWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text("Something went wrong: ", style: Theme
+            Icon(iconOverride ?? Icons.warning, size: 32,),
+            const SizedBox(height: 16,),
+            Text(title ?? "Something went wrong: ",
+              textAlign: TextAlign.center,
+              style: Theme
                 .of(context)
                 .textTheme
                 .titleMedium,),
-            Padding(
+            if (message != null) Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(message),
+              child: Text(message ?? "",
+                textAlign: TextAlign.center,
+              ),
             ),
             if (onRetry != null) TextButton.icon(
               onPressed: onRetry,

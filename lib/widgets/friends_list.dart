@@ -9,7 +9,17 @@ import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
+import 'package:contacts_plus_plus/widgets/user_search.dart';
 import 'package:flutter/material.dart';
+
+
+class MenuItemDefinition {
+  final String name;
+  final IconData icon;
+  final void Function() onTap;
+
+  const MenuItemDefinition({required this.name, required this.icon, required this.onTap});
+}
 
 class FriendsList extends StatefulWidget {
   const FriendsList({super.key});
@@ -85,11 +95,33 @@ class _FriendsListState extends State<FriendsList> {
       appBar: AppBar(
         title: const Text("Contacts++"),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
-            },
-            icon: const Icon(Icons.settings),
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: PopupMenuButton<MenuItemDefinition>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (MenuItemDefinition itemDef) {
+                itemDef.onTap();
+              },
+              itemBuilder: (BuildContext context) => [
+                    MenuItemDefinition(name: "Settings", icon: Icons.settings, onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
+                    }),
+                    MenuItemDefinition(name: "Find Users", icon: Icons.person_add, onTap: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const UserSearch()));
+                    })
+                  ].map((item) =>
+                      PopupMenuItem<MenuItemDefinition>(
+                        value: item,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(item.name),
+                            Icon(item.icon),
+                          ],
+                        ),
+                      ),
+                  ).toList(),
+            ),
           )
         ],
       ),
@@ -134,7 +166,8 @@ class _FriendsListState extends State<FriendsList> {
                       },
                     );
                   } else if (snapshot.hasError) {
-                    FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+                    FlutterError.reportError(
+                        FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                     return DefaultErrorWidget(
                       message: "${snapshot.error}",
                       onRetry: () {
