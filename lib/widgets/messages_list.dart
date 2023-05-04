@@ -583,6 +583,7 @@ class SessionPopup extends StatelessWidget {
                           style: Theme.of(context).textTheme.labelMedium,
                           softWrap: true,
                         ),
+                        Text("Access: ${session.accessLevel.toReadableString()}"),
                         Text("Users: ${session.sessionUsers.length}", style: Theme.of(context).textTheme.labelMedium),
                         Text("Maximum users: ${session.maxUsers}", style: Theme.of(context).textTheme.labelMedium),
                         Text("Headless: ${session.headlessHost ? "Yes" : "No"}", style: Theme.of(context).textTheme.labelMedium),

@@ -10,10 +10,11 @@ class Session {
   final List<String> tags;
   final bool headlessHost;
   final String hostUsername;
+  final SessionAccessLevel accessLevel;
 
   Session({required this.id, required this.name, required this.sessionUsers, required this.thumbnail,
     required this.maxUsers, required this.hasEnded, required this.isValid, required this.description,
-    required this.tags, required this.headlessHost, required this.hostUsername,
+    required this.tags, required this.headlessHost, required this.hostUsername, required this.accessLevel,
   });
 
   factory Session.fromMap(Map map) {
@@ -29,6 +30,7 @@ class Session {
       tags: ((map["tags"] as List?) ?? []).map((e) => e.toString()).toList(),
       headlessHost: map["headlessHost"] ?? false,
       hostUsername: map["hostUsername"] ?? "",
+      accessLevel: SessionAccessLevel.fromName(map["accessLevel"]),
     );
   }
 
@@ -45,10 +47,37 @@ class Session {
       "tags": shallow ? [] : throw UnimplementedError(),
       "headlessHost": headlessHost,
       "hostUsername": hostUsername,
+      "accessLevel": accessLevel.name, // This probably wont work, the API usually expects integers.
     };
   }
 
   bool get isLive => !hasEnded && isValid;
+}
+
+enum SessionAccessLevel {
+  unknown,
+  private,
+  friends,
+  friendsOfFriends,
+  anyone;
+
+  static const _readableNamesMap = {
+    SessionAccessLevel.unknown: "Unknown",
+    SessionAccessLevel.private: "Private",
+    SessionAccessLevel.friends: "Contacts",
+    SessionAccessLevel.friendsOfFriends: "Contacts+",
+    SessionAccessLevel.anyone: "Anyone",
+  };
+
+  factory SessionAccessLevel.fromName(String? name) {
+    return SessionAccessLevel.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase(),
+      orElse: () => SessionAccessLevel.unknown,
+    );
+  }
+
+  String toReadableString() {
+    return SessionAccessLevel._readableNamesMap[this] ?? "Unknown";
+  }
 }
 
 class SessionUser {
@@ -61,10 +90,10 @@ class SessionUser {
 
   factory SessionUser.fromMap(Map map) {
     return SessionUser(
-      id: map["userID"],
-      username: map["username"],
-      isPresent: map["isPresent"],
-      outputDevice: map["outputDevice"],
+      id: map["userID"] ?? "",
+      username: map["username"] ?? "Unknown",
+      isPresent: map["isPresent"] ?? false,
+      outputDevice: map["outputDevice"] ?? 0,
     );
   }
 }

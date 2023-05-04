@@ -26,13 +26,19 @@ class MessageSessionInvite extends StatelessWidget {
         padding: const EdgeInsets.only(left: 10),
         constraints: const BoxConstraints(maxWidth: 300),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(sessionInfo.name, maxLines: null, softWrap: true, style: Theme.of(context).textTheme.titleMedium,),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(sessionInfo.name, maxLines: null, softWrap: true, style: Theme.of(context).textTheme.titleMedium,),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
