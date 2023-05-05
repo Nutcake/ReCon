@@ -31,7 +31,6 @@ class FriendsList extends StatefulWidget {
 class _FriendsListState extends State<FriendsList> {
   static const Duration _autoRefreshDuration = Duration(seconds: 90);
   static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
-  final _unreads = <String, List<Message>>{};
   Future<List<Friend>>? _friendsFuture;
   ClientHolder? _clientHolder;
   Timer? _autoRefresh;
@@ -51,6 +50,14 @@ class _FriendsListState extends State<FriendsList> {
     final clientHolder = ClientHolder.of(context);
     if (_clientHolder != clientHolder) {
       _clientHolder = clientHolder;
+      final mClient = _clientHolder!.messagingClient;
+      mClient.registerUnreadListener(() {
+        if (context.mounted) {
+          setState(() {});
+        } else {
+          mClient.unregisterUnreadListener();
+        }
+      });
       _refreshFriendsList();
     }
   }
@@ -59,22 +66,14 @@ class _FriendsListState extends State<FriendsList> {
     if (_refreshTimeout?.isActive == true) return;
     _friendsFuture = FriendApi.getFriendsList(_clientHolder!.apiClient).then((Iterable<Friend> value) async {
       final unreadMessages = await MessageApi.getUserMessages(_clientHolder!.apiClient, unreadOnly: true);
-      _unreads.clear();
-      for (final msg in unreadMessages) {
-        if (msg.senderId != _clientHolder!.apiClient.userId) {
-          final value = _unreads[msg.senderId];
-          if (value == null) {
-            _unreads[msg.senderId] = [msg];
-          } else {
-            value.add(msg);
-          }
-        }
-      }
+      final mClient = _clientHolder?.messagingClient;
+      if (mClient == null) return [];
+      mClient.updateAllUnreads(unreadMessages.toList());
 
       final friends = value.toList()
         ..sort((a, b) {
-          var aVal = _unreads.containsKey(a.id) ? -3 : 0;
-          var bVal = _unreads.containsKey(b.id) ? -3 : 0;
+          var aVal = mClient.friendHasUnreads(a) ? -3 : 0;
+          var bVal = mClient.friendHasUnreads(b) ? -3 : 0;
 
           aVal -= a.userStatus.lastStatusChange.compareTo(b.userStatus.lastStatusChange);
           aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
@@ -164,21 +163,21 @@ class _FriendsListState extends State<FriendsList> {
                       itemCount: friends.length,
                       itemBuilder: (context, index) {
                         final friend = friends[index];
-                        final unread = _unreads[friend.id] ?? [];
+                        final unreads = _clientHolder?.messagingClient.getUnreadsForFriend(friend) ?? [];
                         return FriendListTile(
                           friend: friend,
-                          unreads: unread.length,
+                          unreads: unreads.length,
                           onTap: () async {
-                            if (unread.isNotEmpty) {
+                            if (unreads.isNotEmpty) {
                               final readBatch = MarkReadBatch(
                                 senderId: _clientHolder!.apiClient.userId,
-                                ids: unread.map((e) => e.id).toList(),
+                                ids: unreads.map((e) => e.id).toList(),
                                 readTime: DateTime.now(),
                               );
                               _clientHolder!.messagingClient.markMessagesRead(readBatch);
                             }
                             setState(() {
-                              unread.clear();
+                              unreads.clear();
                             });
                           },
                         );

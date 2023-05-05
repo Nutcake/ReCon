@@ -42,10 +42,12 @@ class MessagingClient {
   final ApiClient _apiClient;
   final Map<String, Friend> _friendsCache = {};
   final Map<String, MessageCache> _messageCache = {};
-  final Map<String, Function> _updateListeners = {};
+  final Map<String, Function> _messageUpdateListeners = {};
+  final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("NeosHub");
   final Workmanager _workmanager = Workmanager();
   final NotificationClient _notificationClient;
+  Function? _unreadsUpdateListener;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
 
@@ -64,6 +66,46 @@ class MessagingClient {
     for (final friend in friends) {
       _friendsCache[friend.id] = friend;
     }
+  }
+
+  void updateAllUnreads(List<Message> messages) {
+    _unreads.clear();
+    for (final msg in messages) {
+      if (msg.senderId != _apiClient.userId) {
+        final value = _unreads[msg.senderId];
+        if (value == null) {
+          _unreads[msg.senderId] = [msg];
+        } else {
+          value.add(msg);
+        }
+      }
+    }
+  }
+
+  void addUnread(Message message) {
+    var messages = _unreads[message.senderId];
+    if (messages == null) {
+      messages = [message];
+      _unreads[message.senderId] = messages;
+    } else {
+      messages.add(message);
+    }
+    messages.sort();
+    _notificationClient.showUnreadMessagesNotification(messages.reversed);
+    notifyUnreadListener();
+  }
+
+  void clearUnreadsForFriend(Friend friend) {
+    _unreads[friend.id]?.clear();
+    notifyUnreadListener();
+  }
+
+  List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.id] ?? [];
+
+  bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.id);
+
+  bool messageIsUnread(Message message) {
+    return _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
   }
 
   Friend? getAsFriend(String userId) => _friendsCache[userId];
@@ -153,9 +195,13 @@ class MessagingClient {
     }
   }
 
-  void registerListener(String userId, Function function) => _updateListeners[userId] = function;
-  void unregisterListener(String userId) => _updateListeners.remove(userId);
-  void notifyListener(String userId) => _updateListeners[userId]?.call();
+  void registerMessageListener(String userId, Function function) => _messageUpdateListeners[userId] = function;
+  void unregisterMessageListener(String userId) => _messageUpdateListeners.remove(userId);
+  void notifyMessageListener(String userId) => _messageUpdateListeners[userId]?.call();
+
+  void registerUnreadListener(Function function) => _unreadsUpdateListener = function;
+  void unregisterUnreadListener() => _unreadsUpdateListener = null;
+  void notifyUnreadListener() => _unreadsUpdateListener?.call();
 
   void _handleEvent(event) {
     final body = jsonDecode((event.toString().replaceAll(eofChar, "")));
@@ -186,17 +232,17 @@ class MessagingClient {
         final message = Message.fromMap(msg, withState: MessageState.sent);
         final cache = await getMessageCache(message.recipientId);
         cache.addMessage(message);
-        notifyListener(message.recipientId);
+        notifyMessageListener(message.recipientId);
         break;
       case EventTarget.receiveMessage:
         final msg = args[0];
         final message = Message.fromMap(msg);
         final cache = await getMessageCache(message.senderId);
         cache.addMessage(message);
-        if (!_updateListeners.containsKey(message.senderId)) {
-          _notificationClient.showUnreadMessagesNotification([message]);
+        if (!_messageUpdateListeners.containsKey(message.senderId)) {
+          addUnread(message);
         }
-        notifyListener(message.senderId);
+        notifyMessageListener(message.senderId);
         break;
       case EventTarget.messagesRead:
         final messageIds = args[0]["ids"] as List;
@@ -205,7 +251,7 @@ class MessagingClient {
         for (var id in messageIds) {
           cache.setMessageState(id, MessageState.read);
         }
-        notifyListener(recipientId);
+        notifyMessageListener(recipientId);
         break;
     }
   }
@@ -222,7 +268,7 @@ class MessagingClient {
     _sendData(data);
     final cache = await getMessageCache(message.recipientId);
     cache.messages.add(message);
-    notifyListener(message.recipientId);
+    notifyMessageListener(message.recipientId);
   }
 
   void markMessagesRead(MarkReadBatch batch) {
@@ -260,13 +306,12 @@ class NotificationClient {
         )
     );
 
-  Future<void> showUnreadMessagesNotification(List<Message> messages) async {
+  Future<void> showUnreadMessagesNotification(Iterable<Message> messages) async {
     if (messages.isEmpty) return;
 
     final bySender = groupBy(messages, (p0) => p0.senderId);
 
     for (final entry in bySender.entries) {
-
       final uname = entry.key.stripUid();
       await _notifier.show(
         uname.hashCode,

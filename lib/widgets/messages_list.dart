@@ -51,18 +51,18 @@ class _MessagesListState extends State<MessagesList> {
         .whenComplete(() => _messageCacheFutureComplete = true);
     final mClient = _clientHolder?.messagingClient;
     final id = widget.friend.id;
-    mClient?.registerListener(id, () {
+    mClient?.registerMessageListener(id, () {
       if (context.mounted) {
         setState(() {});
       } else {
-        mClient.unregisterListener(id);
+        mClient.unregisterMessageListener(id);
       }
     });
   }
 
   @override
   void dispose() {
-    _clientHolder?.messagingClient.unregisterListener(widget.friend.id);
+    _clientHolder?.messagingClient.unregisterMessageListener(widget.friend.id);
     _messageTextController.dispose();
     _sessionListScrollController.dispose();
     super.dispose();
