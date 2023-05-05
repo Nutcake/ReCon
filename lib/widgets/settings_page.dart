@@ -43,6 +43,7 @@ class SettingsPage extends StatelessWidget {
                   items: _intervalSelections.keys.map((e) => DropdownMenuItem<int>(value: e, child: Text("${_intervalSelections[e]}"))).toList(),
                   value: sClient.currentSettings.unreadCheckIntervalMinutes.valueOrDefault,
                   onChanged: (int? value) async {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sorry, this feature is not yet implemented.")));
                     await sClient.changeSettings(sClient.currentSettings.copyWith(unreadCheckIntervalMinutes: value));
                     setState(() {});
                   },
@@ -50,8 +51,6 @@ class SettingsPage extends StatelessWidget {
               }
             ),
             title: const Text("Check Interval"),
-            onTap: () {
-            },
           ),
           const ListSectionHeader(name: "Other"),
           ListTile(
