@@ -84,7 +84,7 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               showAboutDialog(
                 context: context,
-                applicationVersion: "0.0.1",
+                applicationVersion: "1.0.0",
                 applicationIcon: InkWell(
                   onTap: () async {
                     if (!await launchUrl(Uri.parse("https://github.com/Nutcake/contacts-plus-plus"), mode: LaunchMode.externalApplication)) {
