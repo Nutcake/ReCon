@@ -50,6 +50,7 @@ dependencies:
   url_launcher: ^6.1.10
   workmanager: ^0.5.1
   flutter_local_notifications: ^14.0.0+1
+  collection: any
 
 dev_dependencies:
   flutter_test:

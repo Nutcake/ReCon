@@ -49,8 +49,15 @@ class _MessagesListState extends State<MessagesList> {
     _messageCacheFutureComplete = false;
     _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
         .whenComplete(() => _messageCacheFutureComplete = true);
-    _clientHolder?.messagingClient.registerListener(
-        widget.friend.id, () => setState(() {}));
+    final mClient = _clientHolder?.messagingClient;
+    final id = widget.friend.id;
+    mClient?.registerListener(id, () {
+      if (context.mounted) {
+        setState(() {});
+      } else {
+        mClient.unregisterListener(id);
+      }
+    });
   }
 
   @override

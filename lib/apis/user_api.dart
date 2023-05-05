@@ -12,6 +12,13 @@ class UserApi {
     final data = jsonDecode(response.body) as List;
     return data.map((e) => User.fromMap(e));
   }
+  
+  static Future<User> getUser(ApiClient client, {required String userId}) async {
+    final response = await client.get("/users/$userId/");
+    ApiClient.checkResponse(response);
+    final data = jsonDecode(response.body);
+    return User.fromMap(data);
+  }
 
   static Future<void> addUserAsFriend(ApiClient client, {required User user}) async {
     final friend = Friend(

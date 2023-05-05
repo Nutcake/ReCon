@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:contacts_plus_plus/apis/message_api.dart';
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/session.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 import 'package:http/http.dart' as http;
+import 'package:collection/collection.dart';
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
@@ -19,7 +23,7 @@ enum EventType {
 enum EventTarget {
   unknown,
   messageSent,
-  messageReceived,
+  receiveMessage,
   messagesRead;
 
   factory EventTarget.parse(String? text) {
@@ -41,11 +45,12 @@ class MessagingClient {
   final Map<String, Function> _updateListeners = {};
   final Logger _logger = Logger("NeosHub");
   final Workmanager _workmanager = Workmanager();
+  final NotificationClient _notificationClient;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
 
-  MessagingClient({required ApiClient apiClient})
-      : _apiClient = apiClient {
+  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
+      : _apiClient = apiClient, _notificationClient = notificationClient {
     start();
   }
 
@@ -183,11 +188,14 @@ class MessagingClient {
         cache.addMessage(message);
         notifyListener(message.recipientId);
         break;
-      case EventTarget.messageReceived:
+      case EventTarget.receiveMessage:
         final msg = args[0];
         final message = Message.fromMap(msg);
         final cache = await getMessageCache(message.senderId);
         cache.addMessage(message);
+        if (!_updateListeners.containsKey(message.senderId)) {
+          _notificationClient.showUnreadMessagesNotification([message]);
+        }
         notifyListener(message.senderId);
         break;
       case EventTarget.messagesRead:
@@ -227,5 +235,92 @@ class MessagingClient {
       ],
     };
     _sendData(data);
+  }
+}
+
+class NotificationChannel {
+  final String id;
+  final String name;
+  final String description;
+
+  const NotificationChannel({required this.name, required this.id, required this.description});
+}
+
+class NotificationClient {
+  static const NotificationChannel _messageChannel = NotificationChannel(
+    id: "messages",
+    name: "Messages",
+    description: "Messages received from your friends",
+  );
+
+  final fln.FlutterLocalNotificationsPlugin _notifier = fln.FlutterLocalNotificationsPlugin()
+    ..initialize(
+        const fln.InitializationSettings(
+          android: fln.AndroidInitializationSettings("ic_notification"),
+        )
+    );
+
+  Future<void> showUnreadMessagesNotification(List<Message> messages) async {
+    if (messages.isEmpty) return;
+
+    final bySender = groupBy(messages, (p0) => p0.senderId);
+
+    for (final entry in bySender.entries) {
+
+      final uname = entry.key.stripUid();
+      await _notifier.show(
+        uname.hashCode,
+        null,
+        null,
+        fln.NotificationDetails(android: fln.AndroidNotificationDetails(
+          _messageChannel.id,
+          _messageChannel.name,
+          channelDescription: _messageChannel.description,
+          importance: fln.Importance.high,
+          priority: fln.Priority.max,
+          styleInformation: fln.MessagingStyleInformation(
+            fln.Person(
+              name: uname,
+              bot: false,
+            ),
+            groupConversation: false,
+            messages: entry.value.map((message) {
+              String content;
+              switch (message.type) {
+                case MessageType.unknown:
+                  content = "Unknown Message Type";
+                  break;
+                case MessageType.text:
+                  content = message.content;
+                  break;
+                case MessageType.sound:
+                  content = "Audio Message";
+                  break;
+                case MessageType.sessionInvite:
+                  try {
+                    final session = Session.fromMap(jsonDecode(message.content));
+                    content = "Session Invite to ${session.name}";
+                  } catch (e) {
+                    content = "Session Invite";
+                  }
+                  break;
+                case MessageType.object:
+                  content = "Asset";
+                  break;
+              }
+              return fln.Message(
+                content,
+                message.sendTime,
+                fln.Person(
+                  name: uname,
+                  bot: false,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        ),
+      );
+    }
   }
 }

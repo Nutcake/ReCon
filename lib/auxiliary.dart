@@ -66,11 +66,13 @@ extension Unique<E, Id> on List<E> {
   }
 }
 
-extension StripHTLM on String {
+extension Strip on String {
   String stripHtml() {
     final document = htmlparser.parse(this);
     return htmlparser.parse(document.body?.text).documentElement?.text ?? "";
   }
+
+  String stripUid() => startsWith("U-") ? substring(2) : this;
 }
 
 extension Format on Duration {

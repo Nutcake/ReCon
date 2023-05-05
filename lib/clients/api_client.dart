@@ -150,6 +150,7 @@ class ClientHolder extends InheritedWidget {
   final ApiClient apiClient;
   final SettingsClient settingsClient;
   late final MessagingClient messagingClient;
+  final NotificationClient notificationClient = NotificationClient();
 
   ClientHolder({
     super.key,
@@ -157,7 +158,7 @@ class ClientHolder extends InheritedWidget {
     required this.settingsClient,
     required super.child
   }) : apiClient = ApiClient(authenticationData: authenticationData) {
-    messagingClient = MessagingClient(apiClient: apiClient);
+    messagingClient = MessagingClient(apiClient: apiClient, notificationClient: notificationClient);
   }
 
   static ClientHolder? maybeOf(BuildContext context) {

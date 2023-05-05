@@ -60,7 +60,6 @@ class _FriendsListState extends State<FriendsList> {
     _friendsFuture = FriendApi.getFriendsList(_clientHolder!.apiClient).then((Iterable<Friend> value) async {
       final unreadMessages = await MessageApi.getUserMessages(_clientHolder!.apiClient, unreadOnly: true);
       _unreads.clear();
-
       for (final msg in unreadMessages) {
         if (msg.senderId != _clientHolder!.apiClient.userId) {
           final value = _unreads[msg.senderId];
@@ -128,7 +127,7 @@ class _FriendsListState extends State<FriendsList> {
                       } else {
                         _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
                       }
-                    })
+                    }),
                   ].map((item) =>
                       PopupMenuItem<MenuItemDefinition>(
                         value: item,
