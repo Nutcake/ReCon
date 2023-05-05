@@ -7,7 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SettingsClient {
   static const String _settingsKey = "settings";
   static const _storage = FlutterSecureStorage();
-  Settings _currentSettings = const Settings();
+  Settings _currentSettings = Settings();
 
   Settings get currentSettings => _currentSettings;
 

@@ -21,6 +21,19 @@ class UserApi {
     return User.fromMap(data);
   }
 
+  static Future<UserStatus> getUserStatus(ApiClient client, {required String userId}) async {
+    final response = await client.get("/users/$userId/status");
+    ApiClient.checkResponse(response);
+    final data = jsonDecode(response.body);
+    return UserStatus.fromMap(data);
+  }
+
+  static Future<void> setStatus(ApiClient client, {required UserStatus status}) async {
+    final body = jsonEncode(status.toMap(shallow: true));
+    final response = await client.put("/users/${client.userId}/status", body: body);
+    ApiClient.checkResponse(response);
+  }
+
   static Future<PersonalProfile> getPersonalProfile(ApiClient client) async {
     final response = await client.get("/users/${client.userId}");
     ApiClient.checkResponse(response);

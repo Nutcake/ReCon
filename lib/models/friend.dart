@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
+import 'package:flutter/material.dart';
 
 class Friend extends Comparable {
   final String id;
@@ -59,15 +60,25 @@ enum FriendStatus {
 }
 
 enum OnlineStatus {
-  unknown,
   offline,
+  invisible,
   away,
   busy,
   online;
 
+  static final List<Color> _colors = [
+    Colors.black54,
+    Colors.white54,
+    Colors.yellow,
+    Colors.red,
+    Colors.green,
+  ];
+
+  Color get color => _colors[index];
+
   factory OnlineStatus.fromString(String? text) {
     return OnlineStatus.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
-      orElse: () => OnlineStatus.unknown,
+      orElse: () => OnlineStatus.offline,
     );
   }
 
@@ -91,7 +102,7 @@ class UserStatus {
   UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions});
 
   factory UserStatus.empty() => UserStatus(
-    onlineStatus: OnlineStatus.unknown,
+    onlineStatus: OnlineStatus.offline,
     lastStatusChange: DateTime.now(),
     activeSessions: [],
   );
@@ -99,9 +110,6 @@ class UserStatus {
   factory UserStatus.fromMap(Map map) {
     final statusString = map["onlineStatus"] as String?;
     final status = OnlineStatus.fromString(statusString);
-    if (status == OnlineStatus.unknown && statusString != null) {
-      log("Unknown OnlineStatus '$statusString' in response");
-    }
     return UserStatus(
       onlineStatus: status,
       lastStatusChange: DateTime.parse(map["lastStatusChange"]),
@@ -116,4 +124,11 @@ class UserStatus {
       "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),)
     };
   }
+
+  UserStatus copyWith({OnlineStatus? onlineStatus, DateTime? lastStatusChange, List<Session>? activeSessions})
+  => UserStatus(
+      onlineStatus: onlineStatus ?? this.onlineStatus,
+      lastStatusChange: lastStatusChange ?? this.lastStatusChange,
+      activeSessions: activeSessions ?? this.activeSessions,
+  );
 }
