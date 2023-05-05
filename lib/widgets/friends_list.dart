@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/models/friend.dart';

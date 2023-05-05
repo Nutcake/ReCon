@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart';

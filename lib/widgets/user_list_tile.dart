@@ -1,6 +1,6 @@
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';

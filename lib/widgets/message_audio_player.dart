@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/messages_list.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';

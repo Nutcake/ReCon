@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io' show Platform;
 
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/widgets/friends_list.dart';

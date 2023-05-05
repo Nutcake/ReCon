@@ -2,6 +2,7 @@ import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({this.onLoginSuccessful, this.cachedUsername, super.key});
