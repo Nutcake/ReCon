@@ -3,6 +3,7 @@ import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/messages_list.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class FriendListTile extends StatelessWidget {
   const FriendListTile({required this.friend, this.unreads, this.onTap, super.key});
@@ -21,7 +22,7 @@ class FriendListTile extends StatelessWidget {
           ? Text("+$unreads", style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),)
           : null,
       title: Text(friend.username),
-      subtitle: Text(friend.userStatus.onlineStatus.name),
+      subtitle: Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
       onTap: () async {
          Navigator.of(context).push(MaterialPageRoute(builder: (context) => MessagesList(friend: friend)));
          await onTap?.call();

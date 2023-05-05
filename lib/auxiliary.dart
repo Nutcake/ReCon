@@ -46,6 +46,7 @@ extension NeosStringExtensions on Uri {
 class Aux {
   static String neosDbToHttp(String? neosdb) {
     if (neosdb == null || neosdb.isEmpty) return "";
+    if (neosdb.startsWith("http")) return neosdb;
     final fullUri = neosdb.replaceFirst("neosdb:///", Config.neosCdnUrl);
     final lastPeriodIndex = fullUri.lastIndexOf(".");
     if (lastPeriodIndex != -1 && fullUri.length - lastPeriodIndex < 8) {
