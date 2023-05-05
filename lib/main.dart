@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:logging/logging.dart';
 import 'package:workmanager/workmanager.dart';
-import 'clients/api_client.dart';
 import 'models/authentication_data.dart';
 
 void main() async {
@@ -22,7 +21,7 @@ void main() async {
     );
   }
 
-  Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName));
+  Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));

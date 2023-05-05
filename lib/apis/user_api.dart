@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/personal_profile.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
 
@@ -18,6 +19,13 @@ class UserApi {
     ApiClient.checkResponse(response);
     final data = jsonDecode(response.body);
     return User.fromMap(data);
+  }
+
+  static Future<PersonalProfile> getPersonalProfile(ApiClient client) async {
+    final response = await client.get("/users/${client.userId}");
+    ApiClient.checkResponse(response);
+    final data = jsonDecode(response.body);
+    return PersonalProfile.fromMap(data);
   }
 
   static Future<void> addUserAsFriend(ApiClient client, {required User user}) async {

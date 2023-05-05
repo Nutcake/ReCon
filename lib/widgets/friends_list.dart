@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/models/personal_profile.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friend_list_tile.dart';
+import 'package:contacts_plus_plus/widgets/my_profile_dialog.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:contacts_plus_plus/widgets/user_search.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +35,7 @@ class _FriendsListState extends State<FriendsList> {
   static const Duration _autoRefreshDuration = Duration(seconds: 90);
   static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
   Future<List<Friend>>? _friendsFuture;
+  Future<PersonalProfile>? _userProfileFuture;
   ClientHolder? _clientHolder;
   Timer? _autoRefresh;
   Timer? _refreshTimeout;
@@ -59,6 +63,7 @@ class _FriendsListState extends State<FriendsList> {
         }
       });
       _refreshFriendsList();
+      _userProfileFuture = UserApi.getPersonalProfile(_clientHolder!.apiClient);
     }
   }
 
@@ -101,32 +106,72 @@ class _FriendsListState extends State<FriendsList> {
               onSelected: (MenuItemDefinition itemDef) async {
                 await itemDef.onTap();
               },
-              itemBuilder: (BuildContext context) => [
-                    MenuItemDefinition(name: "Settings", icon: Icons.settings, onTap: () async {
-                      _autoRefresh?.cancel();
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
-                      _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
-                    }),
-                    MenuItemDefinition(name: "Find Users", icon: Icons.person_add, onTap: () async {
-                      bool changed = false;
-                      _autoRefresh?.cancel();
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              UserSearch(
-                                onFriendsChanged: () => changed = true,
-                              ),
-                        ),
-                      );
-                      if (changed) {
-                        _refreshTimeout?.cancel();
-                        setState(() {
-                          _refreshFriendsList();
-                        });
-                      } else {
+              itemBuilder: (BuildContext context) =>
+                  [
+                    MenuItemDefinition(
+                      name: "Settings",
+                      icon: Icons.settings,
+                      onTap: () async {
+                        _autoRefresh?.cancel();
+                        await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
                         _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
-                      }
-                    }),
+                      },
+                    ),
+                    MenuItemDefinition(
+                      name: "Find Users",
+                      icon: Icons.person_add,
+                      onTap: () async {
+                        bool changed = false;
+                        _autoRefresh?.cancel();
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                UserSearch(
+                                  onFriendsChanged: () => changed = true,
+                                ),
+                          ),
+                        );
+                        if (changed) {
+                          _refreshTimeout?.cancel();
+                          setState(() {
+                            _refreshFriendsList();
+                          });
+                        } else {
+                          _autoRefresh = Timer(_autoRefreshDuration, () => setState(() => _refreshFriendsList()));
+                        }
+                      },
+                    ),
+                    MenuItemDefinition(
+                      name: "My Profile",
+                      icon: Icons.person,
+                      onTap: () async {
+                        await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return FutureBuilder(
+                              future: _userProfileFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  final profile = snapshot.data as PersonalProfile;
+                                  return MyProfileDialog(profile: profile);
+                                } else if (snapshot.hasError) {
+                                  return DefaultErrorWidget(
+                                    title: "Failed to load personal profile.",
+                                    onRetry: () {
+                                      setState(() {
+                                        _userProfileFuture = UserApi.getPersonalProfile(ClientHolder.of(context).apiClient);
+                                      });
+                                    },
+                                  );
+                                } else {
+                                  return const Center(child: CircularProgressIndicator(),);
+                                }
+                              }
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ].map((item) =>
                       PopupMenuItem<MenuItemDefinition>(
                         value: item,
@@ -156,7 +201,8 @@ class _FriendsListState extends State<FriendsList> {
                   if (snapshot.hasData) {
                     var friends = (snapshot.data as List<Friend>);
                     if (_searchFilter.isNotEmpty) {
-                      friends = friends.where((element) => element.username.toLowerCase().contains(_searchFilter.toLowerCase())).toList();
+                      friends = friends.where((element) =>
+                          element.username.toLowerCase().contains(_searchFilter.toLowerCase())).toList();
                       friends.sort((a, b) => a.username.length.compareTo(b.username.length));
                     }
                     return ListView.builder(

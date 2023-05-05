@@ -15,6 +15,12 @@ import 'package:workmanager/workmanager.dart';
 enum EventType {
   unknown,
   message,
+  unknown1,
+  unknown2,
+  unknown3,
+  unknown4,
+  keepAlive,
+  error;
 }
 
 enum EventTarget {
@@ -44,6 +50,7 @@ class MessagingClient {
   final Logger _logger = Logger("NeosHub");
   final Workmanager _workmanager = Workmanager();
   final NotificationClient _notificationClient;
+  int _attempts = 0;
   Function? _unreadsUpdateListener;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
@@ -138,9 +145,9 @@ class MessagingClient {
     );
   }
 
-  void _onDisconnected(error) {
+  void _onDisconnected(error) async {
     _logger.warning("Neos Hub connection died with error '$error', reconnecting...");
-    start();
+    await start();
   }
 
   Future<void> start() async {
@@ -161,7 +168,6 @@ class MessagingClient {
   }
 
   Future<WebSocket> _tryConnect() async {
-    int attempts = 0;
     while (true) {
       try {
         final http.Response response;
@@ -181,13 +187,15 @@ class MessagingClient {
         if (url == null || wsToken == null) {
           throw "Invalid response from server.";
         }
-        return await WebSocket.connect("$url&access_token=$wsToken");
+        final ws = await WebSocket.connect("$url&access_token=$wsToken");
+        _attempts = 0;
+        return ws;
       } catch (e) {
-        final timeout = _reconnectTimeoutsSeconds[attempts.clamp(0, _reconnectTimeoutsSeconds.length - 1)];
+        final timeout = _reconnectTimeoutsSeconds[_attempts.clamp(0, _reconnectTimeoutsSeconds.length - 1)];
         _logger.severe(e);
         _logger.severe("Retrying in $timeout seconds");
         await Future.delayed(Duration(seconds: timeout));
-        attempts++;
+        _attempts++;
       }
     }
   }
@@ -208,11 +216,23 @@ class MessagingClient {
       return;
     }
     switch (EventType.values[rawType]) {
+      case EventType.unknown1:
+      case EventType.unknown2:
+      case EventType.unknown3:
+      case EventType.unknown4:
       case EventType.unknown:
-        _logger.info("[Hub]: Unknown event received: $rawType: $body");
+        _logger.info("Received unknown event: $rawType: $body");
         break;
       case EventType.message:
+        _logger.info("Received message-event.");
         _handleMessageEvent(body);
+        break;
+      case EventType.keepAlive:
+        _logger.info("Received keep-alive.");
+        break;
+      case EventType.error:
+        _logger.severe("Received error-event: ${body["error"]}");
+        // Should we trigger a manual reconnect here or just let the remote service close the connection?
         break;
     }
   }
