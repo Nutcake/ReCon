@@ -24,20 +24,44 @@ class _UserListTileState extends State<UserListTile> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
+    final style = _localAdded ? IconButton.styleFrom(
+      foregroundColor: colorScheme.onBackground,
+      side: BorderSide(
+        color: colorScheme.error,
+        width: 2
+      ),
+    ) : IconButton.styleFrom(
+      foregroundColor: colorScheme.onBackground,
+        side: BorderSide(
+          color: colorScheme.primary,
+          width: 2
+        ),
+    );
     return ListTile(
       leading: GenericAvatar(imageUri: Aux.neosDbToHttp(widget.user.userProfile?.iconUrl),),
       title: Text(widget.user.username),
       subtitle: Text(_regDateFormat.format(widget.user.registrationDate)),
       trailing: IconButton(
+        splashRadius: 24,
+        iconSize: 20,
+        icon: _localAdded ? const Icon(Icons.person_remove) : const Icon(Icons.person_add),
+        style: style,
         onPressed: _loading ? null : () async {
           setState(() {
             _loading = true;
           });
           try {
             if (_localAdded) {
-              await UserApi.removeUserAsFriend(ClientHolder.of(context).apiClient, user: widget.user);
+              await UserApi.removeUserAsFriend(ClientHolder
+                  .of(context)
+                  .apiClient, user: widget.user);
             } else {
-              await UserApi.addUserAsFriend(ClientHolder.of(context).apiClient, user: widget.user);
+              await UserApi.addUserAsFriend(ClientHolder
+                  .of(context)
+                  .apiClient, user: widget.user);
             }
           } catch (e, s) {
             FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
@@ -62,8 +86,6 @@ class _UserListTileState extends State<UserListTile> {
           });
           widget.onChange?.call();
         },
-        splashRadius: 24,
-        icon: _localAdded ? const Icon(Icons.person_remove_alt_1) : const Icon(Icons.person_add_alt_1),
       ),
     );
   }

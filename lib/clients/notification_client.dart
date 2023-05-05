@@ -45,6 +45,7 @@ class NotificationClient {
           channelDescription: _messageChannel.description,
           importance: fln.Importance.high,
           priority: fln.Priority.max,
+          actions: [], //TODO: Make clicking message notification open chat of specified user.
           styleInformation: fln.MessagingStyleInformation(
             fln.Person(
               name: uname,
