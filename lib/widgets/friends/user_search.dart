@@ -5,7 +5,7 @@ import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
-import 'package:contacts_plus_plus/widgets/user_list_tile.dart';
+import 'package:contacts_plus_plus/widgets/friends/user_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

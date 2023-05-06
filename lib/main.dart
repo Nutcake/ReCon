@@ -4,7 +4,7 @@ import 'dart:io' show Platform;
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
-import 'package:contacts_plus_plus/widgets/friends_list.dart';
+import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';

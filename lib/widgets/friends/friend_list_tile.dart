@@ -4,7 +4,7 @@ import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
-import 'package:contacts_plus_plus/widgets/messages_list.dart';
+import 'package:contacts_plus_plus/widgets/messages/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -31,13 +31,10 @@ class FriendListTile extends StatelessWidget {
         onTap?.call();
         final mClient = Provider.of<MessagingClient>(context, listen: false);
         mClient.loadUserMessageCache(friend.id);
-        final apiClient = ClientHolder
-            .of(context)
-            .apiClient;
         final unreads = mClient.getUnreadsForFriend(friend);
         if (unreads.isNotEmpty) {
           final readBatch = MarkReadBatch(
-            senderId: apiClient.userId,
+            senderId: friend.id,
             ids: unreads.map((e) => e.id).toList(),
             readTime: DateTime.now(),
           );

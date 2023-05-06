@@ -5,7 +5,9 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
-import 'package:contacts_plus_plus/widgets/messages_list.dart';
+import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
+import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
+import 'package:contacts_plus_plus/widgets/messages/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
