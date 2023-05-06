@@ -9,6 +9,7 @@ import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
 import 'models/authentication_data.dart';
 
@@ -56,25 +57,37 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
     return ClientHolder(
       settingsClient: widget.settingsClient,
       authenticationData: _authData,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Contacts++',
-        theme: ThemeData(
-            useMaterial3: true,
-            textTheme: _typography.white,
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
-        ),
-        home: _authData.isAuthenticated ?
-        const FriendsList() :
-        LoginScreen(
-          onLoginSuccessful: (AuthenticationData authData) async {
-            if (authData.isAuthenticated) {
-              setState(() {
-                _authData = authData;
-              });
-            }
-          },
-        ),
+      child: Builder(
+          builder: (context) {
+            final clientHolder = ClientHolder.of(context);
+            return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'Contacts++',
+                theme: ThemeData(
+                    useMaterial3: true,
+                    textTheme: _typography.white,
+                    colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
+                ),
+                home: _authData.isAuthenticated ?
+                ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
+                  create: (context) =>
+                      MessagingClient(
+                        apiClient: clientHolder.apiClient,
+                        notificationClient: clientHolder.notificationClient,
+                      ),
+                  child: const FriendsList(),
+                ) :
+                LoginScreen(
+                  onLoginSuccessful: (AuthenticationData authData) async {
+                    if (authData.isAuthenticated) {
+                      setState(() {
+                        _authData = authData;
+                      });
+                    }
+                  },
+                )
+            );
+          }
       ),
     );
   }

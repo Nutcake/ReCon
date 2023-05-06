@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
+import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/user_list_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class SearchError {
   final String message;
@@ -15,9 +17,7 @@ class SearchError {
 }
 
 class UserSearch extends StatefulWidget {
-  const UserSearch({required this.onFriendsChanged, super.key});
-
-  final Function()? onFriendsChanged;
+  const UserSearch({super.key});
 
   @override
   State<StatefulWidget> createState() => _UserSearchState();
@@ -53,9 +53,7 @@ class _UserSearchState extends State<UserSearch> {
 
   @override
   Widget build(BuildContext context) {
-    final mClient = ClientHolder
-        .of(context)
-        .messagingClient;
+    final mClient = Provider.of<MessagingClient>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Find Users"),
@@ -72,7 +70,9 @@ class _UserSearchState extends State<UserSearch> {
                     itemCount: users.length,
                     itemBuilder: (context, index) {
                       final user = users[index];
-                      return UserListTile(user: user, isFriend: mClient.getAsFriend(user.id) != null, onChange: widget.onFriendsChanged);
+                      return UserListTile(user: user, onChanged: () {
+                        mClient.refreshFriendsList();
+                      }, isFriend: mClient.getAsFriend(user.id) != null,);
                     },
                   );
                 } else if (snapshot.hasError) {

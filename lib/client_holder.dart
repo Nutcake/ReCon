@@ -1,6 +1,5 @@
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/material.dart';
 class ClientHolder extends InheritedWidget {
   final ApiClient apiClient;
   final SettingsClient settingsClient;
-  late final MessagingClient messagingClient;
   final NotificationClient notificationClient = NotificationClient();
 
   ClientHolder({
@@ -17,9 +15,7 @@ class ClientHolder extends InheritedWidget {
     required AuthenticationData authenticationData,
     required this.settingsClient,
     required super.child
-  }) : apiClient = ApiClient(authenticationData: authenticationData) {
-    messagingClient = MessagingClient(apiClient: apiClient, notificationClient: notificationClient);
-  }
+  }) : apiClient = ApiClient(authenticationData: authenticationData);
 
   static ClientHolder? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ClientHolder>();
@@ -34,6 +30,5 @@ class ClientHolder extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant ClientHolder oldWidget) =>
       oldWidget.apiClient != apiClient
-          || oldWidget.settingsClient != settingsClient
-          || oldWidget.messagingClient != messagingClient;
+          || oldWidget.settingsClient != settingsClient;
 }

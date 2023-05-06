@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +9,10 @@ class Friend extends Comparable {
   final UserStatus userStatus;
   final UserProfile userProfile;
   final FriendStatus friendStatus;
+  final DateTime latestMessageTime;
 
   Friend({required this.id, required this.username, required this.ownerId, required this.userStatus, required this.userProfile,
-    required this.friendStatus,
+    required this.friendStatus, required this.latestMessageTime,
   });
 
   factory Friend.fromMap(Map map) {
@@ -24,6 +23,8 @@ class Friend extends Comparable {
       userStatus: UserStatus.fromMap(map["userStatus"]),
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
       friendStatus: FriendStatus.fromString(map["friendStatus"]),
+      latestMessageTime: map["latestMessageTime"] == null
+          ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
     );
   }
 
@@ -35,6 +36,7 @@ class Friend extends Comparable {
       "userStatus": userStatus.toMap(shallow: shallow),
       "profile": userProfile.toMap(),
       "friendStatus": friendStatus.name,
+      "latestMessageTime": latestMessageTime.toIso8601String(),
     };
   }
 

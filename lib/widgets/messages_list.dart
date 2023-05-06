@@ -1,17 +1,16 @@
-import 'dart:async';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
+import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
-import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/message_audio_player.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/message_session_invite.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class MessagesList extends StatefulWidget {
   const MessagesList({required this.friend, super.key});
@@ -23,46 +22,18 @@ class MessagesList extends StatefulWidget {
 }
 
 class _MessagesListState extends State<MessagesList> {
-  Future<MessageCache>? _messageCacheFuture;
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
   final ScrollController _messageScrollController = ScrollController();
-  ClientHolder? _clientHolder;
 
   bool _isSendable = false;
-  bool _showSessionListChevron = false;
-  bool _messageCacheFutureComplete = false;
+  bool _showSessionListScrollChevron = false;
 
-  double get _shevronOpacity => _showSessionListChevron ? 1.0 : 0.0;
+  double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final clientHolder = ClientHolder.of(context);
-    if (_clientHolder != clientHolder) {
-      _clientHolder = clientHolder;
-    }
-    _loadMessages();
-  }
-
-  void _loadMessages() {
-    _messageCacheFutureComplete = false;
-    _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
-        .whenComplete(() => _messageCacheFutureComplete = true);
-    final mClient = _clientHolder?.messagingClient;
-    final id = widget.friend.id;
-    mClient?.registerMessageListener(id, () {
-      if (context.mounted) {
-        setState(() {});
-      } else {
-        mClient.unregisterMessageListener(id);
-      }
-    });
-  }
 
   @override
   void dispose() {
-    _clientHolder?.messagingClient.unregisterMessageListener(widget.friend.id);
     _messageTextController.dispose();
     _sessionListScrollController.dispose();
     super.dispose();
@@ -72,25 +43,15 @@ class _MessagesListState extends State<MessagesList> {
   void initState() {
     super.initState();
     _sessionListScrollController.addListener(() {
-      if (_sessionListScrollController.position.maxScrollExtent > 0 && !_showSessionListChevron) {
+      if (_sessionListScrollController.position.maxScrollExtent > 0 && !_showSessionListScrollChevron) {
         setState(() {
-          _showSessionListChevron = true;
+          _showSessionListScrollChevron = true;
         });
       }
       if (_sessionListScrollController.position.atEdge && _sessionListScrollController.position.pixels > 0
-          && _showSessionListChevron) {
+          && _showSessionListScrollChevron) {
         setState(() {
-          _showSessionListChevron = false;
-        });
-      }
-    });
-    _messageScrollController.addListener(() {
-      if (_messageScrollController.position.atEdge && _messageScrollController.position.pixels > 0 &&
-          _messageScrollController.position.maxScrollExtent > 0 && _messageCacheFutureComplete) {
-        setState(() {
-          _messageCacheFutureComplete = false;
-          _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
-              .then((value) => value.loadOlderMessages()).whenComplete(() => _messageCacheFutureComplete = true);
+          _showSessionListScrollChevron = false;
         });
       }
     });
@@ -156,68 +117,56 @@ class _MessagesListState extends State<MessagesList> {
             ),
           ),
           Expanded(
-            child: FutureBuilder(
-              future: _messageCacheFuture,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final cache = snapshot.data as MessageCache;
-                  if (cache.messages.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.message_outlined),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Text(
-                              "There are no messages here\nWhy not say hello?",
-                              textAlign: TextAlign.center,
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .titleMedium,
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  }
-                  return ListView.builder(
-                    controller: _messageScrollController,
-                    reverse: true,
-                    itemCount: cache.messages.length,
-                    itemBuilder: (context, index) {
-                      final entry = cache.messages[index];
-                      final widget = entry.senderId == apiClient.userId
-                          ? MyMessageBubble(message: entry)
-                          : OtherMessageBubble(message: entry);
-                      if (index == cache.messages.length-1) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: widget,
-                        );
-                      }
-                      return widget;
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  return DefaultErrorWidget(
-                    message: "${snapshot.error}",
-                    onRetry: () {
-                      setState(() {
-                        _loadMessages();
-                      });
-                    },
-                  );
-                } else {
+            child: Consumer<MessagingClient>(
+              builder: (context, mClient, _) {
+                final cache = mClient.getUserMessageCache(widget.friend.id);
+                if (cache == null) {
                   return Column(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: const [
-                      LinearProgressIndicator(),
+                      LinearProgressIndicator()
                     ],
                   );
                 }
+                if (cache.messages.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.message_outlined),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Text(
+                            "There are no messages here\nWhy not say hello?",
+                            textAlign: TextAlign.center,
+                            style: Theme
+                                .of(context)
+                                .textTheme
+                                .titleMedium,
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  controller: _messageScrollController,
+                  reverse: true,
+                  itemCount: cache.messages.length,
+                  itemBuilder: (context, index) {
+                    final entry = cache.messages[index];
+                    final widget = entry.senderId == apiClient.userId
+                        ? MyMessageBubble(message: entry)
+                        : OtherMessageBubble(message: entry);
+                    if (index == cache.messages.length - 1) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: widget,
+                      );
+                    }
+                    return widget;
+                  },
+                );
               },
             ),
           ),
@@ -265,39 +214,43 @@ class _MessagesListState extends State<MessagesList> {
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 8, right: 4.0),
-                child: IconButton(
-                  splashRadius: 24,
-                  onPressed: _isSendable && _clientHolder != null ? () async {
-                    setState(() {
-                      _isSendable = false;
-                    });
-                    final message = Message(
-                      id: Message.generateId(),
-                      recipientId: widget.friend.id,
-                      senderId: apiClient.userId,
-                      type: MessageType.text,
-                      content: _messageTextController.text,
-                      sendTime: DateTime.now().toUtc(),
+                child: Consumer<MessagingClient>(
+                  builder: (context, mClient, _) {
+                    return IconButton(
+                      splashRadius: 24,
+                      onPressed: _isSendable ? () async {
+                        setState(() {
+                          _isSendable = false;
+                        });
+                        final message = Message(
+                          id: Message.generateId(),
+                          recipientId: widget.friend.id,
+                          senderId: apiClient.userId,
+                          type: MessageType.text,
+                          content: _messageTextController.text,
+                          sendTime: DateTime.now().toUtc(),
+                        );
+                        try {
+                          mClient.sendMessage(message);
+                          _messageTextController.clear();
+                          setState(() {});
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Failed to send message\n$e",
+                                maxLines: null,
+                              ),
+                            ),
+                          );
+                          setState(() {
+                            _isSendable = true;
+                          });
+                        }
+                      } : null,
+                      iconSize: 28,
+                      icon: const Icon(Icons.send),
                     );
-                    try {
-                      _clientHolder!.messagingClient.sendMessage(message);
-                      _messageTextController.clear();
-                      setState(() {});
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Failed to send message\n$e",
-                            maxLines: null,
-                          ),
-                        ),
-                      );
-                      setState(() {
-                        _isSendable = true;
-                      });
-                    }
-                  } : null,
-                  iconSize: 28,
-                  icon: const Icon(Icons.send),
+                  }
                 ),
               )
             ],

@@ -140,7 +140,7 @@ class MessageCache {
     return this; //lmao
   }
 
-  Future<void> loadInitialMessages() async {
+  Future<void> loadMessages() async {
     final messages = await MessageApi.getUserMessages(_apiClient, userId: _userId);
     _messages.addAll(messages);
     _ensureIntegrity();
