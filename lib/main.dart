@@ -1,14 +1,18 @@
 import 'dart:developer';
 import 'dart:io' show Platform;
 
+import 'package:contacts_plus_plus/apis/github_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
+import 'package:contacts_plus_plus/widgets/update_notifier.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
 import 'models/authentication_data.dart';
@@ -51,43 +55,76 @@ class ContactsPlusPlus extends StatefulWidget {
 class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
   AuthenticationData _authData = AuthenticationData.unauthenticated();
+  bool _checkedForUpdate = false;
+
+  void showUpdateDialogOnFirstBuild(BuildContext context) {
+    final navigator = Navigator.of(context);
+    if (_checkedForUpdate || kDebugMode) return;
+    _checkedForUpdate = true;
+    GithubApi.getLatestTagName().then((value) async {
+      final currentVer = (await PackageInfo.fromPlatform()).version;
+
+      try {
+        final currentSem = SemVer.fromString(currentVer);
+        final remoteSem = SemVer.fromString(value);
+        if (remoteSem > currentSem && navigator.overlay?.context != null) {
+          showDialog(
+            context: navigator.overlay!.context,
+            builder: (context) {
+              return const UpdateNotifier();
+            },
+          );
+        }
+      } catch (e) {
+        if (currentVer != value && navigator.overlay?.context != null) {
+          showDialog(
+            context: navigator.overlay!.context,
+            builder: (context) {
+              return const UpdateNotifier();
+            },
+          );
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return ClientHolder(
       settingsClient: widget.settingsClient,
       authenticationData: _authData,
-      child: Builder(
-          builder: (context) {
-            final clientHolder = ClientHolder.of(context);
-            return MaterialApp(
-                debugShowCheckedModeBanner: false,
-                title: 'Contacts++',
-                theme: ThemeData(
-                    useMaterial3: true,
-                    textTheme: _typography.white,
-                    colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
-                ),
-                home: _authData.isAuthenticated ?
-                ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
-                  create: (context) =>
-                      MessagingClient(
-                        apiClient: clientHolder.apiClient,
-                        notificationClient: clientHolder.notificationClient,
-                      ),
-                  child: const FriendsList(),
-                ) :
-                LoginScreen(
-                  onLoginSuccessful: (AuthenticationData authData) async {
-                    if (authData.isAuthenticated) {
-                      setState(() {
-                        _authData = authData;
-                      });
-                    }
-                  },
-                )
-            );
-          }
+      child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Contacts++',
+          theme: ThemeData(
+              useMaterial3: true,
+              textTheme: _typography.white,
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
+          ),
+          home: Builder(
+            builder: (context) {
+              showUpdateDialogOnFirstBuild(context);
+              final clientHolder = ClientHolder.of(context);
+              return _authData.isAuthenticated ?
+              ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
+                create: (context) =>
+                    MessagingClient(
+                      apiClient: clientHolder.apiClient,
+                      notificationClient: clientHolder.notificationClient,
+                    ),
+                child: const FriendsList(),
+              ) :
+              LoginScreen(
+                onLoginSuccessful: (AuthenticationData authData) async {
+                  if (authData.isAuthenticated) {
+                    setState(() {
+                      _authData = authData;
+                    });
+                  }
+                },
+              );
+            }
+          )
       ),
     );
   }
