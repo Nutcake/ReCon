@@ -1,5 +1,4 @@
 import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';

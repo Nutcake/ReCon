@@ -28,6 +28,20 @@ class Friend extends Comparable {
     );
   }
 
+  Friend copyWith({
+    String? id, String? username, String? ownerId, UserStatus? userStatus, UserProfile? userProfile,
+    FriendStatus? friendStatus, DateTime? latestMessageTime}) {
+    return Friend(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      ownerId: ownerId ?? this.ownerId,
+      userStatus: userStatus ?? this.userStatus,
+      userProfile: userProfile ?? this.userProfile,
+      friendStatus: friendStatus ?? this.friendStatus,
+      latestMessageTime: latestMessageTime ?? this.latestMessageTime,
+    );
+  }
+
   Map toMap({bool shallow=false}) {
     return {
       "id": id,

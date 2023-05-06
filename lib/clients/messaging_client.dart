@@ -196,6 +196,25 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _updateFriend(Friend friend) {
+    _friendsCache[friend.id] = friend;
+    final sIndex = _sortedFriendsCache.indexWhere((element) => element.id == friend.id);
+    if (sIndex == -1) {
+      _sortedFriendsCache.add(friend);
+    } else {
+      _sortedFriendsCache[sIndex] = friend;
+    }
+    _sortFriendsCache();
+  }
+
+  Future<void> updateFriendStatus(String userId) async {
+    final friend = getAsFriend(userId);
+    if (friend == null) return;
+    final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
+    _updateFriend(friend.copyWith(userStatus: newStatus));
+    notifyListeners();
+  }
+
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
   static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
@@ -325,6 +344,7 @@ class MessagingClient extends ChangeNotifier {
         cache.addMessage(message);
         if (message.senderId != selectedFriend?.id) {
           addUnread(message);
+          updateFriendStatus(message.senderId);
         }
         notifyListeners();
         break;
