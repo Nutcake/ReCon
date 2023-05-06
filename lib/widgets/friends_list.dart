@@ -108,7 +108,9 @@ class _FriendsListState extends State<FriendsList> {
                         }
                       },
                       itemBuilder: (BuildContext context) =>
-                          OnlineStatus.values.where((element) => element != OnlineStatus.offline).map((item) =>
+                          OnlineStatus.values.where((element) =>
+                          element == OnlineStatus.online
+                              || element == OnlineStatus.invisible).map((item) =>
                               PopupMenuItem<OnlineStatus>(
                                 value: item,
                                 child: Row(
@@ -189,18 +191,15 @@ class _FriendsListState extends State<FriendsList> {
                       icon: Icons.person_add,
                       onTap: () async {
                         final mClient = Provider.of<MessagingClient>(context, listen: false);
-                        bool changed = false;
                         await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) =>
-                                UserSearch(
-                                  onFriendsChanged: () => changed = true,
+                                ChangeNotifierProvider<MessagingClient>.value(
+                                  value: mClient,
+                                  child: const UserSearch(),
                                 ),
                           ),
                         );
-                        if (changed) {
-                          mClient.refreshFriendsList();
-                        }
                       },
                     ),
                     MenuItemDefinition(

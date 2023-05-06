@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class UserListTile extends StatefulWidget {
-  const UserListTile({required this.user, required this.isFriend, required this.onChange, super.key});
+  const UserListTile({required this.user, required this.isFriend, required this.onChanged, super.key});
 
   final User user;
   final bool isFriend;
-  final Function()? onChange;
+  final Function()? onChanged;
 
   @override
   State<UserListTile> createState() => _UserListTileState();
@@ -63,6 +63,11 @@ class _UserListTileState extends State<UserListTile> {
                   .of(context)
                   .apiClient, user: widget.user);
             }
+            setState(() {
+              _loading = false;
+              _localAdded = !_localAdded;
+            });
+            widget.onChanged?.call();
           } catch (e, s) {
             FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
             ScaffoldMessenger.of(context).showSnackBar(
@@ -80,11 +85,6 @@ class _UserListTileState extends State<UserListTile> {
             });
             return;
           }
-          setState(() {
-            _loading = false;
-            _localAdded = !_localAdded;
-          });
-          widget.onChange?.call();
         },
       ),
     );

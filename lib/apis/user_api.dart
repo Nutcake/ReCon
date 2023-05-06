@@ -59,6 +59,7 @@ class UserApi {
       userStatus: UserStatus.empty(),
       userProfile: UserProfile.empty(),
       friendStatus: FriendStatus.accepted,
+      latestMessageTime: DateTime.now(),
     );
     final body = jsonEncode(friend.toMap(shallow: true));
     final response = await client.put("/users/${client.userId}/friends/${user.id}", body: body);

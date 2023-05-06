@@ -136,7 +136,7 @@ class MessagingClient extends ChangeNotifier {
       var aVal = friendHasUnreads(a) ? -3 : 0;
       var bVal = friendHasUnreads(b) ? -3 : 0;
 
-      aVal -= a.userStatus.lastStatusChange.compareTo(b.userStatus.lastStatusChange);
+      aVal -= a.latestMessageTime.compareTo(b.latestMessageTime);
       aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
       return aVal.compareTo(bVal);
     });
@@ -170,8 +170,8 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearUnreadsForFriend(Friend friend) {
-    _unreads[friend.id]?.clear();
+  void clearUnreadsForUser(String userId) {
+    _unreads[userId]?.clear();
     notifyListeners();
   }
 
@@ -367,5 +367,6 @@ class MessagingClient extends ChangeNotifier {
       ],
     };
     _sendData(data);
+    clearUnreadsForUser(batch.senderId);
   }
 }
