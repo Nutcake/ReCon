@@ -1,7 +1,7 @@
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:workmanager/workmanager.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -81,10 +81,10 @@ class SettingsPage extends StatelessWidget {
           ListTile(
             trailing: const Icon(Icons.info_outline),
             title: const Text("About Contacts++"),
-            onTap: () {
+            onTap: () async {
               showAboutDialog(
                 context: context,
-                applicationVersion: "1.0.0",
+                applicationVersion: (await PackageInfo.fromPlatform()).version,
                 applicationIcon: InkWell(
                   onTap: () async {
                     if (!await launchUrl(Uri.parse("https://github.com/Nutcake/contacts-plus-plus"), mode: LaunchMode.externalApplication)) {

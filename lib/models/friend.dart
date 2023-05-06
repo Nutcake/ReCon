@@ -98,13 +98,17 @@ class UserStatus {
   final OnlineStatus onlineStatus;
   final DateTime lastStatusChange;
   final List<Session> activeSessions;
+  final String neosVersion;
 
-  UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions});
+  UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions,
+    required this.neosVersion,
+  });
 
   factory UserStatus.empty() => UserStatus(
     onlineStatus: OnlineStatus.offline,
     lastStatusChange: DateTime.now(),
     activeSessions: [],
+    neosVersion: "",
   );
 
   factory UserStatus.fromMap(Map map) {
@@ -114,6 +118,7 @@ class UserStatus {
       onlineStatus: status,
       lastStatusChange: DateTime.parse(map["lastStatusChange"]),
       activeSessions: (map["activeSessions"] as List? ?? []).map((e) => Session.fromMap(e)).toList(),
+      neosVersion: map["neosVersion"] ?? "",
     );
   }
 
@@ -121,14 +126,18 @@ class UserStatus {
     return {
       "onlineStatus": onlineStatus.index,
       "lastStatusChange": lastStatusChange.toIso8601String(),
-      "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),)
+      "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),),
+      "neosVersion": neosVersion,
     };
   }
 
-  UserStatus copyWith({OnlineStatus? onlineStatus, DateTime? lastStatusChange, List<Session>? activeSessions})
+  UserStatus copyWith({OnlineStatus? onlineStatus, DateTime? lastStatusChange, List<Session>? activeSessions,
+    String? neosVersion
+  })
   => UserStatus(
       onlineStatus: onlineStatus ?? this.onlineStatus,
       lastStatusChange: lastStatusChange ?? this.lastStatusChange,
       activeSessions: activeSessions ?? this.activeSessions,
+    neosVersion: neosVersion ?? this.neosVersion,
   );
 }

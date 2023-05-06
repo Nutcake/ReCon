@@ -5,6 +5,7 @@ import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/personal_profile.dart';
 import 'package:contacts_plus_plus/models/user.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class UserApi {
   static Future<Iterable<User>> searchUsers(ApiClient client, {required String needle}) async {
@@ -29,6 +30,10 @@ class UserApi {
   }
 
   static Future<void> setStatus(ApiClient client, {required UserStatus status}) async {
+    final pkginfo = await PackageInfo.fromPlatform();
+    status = status.copyWith(
+      neosVersion: "${pkginfo.version} of ${pkginfo.appName}",
+    );
     final body = jsonEncode(status.toMap(shallow: true));
     final response = await client.put("/users/${client.userId}/status", body: body);
     ApiClient.checkResponse(response);
