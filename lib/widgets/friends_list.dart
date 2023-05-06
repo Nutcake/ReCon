@@ -289,19 +289,6 @@ class _FriendsListState extends State<FriendsList> {
                       return FriendListTile(
                         friend: friend,
                         unreads: unreads.length,
-                        onTap: () async {
-                          if (unreads.isNotEmpty) {
-                            final readBatch = MarkReadBatch(
-                              senderId: _clientHolder!.apiClient.userId,
-                              ids: unreads.map((e) => e.id).toList(),
-                              readTime: DateTime.now(),
-                            );
-                            mClient.markMessagesRead(readBatch);
-                          }
-                          setState(() {
-                            unreads.clear();
-                          });
-                        },
                       );
                     },
                   );

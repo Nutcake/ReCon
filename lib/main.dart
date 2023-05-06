@@ -69,7 +69,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                     colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
                 ),
                 home: _authData.isAuthenticated ?
-                ChangeNotifierProvider(
+                ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
                   create: (context) =>
                       MessagingClient(
                           apiClient: clientHolder.apiClient, notificationClient: clientHolder.notificationClient),

@@ -52,11 +52,11 @@ class MessagingClient extends ChangeNotifier {
   final Map<String, Friend> _friendsCache = {};
   final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
-  final Map<String, Function> _messageUpdateListeners = {};
   final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("NeosHub");
   final Workmanager _workmanager = Workmanager();
   final NotificationClient _notificationClient;
+  Friend? selectedFriend;
   Timer? _autoRefresh;
   Timer? _refreshTimeout;
   int _attempts = 0;
@@ -172,15 +172,16 @@ class MessagingClient extends ChangeNotifier {
 
   List<Friend> get cachedFriends => _sortedFriendsCache;
 
-  Future<MessageCache> getMessageCache(String userId) async {
-    var cache = _messageCache[userId];
-    if (cache == null){
-      cache = MessageCache(apiClient: _apiClient, userId: userId);
-      await cache.loadInitialMessages();
-      _messageCache[userId] = cache;
-    }
-    return cache;
+  MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
+
+  Future<void> loadUserMessageCache(String userId) async {
+    final cache = getUserMessageCache(userId) ?? _createUserMessageCache(userId);
+    await cache.loadMessages();
+    _messageCache[userId] = cache;
+    notifyListeners();
   }
+
+  MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
   static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
     if (inputData == null) return;
@@ -258,10 +259,6 @@ class MessagingClient extends ChangeNotifier {
     }
   }
 
-  void registerMessageListener(String userId, Function function) => _messageUpdateListeners[userId] = function;
-  void unregisterMessageListener(String userId) => _messageUpdateListeners.remove(userId);
-  void notifyMessageListener(String userId) => _messageUpdateListeners[userId]?.call();
-
   void _handleEvent(event) {
     final body = jsonDecode((event.toString().replaceAll(eofChar, "")));
     final int rawType = body["type"] ?? 0;
@@ -301,28 +298,30 @@ class MessagingClient extends ChangeNotifier {
       case EventTarget.messageSent:
         final msg = args[0];
         final message = Message.fromMap(msg, withState: MessageState.sent);
-        final cache = await getMessageCache(message.recipientId);
+        final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
         cache.addMessage(message);
-        notifyMessageListener(message.recipientId);
+        notifyListeners();
         break;
       case EventTarget.receiveMessage:
         final msg = args[0];
         final message = Message.fromMap(msg);
-        final cache = await getMessageCache(message.senderId);
+        final cache = getUserMessageCache(message.senderId) ?? _createUserMessageCache(message.senderId);
         cache.addMessage(message);
-        if (!_messageUpdateListeners.containsKey(message.senderId)) {
+        if (message.senderId != selectedFriend?.id) {
           addUnread(message);
         }
-        notifyMessageListener(message.senderId);
+        notifyListeners();
         break;
       case EventTarget.messagesRead:
         final messageIds = args[0]["ids"] as List;
         final recipientId = args[0]["recipientId"];
-        final cache = await getMessageCache(recipientId ?? "");
+        if (recipientId == null) break;
+        final cache = getUserMessageCache(recipientId);
+        if (cache == null) break;
         for (var id in messageIds) {
           cache.setMessageState(id, MessageState.read);
         }
-        notifyMessageListener(recipientId);
+        notifyListeners();
         break;
     }
   }
@@ -337,9 +336,9 @@ class MessagingClient extends ChangeNotifier {
       ],
     };
     _sendData(data);
-    final cache = await getMessageCache(message.recipientId);
+    final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
     cache.messages.add(message);
-    notifyMessageListener(message.recipientId);
+    notifyListeners();
   }
 
   void markMessagesRead(MarkReadBatch batch) {
@@ -353,4 +352,9 @@ class MessagingClient extends ChangeNotifier {
     };
     _sendData(data);
   }
+}
+
+
+class MessagesProvider extends ChangeNotifier {
+
 }
