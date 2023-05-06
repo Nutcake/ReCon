@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:collection/collection.dart';
+import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
@@ -37,27 +41,44 @@ enum EventTarget {
   }
 }
 
-class MessagingClient {
+class MessagingClient extends ChangeNotifier {
   static const String eofChar = "";
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
   static const String taskName = "periodic-unread-check";
+  static const Duration _autoRefreshDuration = Duration(seconds: 90);
+  static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
   final ApiClient _apiClient;
   final Map<String, Friend> _friendsCache = {};
+  final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, Function> _messageUpdateListeners = {};
   final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("NeosHub");
   final Workmanager _workmanager = Workmanager();
   final NotificationClient _notificationClient;
+  Timer? _autoRefresh;
+  Timer? _refreshTimeout;
   int _attempts = 0;
-  Function? _unreadsUpdateListener;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
+  String _initError = "";
+  bool _initDone = false;
+
+  String get initError => _initError;
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient, _notificationClient = notificationClient {
+    refreshFriendsListWithErrorHandler();
     start();
+  }
+
+  @override
+  void dispose() {
+    _autoRefresh?.cancel();
+    _refreshTimeout?.cancel();
+    _wsChannel?.close();
+    super.dispose();
   }
 
   void _sendData(data) {
@@ -65,11 +86,43 @@ class MessagingClient {
     _wsChannel!.add(jsonEncode(data)+eofChar);
   }
 
-  void updateFriendsCache(List<Friend> friends) {
+  void refreshFriendsListWithErrorHandler () async {
+    try {
+      await refreshFriendsList();
+      _initDone = true;
+    } catch (e) {
+      _initError = "$e";
+    }
+    notifyListeners();
+  }
+
+  Future<void> refreshFriendsList() async {
+    if (_refreshTimeout?.isActive == true) return;
+
+    _autoRefresh?.cancel();
+    _autoRefresh = Timer(_autoRefreshDuration, () => refreshFriendsList());
+    _refreshTimeout?.cancel();
+    _refreshTimeout = Timer(_refreshTimeoutDuration, () {});
+
+    final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
+    updateAllUnreads(unreadMessages.toList());
+
+    final friends = await FriendApi.getFriendsList(_apiClient);
     _friendsCache.clear();
     for (final friend in friends) {
       _friendsCache[friend.id] = friend;
     }
+    _sortedFriendsCache.clear();
+    _sortedFriendsCache.addAll(friends.sorted((a, b) {
+      var aVal = friendHasUnreads(a) ? -3 : 0;
+      var bVal = friendHasUnreads(b) ? -3 : 0;
+
+      aVal -= a.userStatus.lastStatusChange.compareTo(b.userStatus.lastStatusChange);
+      aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
+      return aVal.compareTo(bVal);
+    }));
+    _initError = "";
+    notifyListeners();
   }
 
   void updateAllUnreads(List<Message> messages) {
@@ -96,12 +149,12 @@ class MessagingClient {
     }
     messages.sort();
     _notificationClient.showUnreadMessagesNotification(messages.reversed);
-    notifyUnreadListener();
+    notifyListeners();
   }
 
   void clearUnreadsForFriend(Friend friend) {
     _unreads[friend.id]?.clear();
-    notifyUnreadListener();
+    notifyListeners();
   }
 
   List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.id] ?? [];
@@ -113,6 +166,8 @@ class MessagingClient {
   }
 
   Friend? getAsFriend(String userId) => _friendsCache[userId];
+
+  List<Friend> get cachedFriends => _sortedFriendsCache;
 
   Future<MessageCache> getMessageCache(String userId) async {
     var cache = _messageCache[userId];
@@ -203,10 +258,6 @@ class MessagingClient {
   void registerMessageListener(String userId, Function function) => _messageUpdateListeners[userId] = function;
   void unregisterMessageListener(String userId) => _messageUpdateListeners.remove(userId);
   void notifyMessageListener(String userId) => _messageUpdateListeners[userId]?.call();
-
-  void registerUnreadListener(Function function) => _unreadsUpdateListener = function;
-  void unregisterUnreadListener() => _unreadsUpdateListener = null;
-  void notifyUnreadListener() => _unreadsUpdateListener?.call();
 
   void _handleEvent(event) {
     final body = jsonDecode((event.toString().replaceAll(eofChar, "")));

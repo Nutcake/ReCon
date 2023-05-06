@@ -47,6 +47,7 @@ class _MessagesListState extends State<MessagesList> {
 
   void _loadMessages() {
     _messageCacheFutureComplete = false;
+    /* TODO: Use provider
     _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
         .whenComplete(() => _messageCacheFutureComplete = true);
     final mClient = _clientHolder?.messagingClient;
@@ -58,11 +59,13 @@ class _MessagesListState extends State<MessagesList> {
         mClient.unregisterMessageListener(id);
       }
     });
+    */
   }
 
   @override
   void dispose() {
-    _clientHolder?.messagingClient.unregisterMessageListener(widget.friend.id);
+    // TODO user provider
+    //_clientHolder?.messagingClient.unregisterMessageListener(widget.friend.id);
     _messageTextController.dispose();
     _sessionListScrollController.dispose();
     super.dispose();
@@ -89,8 +92,9 @@ class _MessagesListState extends State<MessagesList> {
           _messageScrollController.position.maxScrollExtent > 0 && _messageCacheFutureComplete) {
         setState(() {
           _messageCacheFutureComplete = false;
-          _messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
-              .then((value) => value.loadOlderMessages()).whenComplete(() => _messageCacheFutureComplete = true);
+          // TODO: Use provider
+          //_messageCacheFuture = _clientHolder?.messagingClient.getMessageCache(widget.friend.id)
+              // .then((value) => value.loadOlderMessages()).whenComplete(() => _messageCacheFutureComplete = true);
         });
       }
     });
@@ -280,7 +284,8 @@ class _MessagesListState extends State<MessagesList> {
                       sendTime: DateTime.now().toUtc(),
                     );
                     try {
-                      _clientHolder!.messagingClient.sendMessage(message);
+                      // TODO use provider
+                      //_clientHolder!.messagingClient.sendMessage(message);
                       _messageTextController.clear();
                       setState(() {});
                     } catch (e) {
