@@ -62,10 +62,9 @@ class MessagingClient extends ChangeNotifier {
   int _attempts = 0;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
-  String _initError = "";
-  bool _initDone = false;
+  String? _initStatus;
 
-  String get initError => _initError;
+  String? get initStatus => _initStatus;
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient, _notificationClient = notificationClient {
@@ -86,14 +85,18 @@ class MessagingClient extends ChangeNotifier {
     _wsChannel!.add(jsonEncode(data)+eofChar);
   }
 
+  void resetStatus() {
+    _initStatus = null;
+    notifyListeners();
+  }
+
   void refreshFriendsListWithErrorHandler () async {
     try {
       await refreshFriendsList();
-      _initDone = true;
     } catch (e) {
-      _initError = "$e";
+      _initStatus = "$e";
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> refreshFriendsList() async {
@@ -121,7 +124,7 @@ class MessagingClient extends ChangeNotifier {
       aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
       return aVal.compareTo(bVal);
     }));
-    _initError = "";
+    _initStatus = "";
     notifyListeners();
   }
 

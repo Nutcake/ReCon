@@ -254,19 +254,24 @@ class _FriendsListState extends State<FriendsList> {
         ],
       ),
       body: Stack(
+        alignment: Alignment.topCenter,
         children: [
           Consumer<MessagingClient>(
               builder: (context, mClient, _) {
-                if (mClient.initError.isNotEmpty) {
+                if (mClient.initStatus == null) {
+                  return const LinearProgressIndicator();
+                } else if (mClient.initStatus!.isNotEmpty) {
                   return Column(
                     children: [
                       Expanded(
                           child: DefaultErrorWidget(
-                            message: mClient.initError,
+                            message: mClient.initStatus,
                             onRetry: () async {
+                              mClient.resetStatus();
                               mClient.refreshFriendsListWithErrorHandler();
                             },
-                          )),
+                          ),
+                      ),
                     ],
                   );
                 } else {
