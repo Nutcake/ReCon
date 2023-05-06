@@ -506,7 +506,6 @@ class MessageStateIndicator extends StatelessWidget {
     return Icon(
       icon,
       size: 12,
-      color: messageState == MessageState.read ? Theme.of(context).colorScheme.primary : null,
     );
   }
 }
