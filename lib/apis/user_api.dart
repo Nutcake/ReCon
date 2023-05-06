@@ -28,6 +28,11 @@ class UserApi {
     final data = jsonDecode(response.body);
     return UserStatus.fromMap(data);
   }
+  
+  static Future<void> notifyOnlineInstance(ApiClient client) async {
+    final response = await client.post("/stats/instanceOnline/${client.authenticationData.secretMachineId.hashCode}");
+    ApiClient.checkResponse(response);
+  }
 
   static Future<void> setStatus(ApiClient client, {required UserStatus status}) async {
     final pkginfo = await PackageInfo.fromPlatform();

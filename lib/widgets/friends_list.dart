@@ -4,7 +4,6 @@ import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
-import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/personal_profile.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/expanding_input_fab.dart';

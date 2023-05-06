@@ -72,7 +72,9 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                 ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
                   create: (context) =>
                       MessagingClient(
-                          apiClient: clientHolder.apiClient, notificationClient: clientHolder.notificationClient),
+                        apiClient: clientHolder.apiClient,
+                        notificationClient: clientHolder.notificationClient,
+                      ),
                   child: const FriendsList(),
                 ) :
                 LoginScreen(

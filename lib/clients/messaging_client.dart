@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
+import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
@@ -57,6 +57,7 @@ class MessagingClient extends ChangeNotifier {
   final Workmanager _workmanager = Workmanager();
   final NotificationClient _notificationClient;
   Friend? selectedFriend;
+  Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
   Timer? _refreshTimeout;
   int _attempts = 0;
@@ -66,16 +67,24 @@ class MessagingClient extends ChangeNotifier {
 
   String? get initStatus => _initStatus;
 
+  bool get websocketConnected => _wsChannel != null;
+
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient, _notificationClient = notificationClient {
     refreshFriendsListWithErrorHandler();
-    start();
+    startWebsocket();
+    _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
+      // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
+      // but I don't feel like implementing that right now.
+      UserApi.setStatus(apiClient, status: await UserApi.getUserStatus(apiClient, userId: apiClient.userId));
+    });
   }
 
   @override
   void dispose() {
     _autoRefresh?.cancel();
     _refreshTimeout?.cancel();
+    _notifyOnlineTimer?.cancel();
     _wsChannel?.close();
     super.dispose();
   }
@@ -116,16 +125,21 @@ class MessagingClient extends ChangeNotifier {
       _friendsCache[friend.id] = friend;
     }
     _sortedFriendsCache.clear();
-    _sortedFriendsCache.addAll(friends.sorted((a, b) {
+    _sortedFriendsCache.addAll(friends);
+    _sortFriendsCache();
+    _initStatus = "";
+    notifyListeners();
+  }
+
+  void _sortFriendsCache() {
+    _sortedFriendsCache.sort((a, b) {
       var aVal = friendHasUnreads(a) ? -3 : 0;
       var bVal = friendHasUnreads(b) ? -3 : 0;
 
       aVal -= a.userStatus.lastStatusChange.compareTo(b.userStatus.lastStatusChange);
       aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
       return aVal.compareTo(bVal);
-    }));
-    _initStatus = "";
-    notifyListeners();
+    });
   }
 
   void updateAllUnreads(List<Message> messages) {
@@ -151,6 +165,7 @@ class MessagingClient extends ChangeNotifier {
       messages.add(message);
     }
     messages.sort();
+    _sortFriendsCache();
     _notificationClient.showUnreadMessagesNotification(messages.reversed);
     notifyListeners();
   }
@@ -205,11 +220,12 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _onDisconnected(error) async {
+    _wsChannel = null;
     _logger.warning("Neos Hub connection died with error '$error', reconnecting...");
-    await start();
+    await startWebsocket();
   }
 
-  Future<void> start() async {
+  Future<void> startWebsocket() async {
     if (!_apiClient.isAuthenticated) {
       _logger.info("Tried to connect to Neos Hub without authentication, this is probably fine for now.");
       return;
@@ -352,9 +368,4 @@ class MessagingClient extends ChangeNotifier {
     };
     _sendData(data);
   }
-}
-
-
-class MessagesProvider extends ChangeNotifier {
-
 }
