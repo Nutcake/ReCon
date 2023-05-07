@@ -1,5 +1,5 @@
-
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/widgets/messages/message_asset.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_audio_player.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_session_invite.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
@@ -14,7 +14,6 @@ class MyMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var content = message.content;
     switch (message.type) {
       case MessageType.sessionInvite:
         return Row(
@@ -38,10 +37,28 @@ class MyMessageBubble extends StatelessWidget {
           ],
         );
       case MessageType.object:
-        content = "[Asset]";
-        continue rawText;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: Theme
+                  .of(context)
+                  .colorScheme
+                  .primaryContainer,
+              margin: const EdgeInsets.only(left: 32, bottom: 16, right: 12),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 300),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: MessageAsset(message: message,),
+              ),
+            ),
+          ],
+        );
       case MessageType.unknown:
-      rawText:
       case MessageType.text:
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -63,7 +80,7 @@ class MyMessageBubble extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        content,
+                        message.content,
                         softWrap: true,
                         maxLines: null,
                         style: Theme
@@ -155,8 +172,26 @@ class OtherMessageBubble extends StatelessWidget {
           ],
         );
       case MessageType.object:
-        content = "[Asset]";
-        continue rawText;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: Theme
+                  .of(context)
+                  .colorScheme
+                  .secondaryContainer,
+              margin: const EdgeInsets.only(right: 32, bottom: 16, left: 12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: MessageAsset(message: message,),
+              ),
+            ),
+          ],
+        );
       case MessageType.unknown:
       rawText:
       case MessageType.text:
