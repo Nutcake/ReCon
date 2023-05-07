@@ -14,12 +14,8 @@ class SettingsClient {
   Future<void> loadSettings() async {
     final data = await _storage.read(key: _settingsKey);
     if (data == null) return;
-    try {
-      _currentSettings = Settings.fromMap(jsonDecode(data));
-    } catch (_) {
-      _storage.delete(key: _settingsKey);
-      rethrow;
-    }
+    _currentSettings = Settings.fromMap(jsonDecode(data));
+
   }
 
   Future<void> changeSettings(Settings newSettings) async {

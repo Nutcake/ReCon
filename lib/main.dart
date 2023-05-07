@@ -5,10 +5,10 @@ import 'package:contacts_plus_plus/apis/github_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
+import 'package:contacts_plus_plus/models/sem_ver.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:contacts_plus_plus/widgets/update_notifier.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:logging/logging.dart';
@@ -59,31 +59,49 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
 
   void showUpdateDialogOnFirstBuild(BuildContext context) {
     final navigator = Navigator.of(context);
-    if (_checkedForUpdate || kDebugMode) return;
+    final settings = ClientHolder
+        .of(context)
+        .settingsClient;
+    if (_checkedForUpdate) return;
     _checkedForUpdate = true;
-    GithubApi.getLatestTagName().then((value) async {
+    GithubApi.getLatestTagName().then((remoteVer) async {
       final currentVer = (await PackageInfo.fromPlatform()).version;
+      SemVer currentSem;
+      SemVer remoteSem;
+      SemVer lastDismissedSem;
 
       try {
-        final currentSem = SemVer.fromString(currentVer);
-        final remoteSem = SemVer.fromString(value);
-        if (remoteSem > currentSem && navigator.overlay?.context != null) {
-          showDialog(
-            context: navigator.overlay!.context,
-            builder: (context) {
-              return const UpdateNotifier();
-            },
-          );
-        }
-      } catch (e) {
-        if (currentVer != value && navigator.overlay?.context != null) {
-          showDialog(
-            context: navigator.overlay!.context,
-            builder: (context) {
-              return const UpdateNotifier();
-            },
-          );
-        }
+        currentSem = SemVer.fromString(currentVer);
+      } catch (_) {
+        currentSem = SemVer.zero();
+      }
+
+      try {
+        lastDismissedSem = SemVer.fromString(settings.currentSettings.lastDismissedVersion.valueOrDefault);
+      } catch (_) {
+        lastDismissedSem = SemVer.zero();
+      }
+
+      try {
+        remoteSem = SemVer.fromString(remoteVer);
+      } catch (_) {
+        return;
+      }
+
+      if (remoteSem <= lastDismissedSem && lastDismissedSem.isNotZero) {
+        return;
+      }
+
+      if (remoteSem > currentSem && navigator.overlay?.context != null) {
+        showDialog(
+          context: navigator.overlay!.context,
+          builder: (context) {
+            return UpdateNotifier(
+              remoteVersion: remoteSem,
+              localVersion: currentSem,
+            );
+          },
+        );
       }
     });
   }
@@ -101,7 +119,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
               textTheme: _typography.white,
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
           ),
-          home: Builder(
+          home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
             builder: (context) {
               showUpdateDialogOnFirstBuild(context);
               final clientHolder = ClientHolder.of(context);
