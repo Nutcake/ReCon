@@ -2,10 +2,12 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 class FriendListTile extends StatelessWidget {
@@ -25,7 +27,15 @@ class FriendListTile extends StatelessWidget {
           ? Text("+$unreads", style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),)
           : null,
       title: Text(friend.username),
-      subtitle: Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
+      subtitle: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          FriendOnlineStatusIndicator(userStatus: friend.userStatus),
+          const SizedBox(width: 4,),
+          Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
+        ],
+      ),
       onTap: () async {
         onTap?.call();
         final mClient = Provider.of<MessagingClient>(context, listen: false);

@@ -83,7 +83,7 @@ enum OnlineStatus {
   online;
 
   static final List<Color> _colors = [
-    Colors.black54,
+    Colors.white54,
     Colors.white54,
     Colors.yellow,
     Colors.red,
@@ -116,7 +116,7 @@ class UserStatus {
   final List<Session> activeSessions;
   final String neosVersion;
 
-  UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions,
+  const UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions,
     required this.neosVersion,
   });
 

@@ -2,6 +2,7 @@ import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +66,15 @@ class _MessagesListState extends State<MessagesList> {
         .surfaceVariant;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.friend.username),
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            FriendOnlineStatusIndicator(userStatus: widget.friend.userStatus),
+            const SizedBox(width: 8,),
+            Text(widget.friend.username),
+
+          ],
+        ),
         scrolledUnderElevation: 0.0,
         backgroundColor: appBarColor,
       ),
