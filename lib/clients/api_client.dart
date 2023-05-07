@@ -11,6 +11,7 @@ import 'package:uuid/uuid.dart';
 import '../config.dart';
 
 class ApiClient {
+  static const String totpKey = "TOTP";
   static const String userIdKey = "userId";
   static const String machineIdKey = "machineId";
   static const String tokenKey = "token";
@@ -28,7 +29,8 @@ class ApiClient {
     required String username,
     required String password,
     bool rememberMe=true,
-    bool rememberPass=false
+    bool rememberPass=false,
+    String? oneTimePad,
   }) async {
     final body = {
       "username": username,
@@ -38,8 +40,15 @@ class ApiClient {
     };
     final response = await http.post(
         buildFullUri("/UserSessions"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(body));
+        headers: {
+          "Content-Type": "application/json",
+          if (oneTimePad != null) totpKey : oneTimePad,
+        },
+        body: jsonEncode(body),
+    );
+    if (response.statusCode == 403 && response.body == totpKey) {
+      throw totpKey;
+    }
     if (response.statusCode == 400) {
       throw "Invalid Credentials";
     } 
