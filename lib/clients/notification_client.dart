@@ -39,54 +39,56 @@ class NotificationClient {
         uname.hashCode,
         null,
         null,
-        fln.NotificationDetails(android: fln.AndroidNotificationDetails(
-          _messageChannel.id,
-          _messageChannel.name,
-          channelDescription: _messageChannel.description,
-          importance: fln.Importance.high,
-          priority: fln.Priority.max,
-          actions: [], //TODO: Make clicking message notification open chat of specified user.
-          styleInformation: fln.MessagingStyleInformation(
-            fln.Person(
-              name: uname,
-              bot: false,
+        fln.NotificationDetails(
+          android: fln.AndroidNotificationDetails(
+            _messageChannel.id,
+            _messageChannel.name,
+            channelDescription: _messageChannel.description,
+            importance: fln.Importance.high,
+            priority: fln.Priority.max,
+            actions: [],
+            //TODO: Make clicking message notification open chat of specified user.
+            styleInformation: fln.MessagingStyleInformation(
+              fln.Person(
+                name: uname,
+                bot: false,
+              ),
+              groupConversation: false,
+              messages: entry.value.map((message) {
+                String content;
+                switch (message.type) {
+                  case MessageType.unknown:
+                    content = "Unknown Message Type";
+                    break;
+                  case MessageType.text:
+                    content = message.content;
+                    break;
+                  case MessageType.sound:
+                    content = "Audio Message";
+                    break;
+                  case MessageType.sessionInvite:
+                    try {
+                      final session = Session.fromMap(jsonDecode(message.content));
+                      content = "Session Invite to ${session.name}";
+                    } catch (e) {
+                      content = "Session Invite";
+                    }
+                    break;
+                  case MessageType.object:
+                    content = "Asset";
+                    break;
+                }
+                return fln.Message(
+                  content,
+                  message.sendTime,
+                  fln.Person(
+                    name: uname,
+                    bot: false,
+                  ),
+                );
+              }).toList(),
             ),
-            groupConversation: false,
-            messages: entry.value.map((message) {
-              String content;
-              switch (message.type) {
-                case MessageType.unknown:
-                  content = "Unknown Message Type";
-                  break;
-                case MessageType.text:
-                  content = message.content;
-                  break;
-                case MessageType.sound:
-                  content = "Audio Message";
-                  break;
-                case MessageType.sessionInvite:
-                  try {
-                    final session = Session.fromMap(jsonDecode(message.content));
-                    content = "Session Invite to ${session.name}";
-                  } catch (e) {
-                    content = "Session Invite";
-                  }
-                  break;
-                case MessageType.object:
-                  content = "Asset";
-                  break;
-              }
-              return fln.Message(
-                content,
-                message.sendTime,
-                fln.Person(
-                  name: uname,
-                  bot: false,
-                ),
-              );
-            }).toList(),
           ),
-        ),
         ),
       );
     }

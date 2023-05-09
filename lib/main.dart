@@ -21,23 +21,37 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isAndroid) {
     await Workmanager().initialize(
-        callbackDispatcher, // The top level function, aka callbackDispatcher
-        isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
+      callbackDispatcher, // The top level function, aka callbackDispatcher
+      isInDebugMode: false, // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
     );
   }
 
   Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
+  if (settingsClient.currentSettings.publicMachineId.value == null) {
+    // If no machineId is set, write the generated one to disk
+    settingsClient.changeSettings(
+        settingsClient.currentSettings.copyWith(
+            publicMachineId: settingsClient.currentSettings.publicMachineId.valueOrDefault,
+        ),
+    );
+  }
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));
 }
 
 @pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
 void callbackDispatcher() {
   Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
+    return Future.value(true); //Disable background tasks for now
     debugPrint("Native called background task: $task"); //simpleTask will be emitted here.
-    if (task == MessagingClient.taskName) {
-      final unreads = MessagingClient.backgroundCheckUnreads(inputData);
+    if (task == MessagingClient.unreadCheckTaskName) {
+      try {
+        await MessagingClient.backgroundCheckUnreads(inputData);
+      } catch (e) {
+        Logger("Workman").severe(e);
+        rethrow;
+      }
     }
     return Future.value(true);
   });
@@ -129,6 +143,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                     MessagingClient(
                       apiClient: clientHolder.apiClient,
                       notificationClient: clientHolder.notificationClient,
+                      settingsClient: widget.settingsClient,
                     ),
                 child: const FriendsList(),
               ) :

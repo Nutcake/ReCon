@@ -4,10 +4,14 @@ import 'dart:io';
 import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/apis/user_api.dart';
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
+import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/settings.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
@@ -45,9 +49,16 @@ class MessagingClient extends ChangeNotifier {
   static const String eofChar = "";
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
-  static const String taskName = "periodic-unread-check";
+
+  static const int _unreadCheckMinuteInterval = 30;
+  static const String unreadCheckTaskName = "periodic-unread-check";
+  static const String _storageNotifiedUnreadsKey = "notfiedUnreads";
+  static const String _storageLastUpdateKey = "lastUnreadCheck";
+  static const FlutterSecureStorage _storage = FlutterSecureStorage();
+
   static const Duration _autoRefreshDuration = Duration(seconds: 90);
   static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
+
   final ApiClient _apiClient;
   final Map<String, Friend> _friendsCache = {};
   final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
@@ -55,13 +66,16 @@ class MessagingClient extends ChangeNotifier {
   final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("NeosHub");
   final Workmanager _workmanager = Workmanager();
+
   final NotificationClient _notificationClient;
+  final SettingsClient _settingsClient;
+
+  WebSocket? _wsChannel;
   Friend? selectedFriend;
   Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
   Timer? _refreshTimeout;
   int _attempts = 0;
-  WebSocket? _wsChannel;
   bool _isConnecting = false;
   String? _initStatus;
 
@@ -69,8 +83,9 @@ class MessagingClient extends ChangeNotifier {
 
   bool get websocketConnected => _wsChannel != null;
 
-  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
-      : _apiClient = apiClient, _notificationClient = notificationClient {
+  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient,
+    required SettingsClient settingsClient})
+      : _apiClient = apiClient, _notificationClient = notificationClient, _settingsClient = settingsClient {
     refreshFriendsListWithErrorHandler();
     startWebsocket();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
@@ -78,6 +93,70 @@ class MessagingClient extends ChangeNotifier {
       // but I don't feel like implementing that right now.
       UserApi.setStatus(apiClient, status: await UserApi.getUserStatus(apiClient, userId: apiClient.userId));
     });
+    _settingsClient.addListener(onSettingsChanged);
+    if (!_settingsClient.currentSettings.notificationsDenied.valueOrDefault) {
+      registerNotificationTask();
+    }
+  }
+
+  Future<void> onSettingsChanged(Settings oldSettings, Settings newSettings) async {
+    if (oldSettings.notificationsDenied.valueOrDefault != newSettings.notificationsDenied.valueOrDefault) {
+      if (newSettings.notificationsDenied.valueOrDefault) {
+        await unregisterNotificationTask();
+      } else {
+        await registerNotificationTask();
+      }
+    }
+  }
+
+  static Future<List<Message>> updateNotified(List<Message> unreads) async {
+    if (unreads.isEmpty) return [];
+    const storage = FlutterSecureStorage();
+    final data = await storage.read(key: _storageNotifiedUnreadsKey);
+
+    final existing = data == null ? <String>[] : (jsonDecode(data) as List).map((e) => "$e").toList();
+    final unnotified = unreads.where((unread) => !existing.contains(unread.id));
+    existing.addAll(unnotified.map((e) => e.id));
+    await storage.write(key: _storageNotifiedUnreadsKey, value: jsonEncode(existing.unique()));
+    return unnotified.toList();
+  }
+
+  static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
+    if (inputData == null) throw "Unauthenticated";
+    final auth = AuthenticationData.fromMap(inputData);
+    const storage = FlutterSecureStorage();
+    final lastCheckData = await storage.read(key: _storageLastUpdateKey);
+    if (lastCheckData != null && DateTime.now().difference(DateTime.parse(lastCheckData)) < const Duration(
+      minutes: _unreadCheckMinuteInterval,
+    )) {
+      return;
+    }
+
+    final client = ApiClient(authenticationData: auth);
+    await client.extendSession();
+
+    final unreads = await MessageApi.getUserMessages(client, unreadOnly: true);
+
+    final unnotified = await updateNotified(unreads);
+
+    await NotificationClient().showUnreadMessagesNotification(unnotified);
+    await storage.write(key: _storageLastUpdateKey, value: DateTime.now().toIso8601String());
+  }
+
+  Future<void> registerNotificationTask() async {
+    final auth = _apiClient.authenticationData;
+    if (!auth.isAuthenticated) throw "Unauthenticated";
+    _workmanager.registerPeriodicTask(
+      unreadCheckTaskName,
+      unreadCheckTaskName,
+      frequency: const Duration(minutes: _unreadCheckMinuteInterval),
+      inputData: auth.toMap(),
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+    );
+  }
+
+  Future<void> unregisterNotificationTask() async {
+    await _workmanager.cancelByUniqueName(unreadCheckTaskName);
   }
 
   @override
@@ -112,7 +191,14 @@ class MessagingClient extends ChangeNotifier {
     if (_refreshTimeout?.isActive == true) return;
 
     _autoRefresh?.cancel();
-    _autoRefresh = Timer(_autoRefreshDuration, () => refreshFriendsList());
+    _autoRefresh = Timer(_autoRefreshDuration, () async {
+      try {
+        await refreshFriendsList();
+      } catch (_) {
+        // We don't really need to do anything if fetching unreads and messages fails in the background since we can
+        // just keep showing the old state until refreshing succeeds.
+      }
+    });
     _refreshTimeout?.cancel();
     _refreshTimeout = Timer(_refreshTimeoutDuration, () {});
 
@@ -128,6 +214,7 @@ class MessagingClient extends ChangeNotifier {
     _sortedFriendsCache.addAll(friends);
     _sortFriendsCache();
     _initStatus = "";
+    await _storage.write(key: _storageLastUpdateKey, value: DateTime.now().toIso8601String());
     notifyListeners();
   }
 
@@ -164,9 +251,13 @@ class MessagingClient extends ChangeNotifier {
     } else {
       messages.add(message);
     }
-    messages.sort();
     _sortFriendsCache();
-    _notificationClient.showUnreadMessagesNotification(messages.reversed);
+    if (!_settingsClient.currentSettings.notificationsDenied.valueOrDefault) {
+      updateNotified(messages).then((unnotified) {
+        unnotified.sort();
+        _notificationClient.showUnreadMessagesNotification(unnotified.reversed);
+      });
+    }
     notifyListeners();
   }
 
@@ -216,27 +307,6 @@ class MessagingClient extends ChangeNotifier {
   }
 
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
-
-  static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
-    if (inputData == null) return;
-    final auth = AuthenticationData.fromMap(inputData);
-    final unreads = await MessageApi.getUserMessages(ApiClient(authenticationData: auth), unreadOnly: true);
-    for (var message in unreads) {
-      throw UnimplementedError();
-    }
-  }
-
-  Future<void> _updateNotificationTask(int minuteInterval) async {
-    final auth = _apiClient.authenticationData;
-    if (!auth.isAuthenticated) throw "Unauthenticated";
-    await _workmanager.cancelByUniqueName(taskName);
-    _workmanager.registerPeriodicTask(
-      taskName,
-      taskName,
-      frequency: Duration(minutes: minuteInterval),
-      inputData: auth.toMap(),
-    );
-  }
 
   void _onDisconnected(error) async {
     _wsChannel = null;
@@ -388,5 +458,10 @@ class MessagingClient extends ChangeNotifier {
     };
     _sendData(data);
     clearUnreadsForUser(batch.senderId);
+    _storage.read(key: _storageNotifiedUnreadsKey).then((data) async {
+      final existing = data == null ? [] : jsonDecode(data) as List<String>;
+      final marked = existing.where((element) => !batch.ids.contains(element)).toList();
+      await _storage.write(key: _storageNotifiedUnreadsKey, value: jsonEncode(marked));
+    });
   }
 }
