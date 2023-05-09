@@ -70,8 +70,10 @@ class _UserSearchState extends State<UserSearch> {
                     itemCount: users.length,
                     itemBuilder: (context, index) {
                       final user = users[index];
-                      return UserListTile(user: user, onChanged: () {
-                        mClient.refreshFriendsList();
+                      return UserListTile(user: user, onChanged: () async {
+                        try {
+                          await mClient.refreshFriendsList();
+                        } catch (_) {}
                       }, isFriend: mClient.getAsFriend(user.id) != null,);
                     },
                   );

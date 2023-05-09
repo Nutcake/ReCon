@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
 
@@ -34,26 +35,25 @@ class SettingsEntry<T> {
 
 class Settings {
   final SettingsEntry<bool> notificationsDenied;
-  final SettingsEntry<int> unreadCheckIntervalMinutes;
+  final SettingsEntry<String> publicMachineId;
   final SettingsEntry<int> lastOnlineStatus;
   final SettingsEntry<String> lastDismissedVersion;
 
   Settings({
     SettingsEntry<bool>? notificationsDenied,
-    SettingsEntry<int>? unreadCheckIntervalMinutes,
+    SettingsEntry<String>? publicMachineId,
     SettingsEntry<int>? lastOnlineStatus,
     SettingsEntry<String>? lastDismissedVersion
   })
       : notificationsDenied = notificationsDenied ?? const SettingsEntry<bool>(deflt: false),
-        unreadCheckIntervalMinutes = unreadCheckIntervalMinutes ?? const SettingsEntry<int>(deflt: 60),
+        publicMachineId = publicMachineId ?? SettingsEntry<String>(deflt: Aux.generateMachineId(),),
         lastOnlineStatus = lastOnlineStatus ?? SettingsEntry<int>(deflt: OnlineStatus.online.index),
-        lastDismissedVersion = lastDismissedVersion ?? SettingsEntry<String>(deflt: SemVer.zero().toString())
-  ;
+        lastDismissedVersion = lastDismissedVersion ?? SettingsEntry<String>(deflt: SemVer.zero().toString());
 
   factory Settings.fromMap(Map map) {
     return Settings(
       notificationsDenied: retrieveEntryOrNull<bool>(map["notificationsDenied"]),
-      unreadCheckIntervalMinutes: retrieveEntryOrNull<int>(map["unreadCheckIntervalMinutes"]),
+        publicMachineId: retrieveEntryOrNull<String>(map["publicMachineId"]),
       lastOnlineStatus: retrieveEntryOrNull<int>(map["lastOnlineStatus"]),
       lastDismissedVersion: retrieveEntryOrNull<String>(map["lastDismissedVersion"])
     );
@@ -71,7 +71,7 @@ class Settings {
   Map toMap() {
     return {
       "notificationsDenied": notificationsDenied.toMap(),
-      "unreadCheckIntervalMinutes": unreadCheckIntervalMinutes.toMap(),
+      "publicMachineId": publicMachineId.toMap(),
       "lastOnlineStatus": lastOnlineStatus.toMap(),
       "lastDismissedVersion": lastDismissedVersion.toMap(),
     };
@@ -81,13 +81,13 @@ class Settings {
 
   Settings copyWith({
     bool? notificationsDenied,
-    int? unreadCheckIntervalMinutes,
+    String? publicMachineId,
     int? lastOnlineStatus,
     String? lastDismissedVersion,
   }) {
     return Settings(
       notificationsDenied: this.notificationsDenied.passThrough(notificationsDenied),
-      unreadCheckIntervalMinutes: this.unreadCheckIntervalMinutes.passThrough(unreadCheckIntervalMinutes),
+      publicMachineId: this.publicMachineId.passThrough(publicMachineId),
       lastOnlineStatus: this.lastOnlineStatus.passThrough(lastOnlineStatus),
       lastDismissedVersion: this.lastDismissedVersion.passThrough(lastDismissedVersion),
     );

@@ -67,7 +67,7 @@ class _UserListTileState extends State<UserListTile> {
               _loading = false;
               _localAdded = !_localAdded;
             });
-            widget.onChanged?.call();
+            await widget.onChanged?.call();
           } catch (e, s) {
             FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
             ScaffoldMessenger.of(context).showSnackBar(

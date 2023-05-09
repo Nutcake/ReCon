@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:contacts_plus_plus/config.dart';
-import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' as htmlparser;
+import 'package:uuid/uuid.dart';
 
 enum NeosDBEndpoint
 {
@@ -8,39 +11,6 @@ enum NeosDBEndpoint
   blob,
   cdn,
   videoCDN,
-}
-
-extension NeosStringExtensions on Uri {
-  static String dbSignature(Uri neosdb) => neosdb.pathSegments.length < 2 ? "" : p.basenameWithoutExtension(neosdb.pathSegments[1]);
-  static String? neosDBQuery(Uri neosdb) => neosdb.query.trim().isEmpty ? null : neosdb.query.substring(1);
-  static bool isLegacyNeosDB(Uri uri) => !(uri.scheme != "neosdb") && uri.pathSegments.length >= 2 && p.basenameWithoutExtension(uri.pathSegments[1]).length < 30;
-
-  Uri neosDBToHTTP(NeosDBEndpoint endpoint) {
-    var signature = dbSignature(this);
-    var query = neosDBQuery(this);
-    if (query != null) {
-      signature = "$signature/$query";
-    }
-    if (isLegacyNeosDB(this)) {
-      return Uri.parse(Config.legacyCloudUrl + signature);
-    }
-    String base;
-    switch (endpoint) {
-      case NeosDBEndpoint.blob:
-        base = Config.blobStorageUrl;
-        break;
-      case NeosDBEndpoint.cdn:
-        base = Config.neosCdnUrl;
-        break;
-      case NeosDBEndpoint.videoCDN:
-        base = Config.videoStorageUrl;
-        break;
-      case NeosDBEndpoint.def:
-        base = Config.neosAssetsUrl;
-    }
-
-    return Uri.parse(base + signature);
-  }
 }
 
 class Aux {
@@ -55,6 +25,13 @@ class Aux {
     }
     return fullUri;
   }
+
+  static String toURLBase64(Uint8List data) => base64.encode(data)
+      .replaceAll("+", "-")
+      .replaceAll("/", "_")
+      .replaceAll("=", "");
+
+  static String generateMachineId() => Aux.toURLBase64((const Uuid().v1obj().toBytes())).toLowerCase();
 }
 
 

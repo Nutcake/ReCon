@@ -29,8 +29,8 @@ class UserApi {
     return UserStatus.fromMap(data);
   }
   
-  static Future<void> notifyOnlineInstance(ApiClient client) async {
-    final response = await client.post("/stats/instanceOnline/${client.authenticationData.secretMachineId.hashCode}");
+  static Future<void> notifyOnlineInstance(ApiClient client, {required String machineId}) async {
+    final response = await client.post("/stats/instanceOnline/$machineId");
     ApiClient.checkResponse(response);
   }
 

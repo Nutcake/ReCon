@@ -13,11 +13,11 @@ import '../config.dart';
 class ApiClient {
   static const String totpKey = "TOTP";
   static const String userIdKey = "userId";
-  static const String machineIdKey = "machineId";
+  static const String secretMachineIdKey = "machineId";
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  const ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
 
@@ -33,7 +33,7 @@ class ApiClient {
     String? oneTimePad,
   }) async {
     final body = {
-      "username": username,
+      (username.contains("@") ? "email" : "username"): username.trim(),
       "password": password,
       "rememberMe": rememberMe,
       "secretMachineId": const Uuid().v4(),
@@ -58,7 +58,7 @@ class ApiClient {
     if (authData.isAuthenticated) {
       const FlutterSecureStorage storage = FlutterSecureStorage();
       await storage.write(key: userIdKey, value: authData.userId);
-      await storage.write(key: machineIdKey, value: authData.secretMachineId);
+      await storage.write(key: secretMachineIdKey, value: authData.secretMachineId);
       await storage.write(key: tokenKey, value: authData.token);
       if (rememberPass) await storage.write(key: passwordKey, value: password);
     }
@@ -68,7 +68,7 @@ class ApiClient {
   static Future<AuthenticationData> tryCachedLogin() async {
     const FlutterSecureStorage storage = FlutterSecureStorage();
     String? userId = await storage.read(key: userIdKey);
-    String? machineId = await storage.read(key: machineIdKey);
+    String? machineId = await storage.read(key: secretMachineIdKey);
     String? token = await storage.read(key: tokenKey);
     String? password = await storage.read(key: passwordKey);
 
@@ -97,10 +97,17 @@ class ApiClient {
     return AuthenticationData.unauthenticated();
   }
 
+  Future<void> extendSession() async {
+    final response = await patch("/userSessions");
+    if (response.statusCode != 204) {
+      throw "Failed to extend session.";
+    }
+  }
+
   Future<void> logout(BuildContext context) async {
     const FlutterSecureStorage storage = FlutterSecureStorage();
     await storage.delete(key: userIdKey);
-    await storage.delete(key: machineIdKey);
+    await storage.delete(key: secretMachineIdKey);
     await storage.delete(key: tokenKey);
     await storage.delete(key: passwordKey);
     if (context.mounted) {
@@ -117,7 +124,8 @@ class ApiClient {
       // TODO: Show the login screen again if cached login was unsuccessful.
       throw "You are not authorized to do that.";
     }
-    if (response.statusCode != 200) {
+
+    if (response.statusCode < 200 || response.statusCode > 299) {
       throw "Unknown Error${kDebugMode ? ": ${response.statusCode}|${response.body}" : ""}";
     }
   }
@@ -150,5 +158,11 @@ class ApiClient {
     headers ??= {};
     headers.addAll(authorizationHeader);
     return http.delete(buildFullUri(path), headers: headers);
+  }
+
+  Future<http.Response> patch(String path, {Map<String, String>? headers}) {
+    headers ??= {};
+    headers.addAll(authorizationHeader);
+    return http.patch(buildFullUri(path), headers: headers);
   }
 }
