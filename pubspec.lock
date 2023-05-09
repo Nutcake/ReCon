@@ -82,13 +82,13 @@ packages:
     source: hosted
     version: "1.17.0"
   crypto:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: crypto
-      sha256: aa274aa7774f8964e4f4f38cc994db7b6158dd36e9187aaceaddc994b35c6c67
+      sha256: ff625774173754681d66daaf4a448684fb04b78f902da9cb3d308c19cc5e8bab
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.2"
+    version: "3.0.3"
   csslib:
     dependency: transitive
     description:
@@ -137,6 +137,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.4"
+  file_picker:
+    dependency: "direct main"
+    description:
+      name: file_picker
+      sha256: e6c7ad8e572379df86ea64ef0a5395889fba3954411d47ca021b888d79f8e798
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.2.11"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -198,6 +206,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  flutter_plugin_android_lifecycle:
+    dependency: transitive
+    description:
+      name: flutter_plugin_android_lifecycle
+      sha256: "96af49aa6b57c10a312106ad6f71deed5a754029c24789bbf620ba784f0bd0b0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.14"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -737,10 +753,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: a6f0236dbda0f63aa9a25ad1ff9a9d8a4eaaa5012da0dc59d21afdb1dc361ca4
+      sha256: "5a751eddf9db89b3e5f9d50c20ab8612296e4e8db69009788d6c8b060a84191c"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.4"
+    version: "4.1.4"
   workmanager:
     dependency: "direct main"
     description:
