@@ -18,7 +18,7 @@ class Friend extends Comparable {
   factory Friend.fromMap(Map map) {
     return Friend(
       id: map["id"],
-      username: map["friendUsername"],
+      username: map["friendUsername"] ?? map["username"],
       ownerId: map["ownerId"] ?? map["id"],
       userStatus: UserStatus.fromMap(map["userStatus"]),
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
@@ -140,7 +140,7 @@ class UserStatus {
 
   Map toMap({bool shallow=false}) {
     return {
-      "onlineStatus": onlineStatus.index,
+      "onlineStatus": onlineStatus.name,
       "lastStatusChange": lastStatusChange.toIso8601String(),
       "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),),
       "neosVersion": neosVersion,

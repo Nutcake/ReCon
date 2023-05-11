@@ -4,6 +4,7 @@ import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/models/session.dart';
+import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
@@ -18,6 +19,7 @@ class MessageSessionInvite extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sessionInfo = Session.fromMap(jsonDecode(message.content));
+    final formattedName = StringFormatter.tryFormat(sessionInfo.name, baseStyle: Theme.of(context).textTheme.titleMedium);
     return TextButton(
       onPressed: () {
         showDialog(context: context, builder: (context) => SessionPopup(session: sessionInfo));
@@ -38,7 +40,8 @@ class MessageSessionInvite extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text(sessionInfo.name, maxLines: null, softWrap: true, style: Theme.of(context).textTheme.titleMedium,),
+                    child: formattedName != null ? RichText(text: formattedName, maxLines: null, softWrap: true) :
+                    Text(sessionInfo.name, maxLines: null, softWrap: true, style: Theme.of(context).textTheme.titleMedium,),
                   ),
                 ),
                 Padding(

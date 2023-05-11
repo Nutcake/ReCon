@@ -6,6 +6,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:contacts_plus_plus/models/authentication_data.dart';
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
 import '../config.dart';
@@ -17,9 +18,10 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  const ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
+  final Logger _logger = Logger("ApiClient");
 
   AuthenticationData get authenticationData => _authenticationData;
   String get userId => _authenticationData.userId;
@@ -137,6 +139,7 @@ class ApiClient {
   Future<http.Response> get(String path, {Map<String, String>? headers}) {
     headers ??= {};
     headers.addAll(authorizationHeader);
+    _logger.info("GET: $path");
     return http.get(buildFullUri(path), headers: headers);
   }
 
@@ -144,6 +147,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
+    _logger.info("PST: $path");
     return http.post(buildFullUri(path), headers: headers, body: body);
   }
 
@@ -151,18 +155,21 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
+    _logger.info("PUT: $path");
     return http.put(buildFullUri(path), headers: headers, body: body);
   }
 
   Future<http.Response> delete(String path, {Map<String, String>? headers}) {
     headers ??= {};
     headers.addAll(authorizationHeader);
+    _logger.info("DEL: $path");
     return http.delete(buildFullUri(path), headers: headers);
   }
 
   Future<http.Response> patch(String path, {Map<String, String>? headers}) {
     headers ??= {};
     headers.addAll(authorizationHeader);
+    _logger.info("PAT: $path");
     return http.patch(buildFullUri(path), headers: headers);
   }
 }

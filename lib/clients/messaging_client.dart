@@ -12,12 +12,14 @@ import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/settings.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:logging/logging.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:workmanager/workmanager.dart';
 
 enum EventType {
@@ -54,10 +56,10 @@ class MessagingClient extends ChangeNotifier {
   static const String unreadCheckTaskName = "periodic-unread-check";
   static const String _storageNotifiedUnreadsKey = "notfiedUnreads";
   static const String _storageLastUpdateKey = "lastUnreadCheck";
+  static const String _hiveKey = "mClient";
+  static const String _storedFriendsKey = "friends";
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-
   static const Duration _autoRefreshDuration = Duration(seconds: 90);
-  static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
 
   final ApiClient _apiClient;
   final Map<String, Friend> _friendsCache = {};
@@ -86,16 +88,27 @@ class MessagingClient extends ChangeNotifier {
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient,
     required SettingsClient settingsClient})
       : _apiClient = apiClient, _notificationClient = notificationClient, _settingsClient = settingsClient {
-    refreshFriendsListWithErrorHandler();
+    initBox().whenComplete(() async {
+      try {
+        await _restoreFriendsList();
+        try {
+          await refreshFriendsList();
+        } catch (_) {
+          notifyListeners();
+        }
+      } catch (e) {
+        refreshFriendsListWithErrorHandler();
+      }
+    });
     startWebsocket();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
       // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
       // but I don't feel like implementing that right now.
       UserApi.setStatus(apiClient, status: await UserApi.getUserStatus(apiClient, userId: apiClient.userId));
     });
-    _settingsClient.addListener(onSettingsChanged);
+    //_settingsClient.addListener(onSettingsChanged);
     if (!_settingsClient.currentSettings.notificationsDenied.valueOrDefault) {
-      registerNotificationTask();
+      //registerNotificationTask();
     }
   }
 
@@ -123,6 +136,7 @@ class MessagingClient extends ChangeNotifier {
 
   static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
     if (inputData == null) throw "Unauthenticated";
+    return;
     final auth = AuthenticationData.fromMap(inputData);
     const storage = FlutterSecureStorage();
     final lastCheckData = await storage.read(key: _storageLastUpdateKey);
@@ -178,7 +192,7 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void refreshFriendsListWithErrorHandler () async {
+  void refreshFriendsListWithErrorHandler() async {
     try {
       await refreshFriendsList();
     } catch (e) {
@@ -187,9 +201,33 @@ class MessagingClient extends ChangeNotifier {
     }
   }
 
-  Future<void> refreshFriendsList() async {
-    if (_refreshTimeout?.isActive == true) return;
+  Future<void> initBox() async {
+    try {
+      final path = await getTemporaryDirectory();
+      Hive.init(path.path);
+      await Hive.openBox(_hiveKey, path: path.path);
+    } catch (_) {}
+  }
 
+  Future<void> _restoreFriendsList() async {
+    if (!Hive.isBoxOpen(_hiveKey)) throw "Failed to open box";
+    final mStorage = Hive.box(_hiveKey);
+    final storedFriends = await mStorage.get(_storedFriendsKey) as List?;
+    if (storedFriends == null) throw "No cached friends list";
+    _friendsCache.clear();
+    _sortedFriendsCache.clear();
+
+    for (final storedFriend in storedFriends) {
+      final friend = Friend.fromMap(storedFriend);
+      _friendsCache[friend.id] = friend;
+      _sortedFriendsCache.add(friend);
+    }
+    _sortFriendsCache();
+    notifyListeners();
+  }
+
+
+  Future<void> refreshFriendsList() async {
     _autoRefresh?.cancel();
     _autoRefresh = Timer(_autoRefreshDuration, () async {
       try {
@@ -199,23 +237,29 @@ class MessagingClient extends ChangeNotifier {
         // just keep showing the old state until refreshing succeeds.
       }
     });
-    _refreshTimeout?.cancel();
-    _refreshTimeout = Timer(_refreshTimeoutDuration, () {});
-
-    final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
-    updateAllUnreads(unreadMessages.toList());
+    final now = DateTime.now();
+    final lastUpdate = await _storage.read(key: _storageLastUpdateKey);
+    if (lastUpdate != null && now.difference(DateTime.parse(lastUpdate)) < _autoRefreshDuration) throw "You are being rate limited.";
 
     final friends = await FriendApi.getFriendsList(_apiClient);
+    final List<Map> storableFriends = [];
     _friendsCache.clear();
     for (final friend in friends) {
       _friendsCache[friend.id] = friend;
+      storableFriends.add(friend.toMap(shallow: true));
     }
     _sortedFriendsCache.clear();
     _sortedFriendsCache.addAll(friends);
     _sortFriendsCache();
     _initStatus = "";
-    await _storage.write(key: _storageLastUpdateKey, value: DateTime.now().toIso8601String());
+    await _storage.write(key: _storageLastUpdateKey, value: now.toIso8601String());
+    final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
+    updateAllUnreads(unreadMessages.toList());
+
     notifyListeners();
+    if (!Hive.isBoxOpen(_hiveKey)) return;
+    final mStorage = Hive.box(_hiveKey);
+    mStorage.put(_storedFriendsKey, storableFriends);
   }
 
   void _sortFriendsCache() {

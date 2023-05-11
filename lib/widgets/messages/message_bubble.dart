@@ -1,4 +1,5 @@
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_asset.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_audio_player.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_session_invite.dart';
@@ -60,6 +61,13 @@ class MyMessageBubble extends StatelessWidget {
         );
       case MessageType.unknown:
       case MessageType.text:
+        final formatted = StringFormatter.tryFormat(
+          message.content,
+          baseStyle: Theme
+              .of(context)
+              .textTheme
+              .bodyLarge,
+        );
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
@@ -79,7 +87,7 @@ class MyMessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
+                      formatted == null ? Text(
                         message.content,
                         softWrap: true,
                         maxLines: null,
@@ -87,7 +95,7 @@ class MyMessageBubble extends StatelessWidget {
                             .of(context)
                             .textTheme
                             .bodyLarge,
-                      ),
+                      ) : RichText(text: formatted, maxLines: null, softWrap: true,),
                       const SizedBox(height: 6,),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -148,7 +156,6 @@ class OtherMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var content = message.content;
     switch (message.type) {
       case MessageType.sessionInvite:
         return Row(
@@ -193,8 +200,14 @@ class OtherMessageBubble extends StatelessWidget {
           ],
         );
       case MessageType.unknown:
-      rawText:
       case MessageType.text:
+        final formatted = StringFormatter.tryFormat(
+          message.content,
+          baseStyle: Theme
+              .of(context)
+              .textTheme
+              .bodyLarge,
+        );
         return Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -214,15 +227,15 @@ class OtherMessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        content,
+                      formatted == null ? Text(
+                        message.content,
                         softWrap: true,
                         maxLines: null,
                         style: Theme
                             .of(context)
                             .textTheme
                             .bodyLarge,
-                      ),
+                      ) : RichText(text: formatted, maxLines: null, softWrap: true,),
                       const SizedBox(height: 6,),
                       Text(
                         _dateFormat.format(message.sendTime),

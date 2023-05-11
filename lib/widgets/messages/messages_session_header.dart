@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/session.dart';
+import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,7 @@ class SessionPopup extends StatelessWidget {
   Widget build(BuildContext context) {
     final ScrollController userListScrollController = ScrollController();
     final thumbnailUri = Aux.neosDbToHttp(session.thumbnail);
+    final formattedTitle = StringFormatter.tryFormat(session.name);
     return Dialog(
       insetPadding: const EdgeInsets.all(32),
       child: Container(
@@ -30,7 +32,8 @@ class SessionPopup extends StatelessWidget {
                   Expanded(
                     child: ListView(
                       children: [
-                        Text(session.name, style: Theme.of(context).textTheme.titleMedium),
+                        formattedTitle == null ?
+                        Text(session.name, style: Theme.of(context).textTheme.titleMedium) : RichText(text: formattedTitle),
                         Text(session.description.isEmpty ? "No description." : session.description, style: Theme.of(context).textTheme.labelMedium),
                         Text("Tags: ${session.tags.isEmpty ? "None" : session.tags.join(", ")}",
                           style: Theme.of(context).textTheme.labelMedium,
@@ -114,6 +117,7 @@ class SessionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formattedTitle = StringFormatter.tryFormat(session.name);
     return TextButton(
       onPressed: () {
         showDialog(context: context, builder: (context) => SessionPopup(session: session));
@@ -128,7 +132,7 @@ class SessionTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(session.name),
+                formattedTitle == null ? Text(session.name) : RichText(text: formattedTitle),
                 Text("${session.sessionUsers.length}/${session.maxUsers} active users")
               ],
             ),
