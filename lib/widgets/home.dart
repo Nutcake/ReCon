@@ -16,7 +16,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
   final PageController _pageController = PageController(initialPage: 1);
   ClientHolder? _clientHolder;
-  MessagingClient? _mClient;
+  late MessagingClient _mClient;
   int _currentPageIndex = 1;
 
   @override
@@ -54,7 +54,7 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
             NavigationDestination(icon: Icon(Icons.location_city), label: "Sessions")
           ],
         ),
-        appBar: const FriendsListAppBar(),
+        appBar: FriendsListAppBar(mClient: _mClient,),
         body: PageView(
           physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
@@ -72,6 +72,5 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
   }
 
   @override
-  // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
 }

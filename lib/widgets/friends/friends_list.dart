@@ -106,7 +106,10 @@ class _FriendsListState extends State<FriendsList> with AutomaticKeepAliveClient
 }
 
 class FriendsListAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const FriendsListAppBar({super.key});
+  const FriendsListAppBar({required this.mClient, super.key});
+
+  // Passing this instance around like this is kinda dirty, I want to try to find a cleaner way to do this using Provider
+  final MessagingClient mClient;
 
   @override
   State<StatefulWidget> createState() => _FriendsListAppBarState();
@@ -270,12 +273,11 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> {
                     name: "Find Users",
                     icon: Icons.person_add,
                     onTap: () async {
-                      final mClient = Provider.of<MessagingClient>(context, listen: false);
                       await Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) =>
                           ChangeNotifierProvider<MessagingClient>.value(
-                            value: mClient,
+                            value: widget.mClient,
                             child: const UserSearch(),
                           ),
                         ),

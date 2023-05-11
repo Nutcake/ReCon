@@ -85,8 +85,6 @@ class _UserSearchState extends State<UserSearch> {
                       iconOverride: err.icon,
                     );
                   } else {
-                    FlutterError.reportError(
-                        FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                     return DefaultErrorWidget(title: "${snapshot.error}",);
                   }
                 } else {
