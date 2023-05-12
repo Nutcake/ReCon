@@ -2,7 +2,7 @@ import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
 import 'package:flutter/material.dart';
 
-class Friend extends Comparable {
+class Friend implements Comparable {
   final String id;
   final String username;
   final String ownerId;
