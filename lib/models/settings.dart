@@ -34,18 +34,15 @@ class SettingsEntry<T> {
 
 class Settings {
   final SettingsEntry<bool> notificationsDenied;
-  final SettingsEntry<int> unreadCheckIntervalMinutes;
   final SettingsEntry<int> lastOnlineStatus;
   final SettingsEntry<String> lastDismissedVersion;
 
   Settings({
     SettingsEntry<bool>? notificationsDenied,
-    SettingsEntry<int>? unreadCheckIntervalMinutes,
     SettingsEntry<int>? lastOnlineStatus,
     SettingsEntry<String>? lastDismissedVersion
   })
       : notificationsDenied = notificationsDenied ?? const SettingsEntry<bool>(deflt: false),
-        unreadCheckIntervalMinutes = unreadCheckIntervalMinutes ?? const SettingsEntry<int>(deflt: 60),
         lastOnlineStatus = lastOnlineStatus ?? SettingsEntry<int>(deflt: OnlineStatus.online.index),
         lastDismissedVersion = lastDismissedVersion ?? SettingsEntry<String>(deflt: SemVer.zero().toString())
   ;
@@ -53,7 +50,6 @@ class Settings {
   factory Settings.fromMap(Map map) {
     return Settings(
       notificationsDenied: retrieveEntryOrNull<bool>(map["notificationsDenied"]),
-      unreadCheckIntervalMinutes: retrieveEntryOrNull<int>(map["unreadCheckIntervalMinutes"]),
       lastOnlineStatus: retrieveEntryOrNull<int>(map["lastOnlineStatus"]),
       lastDismissedVersion: retrieveEntryOrNull<String>(map["lastDismissedVersion"])
     );
@@ -71,7 +67,6 @@ class Settings {
   Map toMap() {
     return {
       "notificationsDenied": notificationsDenied.toMap(),
-      "unreadCheckIntervalMinutes": unreadCheckIntervalMinutes.toMap(),
       "lastOnlineStatus": lastOnlineStatus.toMap(),
       "lastDismissedVersion": lastDismissedVersion.toMap(),
     };
@@ -87,7 +82,6 @@ class Settings {
   }) {
     return Settings(
       notificationsDenied: this.notificationsDenied.passThrough(notificationsDenied),
-      unreadCheckIntervalMinutes: this.unreadCheckIntervalMinutes.passThrough(unreadCheckIntervalMinutes),
       lastOnlineStatus: this.lastOnlineStatus.passThrough(lastOnlineStatus),
       lastDismissedVersion: this.lastDismissedVersion.passThrough(lastDismissedVersion),
     );

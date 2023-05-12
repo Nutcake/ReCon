@@ -5,15 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
-  static const Map<int, String> _intervalSelections = {
-    5: "5 Minutes",
-    15: "15 Minutes",
-    30: "30 Minutes",
-    60: "1 Hour",
-    120: "2 Hours",
-    300: "6 Hours",
-    600: "12 Hours",
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -35,22 +26,6 @@ class SettingsPage extends StatelessWidget {
             title: "Enable Notifications",
             initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
             onChanged: (value) async => await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
-          ),
-          ListTile(
-            trailing: StatefulBuilder(
-              builder: (context, setState) {
-                return DropdownButton<int>(
-                  items: _intervalSelections.keys.map((e) => DropdownMenuItem<int>(value: e, child: Text("${_intervalSelections[e]}"))).toList(),
-                  value: sClient.currentSettings.unreadCheckIntervalMinutes.valueOrDefault,
-                  onChanged: (int? value) async {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sorry, this feature is not yet implemented.")));
-                    await sClient.changeSettings(sClient.currentSettings.copyWith(unreadCheckIntervalMinutes: value));
-                    setState(() {});
-                  },
-                );
-              }
-            ),
-            title: const Text("Check Interval"),
           ),
           const ListSectionHeader(name: "Other"),
           ListTile(
