@@ -3,6 +3,7 @@ import 'package:contacts_plus_plus/models/user_profile.dart';
 import 'package:flutter/material.dart';
 
 class Friend implements Comparable {
+  static const _neosBotId = "U-Neos";
   final String id;
   final String username;
   final String ownerId;
@@ -16,11 +17,13 @@ class Friend implements Comparable {
   });
 
   factory Friend.fromMap(Map map) {
+    final userStatus = UserStatus.fromMap(map["userStatus"]);
     return Friend(
       id: map["id"],
       username: map["friendUsername"],
       ownerId: map["ownerId"] ?? map["id"],
-      userStatus: UserStatus.fromMap(map["userStatus"]),
+      // Neos bot status is always offline but should be displayed as online
+      userStatus:  map["id"] == _neosBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
       friendStatus: FriendStatus.fromString(map["friendStatus"]),
       latestMessageTime: map["latestMessageTime"] == null
