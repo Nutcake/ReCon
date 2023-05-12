@@ -72,7 +72,10 @@ class _MessagesListState extends State<MessagesList> {
             FriendOnlineStatusIndicator(userStatus: widget.friend.userStatus),
             const SizedBox(width: 8,),
             Text(widget.friend.username),
-
+            if (widget.friend.isHeadless) Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Icon(Icons.dns, size: 18, color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),),
+            ),
           ],
         ),
         scrolledUnderElevation: 0.0,

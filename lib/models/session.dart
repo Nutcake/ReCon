@@ -13,15 +13,38 @@ class Session {
   final FormatNode formattedDescription;
   final List<String> tags;
   final bool headlessHost;
+  final String hostUserId;
   final String hostUsername;
   final SessionAccessLevel accessLevel;
 
   Session({required this.id, required this.name, required this.sessionUsers, required this.thumbnail,
     required this.maxUsers, required this.hasEnded, required this.isValid, required this.description,
-    required this.tags, required this.headlessHost, required this.hostUsername, required this.accessLevel,
+    required this.tags, required this.headlessHost, required this.hostUserId, required this.hostUsername,
+    required this.accessLevel,
   }) : formattedName = FormatNode.fromText(name), formattedDescription = FormatNode.fromText(description);
 
-  factory Session.fromMap(Map map) {
+  factory Session.none() {
+    return Session(
+        id: "",
+        name: "",
+        sessionUsers: const [],
+        thumbnail: "",
+        maxUsers: 0,
+        hasEnded: true,
+        isValid: false,
+        description: "",
+        tags: const [],
+        headlessHost: false,
+        hostUserId: "",
+        hostUsername: "",
+        accessLevel: SessionAccessLevel.unknown
+    );
+  }
+
+  bool get isNone => id.isEmpty && isValid == false;
+
+  factory Session.fromMap(Map? map) {
+    if (map == null) return Session.none();
     return Session(
       id: map["sessionId"],
       name: map["name"],
@@ -33,6 +56,7 @@ class Session {
       description: map["description"] ?? "",
       tags: ((map["tags"] as List?) ?? []).map((e) => e.toString()).toList(),
       headlessHost: map["headlessHost"] ?? false,
+      hostUserId: map["hostUserId"] ?? "",
       hostUsername: map["hostUsername"] ?? "",
       accessLevel: SessionAccessLevel.fromName(map["accessLevel"]),
     );
@@ -50,6 +74,7 @@ class Session {
       "description": description,
       "tags": shallow ? [] : throw UnimplementedError(),
       "headlessHost": headlessHost,
+      "hostUserId": hostUserId,
       "hostUsername": hostUsername,
       "accessLevel": accessLevel.name, // This probably wont work, the API usually expects integers.
     };

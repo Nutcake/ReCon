@@ -16,6 +16,8 @@ class Friend implements Comparable {
     required this.friendStatus, required this.latestMessageTime,
   });
 
+  bool get isHeadless => userStatus.activeSessions.any((session) => session.headlessHost == true && session.hostUserId == id);
+
   factory Friend.fromMap(Map map) {
     final userStatus = UserStatus.fromMap(map["userStatus"]);
     return Friend(
@@ -116,19 +118,23 @@ enum OnlineStatus {
 class UserStatus {
   final OnlineStatus onlineStatus;
   final DateTime lastStatusChange;
+  final Session currentSession;
   final List<Session> activeSessions;
   final String neosVersion;
 
-  const UserStatus({required this.onlineStatus, required this.lastStatusChange, required this.activeSessions,
-    required this.neosVersion,
-  });
+  const UserStatus(
+      {required this.onlineStatus, required this.lastStatusChange, required this.currentSession, required this.activeSessions,
+        required this.neosVersion,
+      });
 
-  factory UserStatus.empty() => UserStatus(
-    onlineStatus: OnlineStatus.offline,
-    lastStatusChange: DateTime.now(),
-    activeSessions: [],
-    neosVersion: "",
-  );
+  factory UserStatus.empty() =>
+      UserStatus(
+        onlineStatus: OnlineStatus.offline,
+        lastStatusChange: DateTime.now(),
+        activeSessions: [],
+        currentSession: Session.none(),
+        neosVersion: "",
+      );
 
   factory UserStatus.fromMap(Map map) {
     final statusString = map["onlineStatus"] as String?;
@@ -136,27 +142,34 @@ class UserStatus {
     return UserStatus(
       onlineStatus: status,
       lastStatusChange: DateTime.parse(map["lastStatusChange"]),
+      currentSession: Session.fromMap(map["currentSession"]),
       activeSessions: (map["activeSessions"] as List? ?? []).map((e) => Session.fromMap(e)).toList(),
       neosVersion: map["neosVersion"] ?? "",
     );
   }
 
-  Map toMap({bool shallow=false}) {
+  Map toMap({bool shallow = false}) {
     return {
       "onlineStatus": onlineStatus.index,
       "lastStatusChange": lastStatusChange.toIso8601String(),
+      "currentSession": currentSession.isNone || shallow ? null : currentSession.toMap(),
       "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),),
       "neosVersion": neosVersion,
     };
   }
 
-  UserStatus copyWith({OnlineStatus? onlineStatus, DateTime? lastStatusChange, List<Session>? activeSessions,
+  UserStatus copyWith({
+    OnlineStatus? onlineStatus,
+    DateTime? lastStatusChange,
+    Session? currentSession,
+    List<Session>? activeSessions,
     String? neosVersion
-  })
-  => UserStatus(
-      onlineStatus: onlineStatus ?? this.onlineStatus,
-      lastStatusChange: lastStatusChange ?? this.lastStatusChange,
-      activeSessions: activeSessions ?? this.activeSessions,
-    neosVersion: neosVersion ?? this.neosVersion,
-  );
+  }) =>
+      UserStatus(
+        onlineStatus: onlineStatus ?? this.onlineStatus,
+        lastStatusChange: lastStatusChange ?? this.lastStatusChange,
+        currentSession: currentSession ?? this.currentSession,
+        activeSessions: activeSessions ?? this.activeSessions,
+        neosVersion: neosVersion ?? this.neosVersion,
+      );
 }

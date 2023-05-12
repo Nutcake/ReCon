@@ -6,6 +6,7 @@ import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/personal_profile.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
+import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/friends/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_list_tile.dart';
 import 'package:contacts_plus_plus/widgets/my_profile_dialog.dart';

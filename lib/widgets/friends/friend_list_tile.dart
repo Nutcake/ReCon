@@ -2,19 +2,19 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 class FriendListTile extends StatelessWidget {
-  const FriendListTile({required this.friend, this.unreads, this.onTap, super.key});
+  const FriendListTile({required this.friend, required this.unreads, this.onTap, super.key});
 
   final Friend friend;
-  final int? unreads;
+  final int unreads;
   final Function? onTap;
 
   @override
@@ -23,10 +23,18 @@ class FriendListTile extends StatelessWidget {
     final theme = Theme.of(context);
     return ListTile(
       leading: GenericAvatar(imageUri: imageUri,),
-      trailing: unreads != null && unreads != 0
+      trailing: unreads != 0
           ? Text("+$unreads", style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),)
           : null,
-      title: Text(friend.username),
+      title: Row(
+        children: [
+          Text(friend.username),
+          if (friend.isHeadless) Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Icon(Icons.dns, size: 12, color: theme.colorScheme.onSecondaryContainer.withAlpha(150),),
+          ),
+        ],
+      ),
       subtitle: Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -34,6 +42,11 @@ class FriendListTile extends StatelessWidget {
           FriendOnlineStatusIndicator(userStatus: friend.userStatus),
           const SizedBox(width: 4,),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
+          if (!friend.userStatus.currentSession.isNone)
+            ...[
+              const Text(" in "),
+              Expanded(child: FormattedText(friend.userStatus.currentSession.formattedName, overflow: TextOverflow.ellipsis, maxLines: 1,))
+            ]
         ],
       ),
       onTap: () async {
