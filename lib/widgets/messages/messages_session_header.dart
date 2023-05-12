@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/session.dart';
+import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 
@@ -30,8 +31,10 @@ class SessionPopup extends StatelessWidget {
                   Expanded(
                     child: ListView(
                       children: [
-                        Text(session.name, style: Theme.of(context).textTheme.titleMedium),
-                        Text(session.description.isEmpty ? "No description." : session.description, style: Theme.of(context).textTheme.labelMedium),
+                        FormattedText(session.formattedName, style: Theme.of(context).textTheme.titleMedium),
+                        session.formattedDescription.isEmpty
+                            ? const Text("No description")
+                            : FormattedText(session.formattedDescription, style: Theme.of(context).textTheme.labelMedium),
                         Text("Tags: ${session.tags.isEmpty ? "None" : session.tags.join(", ")}",
                           style: Theme.of(context).textTheme.labelMedium,
                           softWrap: true,
@@ -62,11 +65,11 @@ class SessionPopup extends StatelessWidget {
                         },
                       ),
                     ),
-                  ) else Expanded(
+                  ) else const Expanded(
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.person_remove_alt_1_rounded),
                           Padding(
                             padding: EdgeInsets.all(16.0),
@@ -86,11 +89,11 @@ class SessionPopup extends StatelessWidget {
                   placeholder: (context, url) {
                     return const CircularProgressIndicator();
                   },
-                  errorWidget: (context, error, what) => Column(
+                  errorWidget: (context, error, what) => const Column(
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.no_photography),
                       Padding(
                         padding: EdgeInsets.all(16.0),

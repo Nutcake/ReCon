@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
+import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:uuid/uuid.dart';
 
 enum MessageType {
@@ -43,11 +44,13 @@ class Message implements Comparable {
   final String senderId;
   final MessageType type;
   final String content;
+  final FormatNode formattedContent;
   final DateTime sendTime;
   final MessageState state;
 
   Message({required this.id, required this.recipientId, required this.senderId, required this.type,
-    required this.content, required this.sendTime, this.state=MessageState.local});
+    required this.content, required this.sendTime, this.state=MessageState.local})
+      : formattedContent = FormatNode.fromText(content);
 
   factory Message.fromMap(Map map, {MessageState? withState}) {
     final typeString = (map["messageType"] as String?) ?? "";
@@ -68,10 +71,21 @@ class Message implements Comparable {
 
   Message copy() => copyWith();
 
-  Message copyWith({String? id, String? recipientId, String? senderId, MessageType? type, String? content,
-    DateTime? sendTime, MessageState? state}) {
-    return Message(id: id ?? this.id, recipientId: recipientId ?? this.recipientId, senderId: senderId ?? this.senderId,
-        type: type ?? this.type, content: content ?? this.content, sendTime: sendTime ?? this.sendTime,
+  Message copyWith({
+    String? id,
+    String? recipientId,
+    String? senderId,
+    MessageType? type,
+    String? content,
+    DateTime? sendTime,
+    MessageState? state}) {
+    return Message(
+        id: id ?? this.id,
+        recipientId: recipientId ?? this.recipientId,
+        senderId: senderId ?? this.senderId,
+        type: type ?? this.type,
+        content: content ?? this.content,
+        sendTime: sendTime ?? this.sendTime,
         state: state ?? this.state
     );
   }

@@ -1,12 +1,16 @@
+import 'package:contacts_plus_plus/string_formatter.dart';
+
 class Session {
   final String id;
   final String name;
+  final FormatNode formattedName;
   final List<SessionUser> sessionUsers;
   final String thumbnail;
   final int maxUsers;
   final bool hasEnded;
   final bool isValid;
   final String description;
+  final FormatNode formattedDescription;
   final List<String> tags;
   final bool headlessHost;
   final String hostUsername;
@@ -15,7 +19,7 @@ class Session {
   Session({required this.id, required this.name, required this.sessionUsers, required this.thumbnail,
     required this.maxUsers, required this.hasEnded, required this.isValid, required this.description,
     required this.tags, required this.headlessHost, required this.hostUsername, required this.accessLevel,
-  });
+  }) : formattedName = FormatNode.fromText(name), formattedDescription = FormatNode.fromText(description);
 
   factory Session.fromMap(Map map) {
     return Session(

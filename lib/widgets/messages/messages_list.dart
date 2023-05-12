@@ -126,9 +126,9 @@ class _MessagesListState extends State<MessagesList> {
               builder: (context, mClient, _) {
                 final cache = mClient.getUserMessageCache(widget.friend.id);
                 if (cache == null) {
-                  return Column(
+                  return const Column(
                     mainAxisAlignment: MainAxisAlignment.start,
-                    children: const [
+                    children: [
                       LinearProgressIndicator()
                     ],
                   );

@@ -1,10 +1,14 @@
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_asset.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_audio_player.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_session_invite.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+// The way these classes are laid out is pretty unclean, there's a lot of stuff that's shared between the different
+// subwidgets with a lot of room for deduplication. Should probably redo this some day.
 
 class MyMessageBubble extends StatelessWidget {
   MyMessageBubble({required this.message, super.key});
@@ -79,8 +83,8 @@ class MyMessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        message.content,
+                      FormattedText(
+                        message.formattedContent,
                         softWrap: true,
                         maxLines: null,
                         style: Theme
@@ -148,7 +152,6 @@ class OtherMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var content = message.content;
     switch (message.type) {
       case MessageType.sessionInvite:
         return Row(
@@ -193,7 +196,6 @@ class OtherMessageBubble extends StatelessWidget {
           ],
         );
       case MessageType.unknown:
-      rawText:
       case MessageType.text:
         return Row(
           mainAxisSize: MainAxisSize.min,
@@ -214,8 +216,8 @@ class OtherMessageBubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        content,
+                      FormattedText(
+                        message.formattedContent,
                         softWrap: true,
                         maxLines: null,
                         style: Theme
