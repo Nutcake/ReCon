@@ -88,18 +88,7 @@ class MessagingClient extends ChangeNotifier {
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient,
     required SettingsClient settingsClient})
       : _apiClient = apiClient, _notificationClient = notificationClient, _settingsClient = settingsClient {
-    initBox().whenComplete(() async {
-      try {
-        await _restoreFriendsList();
-        try {
-          await refreshFriendsList();
-        } catch (_) {
-          notifyListeners();
-        }
-      } catch (e) {
-        refreshFriendsListWithErrorHandler();
-      }
-    });
+    initFriends();
     startWebsocket();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
       // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
@@ -109,6 +98,22 @@ class MessagingClient extends ChangeNotifier {
     //_settingsClient.addListener(onSettingsChanged);
     if (!_settingsClient.currentSettings.notificationsDenied.valueOrDefault) {
       //registerNotificationTask();
+    }
+  }
+
+  Future<void> initFriends() async {
+    try {
+      await initBox();
+      await _restoreFriendsList();
+      try {
+        await refreshFriendsList();
+      } catch (e, s) {
+        FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+        notifyListeners();
+      }
+    } catch (e,s) {
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+      refreshFriendsListWithErrorHandler();
     }
   }
 

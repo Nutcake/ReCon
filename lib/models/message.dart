@@ -37,7 +37,7 @@ enum MessageState {
   read,
 }
 
-class Message extends Comparable {
+class Message implements Comparable {
   final String id;
   final String recipientId;
   final String senderId;

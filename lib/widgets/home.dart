@@ -2,6 +2,7 @@
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
+import 'package:contacts_plus_plus/widgets/inventory/inventory_browser.dart';
 import 'package:contacts_plus_plus/widgets/sessions/sessions_list.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -59,7 +60,7 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
           physics: const NeverScrollableScrollPhysics(),
           controller: _pageController,
           children: [
-            const Center(child: Text("Not implemented yet"),),
+            const InventoryBrowser(),
             ChangeNotifierProvider
                 .value( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
               value: _mClient,

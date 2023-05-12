@@ -13,6 +13,13 @@ import 'package:contacts_plus_plus/models/asset/record.dart';
 import 'package:path/path.dart';
 
 class AssetApi {
+  static Future<List<Record>> getRecordsAt(ApiClient client, {required String path}) async {
+    final response = await client.get("/users/${client.userId}/records?path=$path");
+    ApiClient.checkResponse(response);
+    final body = jsonDecode(response.body) as List;
+    return body.map((e) => Record.fromMap(e)).toList();
+  }
+
   static Future<PreprocessStatus> preprocessRecord(ApiClient client, {required Record record}) async {
     final response = await client.post(
         "/users/${record.ownerId}/records/${record.id}/preprocess", body: jsonEncode(record.toMap()));
@@ -69,7 +76,7 @@ class AssetApi {
         "message_item",
         "message_id:${Message.generateId()}"
       ],
-      recordType: "texture",
+      recordType: RecordType.texture,
       thumbnailUri: assetUri,
       isPublic: false,
       isForPatreons: false,

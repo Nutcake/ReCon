@@ -1,5 +1,20 @@
 import 'package:contacts_plus_plus/models/asset/neos_db_asset.dart';
+import 'package:contacts_plus_plus/string_formatter.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
+enum RecordType {
+  unknown,
+  link,
+  object,
+  directory,
+  texture,
+  audio;
+
+  factory RecordType.fromName(String? name) {
+    return RecordType.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase().trim(), orElse: () => RecordType.unknown);
+  }
+}
 
 class Record {
   final String id;
@@ -8,9 +23,9 @@ class Record {
   final int globalVersion;
   final int localVersion;
   final String name;
+  final TextSpan? formattedName;
   final String? description;
   final List<String>? tags;
-  final String recordType;
   final String? thumbnailUri;
   final bool isPublic;
   final bool isForPatreons;
@@ -21,9 +36,11 @@ class Record {
   final String lastModifyingUserId;
   final String lastModifyingMachineId;
   final DateTime? creationTime;
+  final RecordType recordType;
 
   const Record({
     required this.id,
+    this.formattedName,
     required this.ownerId,
     this.assetUri,
     this.globalVersion=0,
@@ -52,9 +69,10 @@ class Record {
       globalVersion: map["globalVersion"] ?? 0,
       localVersion: map["localVersion"] ?? 0,
       name: map["name"] ?? "",
+      formattedName: StringFormatter.tryFormat(map["name"]),
       description: map["description"],
-      tags: (map["tags"] as List).map((e) => e.toString()).toList(),
-      recordType: map["recordType"] ?? "",
+      tags: (map["tags"] as List? ?? []).map((e) => e.toString()).toList(),
+      recordType: RecordType.fromName(map["recordType"]),
       thumbnailUri: map["thumbnailUri"],
       isPublic: map["isPublic"] ?? false,
       isForPatreons: map["isForPatreons"] ?? false,
@@ -75,9 +93,10 @@ class Record {
     int? globalVersion,
     int? localVersion,
     String? name,
+    TextSpan? formattedName,
     String? description,
     List<String>? tags,
-    String? recordType,
+    RecordType? recordType,
     String? thumbnailUri,
     bool? isPublic,
     bool? isForPatreons,
@@ -96,6 +115,7 @@ class Record {
       globalVersion: globalVersion ?? this.globalVersion,
       localVersion: localVersion ?? this.localVersion,
       name: name ?? this.name,
+      formattedName: formattedName ?? this.formattedName,
       description: description ?? this.description,
       tags: tags ?? this.tags,
       recordType: recordType ?? this.recordType,
@@ -122,7 +142,7 @@ class Record {
       "name": name,
       "description": description,
       "tags": tags,
-      "recordType": recordType,
+      "recordType": recordType.name,
       "thumbnailUri": thumbnailUri,
       "isPublic": isPublic,
       "isForPatreons": isForPatreons,
