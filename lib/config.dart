@@ -8,4 +8,6 @@ class Config {
   static const String neosHubUrl = "$apiBaseUrl/hub";
 
   static const int messageCacheValiditySeconds = 90;
+
+  static const String latestCompatHash = "jnnkdwkBqGv5+jlf1u/k7A==";
 }

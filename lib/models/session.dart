@@ -66,19 +66,21 @@ class Session {
     return {
       "sessionId": id,
       "name": name,
-      "sessionUsers": shallow ? [] : throw UnimplementedError(),
+      "sessionUsers": shallow ? [] : sessionUsers.map((e) => e.toMap()).toList(),
       "thumbnail": thumbnail,
       "maxUsers": maxUsers,
       "hasEnded": hasEnded,
       "isValid": isValid,
       "description": description,
-      "tags": shallow ? [] : throw UnimplementedError(),
+      "tags": shallow ? [] : tags,
       "headlessHost": headlessHost,
       "hostUserId": hostUserId,
       "hostUsername": hostUsername,
       "accessLevel": accessLevel.name, // This probably wont work, the API usually expects integers.
     };
   }
+
+
 
   bool get isLive => !hasEnded && isValid;
 }
@@ -124,5 +126,14 @@ class SessionUser {
       isPresent: map["isPresent"] ?? false,
       outputDevice: map["outputDevice"] ?? 0,
     );
+  }
+
+  Map toMap() {
+    return {
+      "userID": id,
+      "username": username,
+      "isPresent": isPresent,
+      "outputDevice": outputDevice,
+    };
   }
 }
