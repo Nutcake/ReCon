@@ -49,8 +49,8 @@ class Message implements Comparable {
   final MessageState state;
 
   Message({required this.id, required this.recipientId, required this.senderId, required this.type,
-    required this.content, required this.sendTime, this.state=MessageState.local})
-      : formattedContent = FormatNode.fromText(content);
+    required this.content, required DateTime sendTime, this.state=MessageState.local})
+      : formattedContent = FormatNode.fromText(content), sendTime = sendTime.toUtc();
 
   factory Message.fromMap(Map map, {MessageState? withState}) {
     final typeString = (map["messageType"] as String?) ?? "";
@@ -105,7 +105,7 @@ class Message implements Comparable {
   }
 
   @override
-  int compareTo(other) {
+  int compareTo(covariant Message other) {
     return other.sendTime.compareTo(sendTime);
   }
 }

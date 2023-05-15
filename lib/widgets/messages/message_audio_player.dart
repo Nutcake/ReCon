@@ -148,7 +148,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4.0),
                         child: Text(
-                          _dateFormat.format(widget.message.sendTime),
+                          _dateFormat.format(widget.message.sendTime.toLocal()),
                           style: Theme
                               .of(context)
                               .textTheme

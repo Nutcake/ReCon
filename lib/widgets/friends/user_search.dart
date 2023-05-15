@@ -88,8 +88,8 @@ class _UserSearchState extends State<UserSearch> {
                     return DefaultErrorWidget(title: "${snapshot.error}",);
                   }
                 } else {
-                  return Column(
-                    children: const [
+                  return const Column(
+                    children: [
                       LinearProgressIndicator(),
                     ],
                   );

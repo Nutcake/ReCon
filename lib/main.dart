@@ -92,7 +92,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
         return;
       }
 
-      if (remoteSem > currentSem && navigator.overlay?.context != null) {
+      if (remoteSem > currentSem && navigator.overlay?.context != null && context.mounted) {
         showDialog(
           context: navigator.overlay!.context,
           builder: (context) {

@@ -10,7 +10,6 @@ import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -76,7 +75,7 @@ class MessageAsset extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: Text(
-                  _dateFormat.format(message.sendTime),
+                  _dateFormat.format(message.sendTime.toLocal()),
                   style: Theme
                       .of(context)
                       .textTheme

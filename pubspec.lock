@@ -264,14 +264,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  full_screen_image:
-    dependency: "direct main"
-    description:
-      name: full_screen_image
-      sha256: "97831b00d07b17c674ba3a4eddcee306dbd0d7c66851f1b67856e12daeb9b3aa"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   html:
     dependency: "direct main"
     description:

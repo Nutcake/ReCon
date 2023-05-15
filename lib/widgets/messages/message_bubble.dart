@@ -100,7 +100,7 @@ class MyMessageBubble extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4.0),
                             child: Text(
-                              _dateFormat.format(message.sendTime),
+                              _dateFormat.format(message.sendTime.toLocal()),
                               style: Theme
                                   .of(context)
                                   .textTheme
@@ -227,7 +227,7 @@ class OtherMessageBubble extends StatelessWidget {
                       ),
                       const SizedBox(height: 6,),
                       Text(
-                        _dateFormat.format(message.sendTime),
+                        _dateFormat.format(message.sendTime.toLocal()),
                         style: Theme
                             .of(context)
                             .textTheme

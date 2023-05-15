@@ -78,7 +78,7 @@ class NotificationClient {
               }
               return fln.Message(
                 content,
-                message.sendTime,
+                message.sendTime.toLocal(),
                 fln.Person(
                   name: uname,
                   bot: false,
