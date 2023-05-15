@@ -5,8 +5,8 @@ class UserProfile {
 
   factory UserProfile.empty() => UserProfile(iconUrl: "");
 
-  factory UserProfile.fromMap(Map map) {
-    return UserProfile(iconUrl: map["iconUrl"] ?? "");
+  factory UserProfile.fromMap(Map? map) {
+    return UserProfile(iconUrl: map?["iconUrl"] ?? "");
   }
 
   Map toMap() {

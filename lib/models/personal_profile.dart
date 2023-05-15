@@ -22,23 +22,23 @@ class PersonalProfile {
   });
 
   factory PersonalProfile.fromMap(Map map) {
-    final banExp = map["publicBanExpiration"];
     return PersonalProfile(
-      id: map["id"],
-      username: map["username"],
-      email: map["email"],
-      publicBanExpiration: banExp == null ? null : DateTime.parse(banExp),
+      id: map["id"] ?? "",
+      username: map["username"] ?? "",
+      email: map["email"] ?? "",
+      publicBanExpiration: DateTime.tryParse(map["publicBanExpiration"] ?? ""),
       publicBanType: map["publicBanType"],
       storageQuotas: (map["storageQuotas"] as List).map((e) => StorageQuotas.fromMap(e)).toList(),
       quotaBytesSource: (map["quotaBytesSources"] as Map).map((key, value) => MapEntry(key, value as int)),
-      usedBytes: map["usedBytes"],
+      usedBytes: map["usedBytes"] ?? 0,
       twoFactor: map["2fa_login"] ?? false,
       isPatreonSupporter: map["patreonData"]?["isPatreonSupporter"] ?? false,
       userProfile: UserProfile.fromMap(map["profile"]),
     );
   }
 
-  int get maxBytes => (quotaBytesSource.values.maxOrNull ?? 0) + storageQuotas.map((e) => e.bytes).reduce((value, element) => value + element);
+  int get maxBytes => (quotaBytesSource.values.maxOrNull ?? 0)
+      + (storageQuotas.isEmpty ? 0 : storageQuotas.map((e) => e.bytes).reduce((value, element) => value + element));
 }
 
 class StorageQuotas {
