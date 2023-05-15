@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';

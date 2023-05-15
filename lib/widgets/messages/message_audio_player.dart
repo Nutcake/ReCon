@@ -1,18 +1,18 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:just_audio/just_audio.dart';
 
 class MessageAudioPlayer extends StatefulWidget {
-  const MessageAudioPlayer({required this.message, super.key});
+  const MessageAudioPlayer({required this.message, this.foregroundColor, super.key});
 
   final Message message;
+  final Color? foregroundColor;
 
   @override
   State<MessageAudioPlayer> createState() => _MessageAudioPlayerState();
@@ -20,7 +20,6 @@ class MessageAudioPlayer extends StatefulWidget {
 
 class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  final DateFormat _dateFormat = DateFormat.Hm();
   double _sliderValue = 0;
 
   @override
@@ -75,9 +74,12 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
             if (snapshot.hasData) {
               final playerState = snapshot.data as PlayerState;
               return Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
                         onPressed: () {
@@ -87,7 +89,11 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                             case ProcessingState.buffering:
                               break;
                             case ProcessingState.ready:
-                              _audioPlayer.play();
+                              if (playerState.playing) {
+                                _audioPlayer.pause();
+                              } else {
+                                _audioPlayer.play();
+                              }
                               break;
                             case ProcessingState.completed:
                               _audioPlayer.seek(Duration.zero);
@@ -95,6 +101,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                               break;
                           }
                         },
+                        color: widget.foregroundColor,
                         icon: SizedBox(
                           width: 24,
                           height: 24,
@@ -110,21 +117,27 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                           builder: (context, snapshot) {
                             _sliderValue = (_audioPlayer.position.inMilliseconds /
                                 (_audioPlayer.duration?.inMilliseconds ?? 0)).clamp(0, 1);
-                            return StatefulBuilder(
+                            return StatefulBuilder( // Not sure if this makes sense here...
                                 builder: (context, setState) {
-                                  return Slider(
-                                    value: _sliderValue,
-                                    min: 0.0,
-                                    max: 1.0,
-                                    onChanged: (value) async {
-                                      _audioPlayer.pause();
-                                      setState(() {
-                                        _sliderValue = value;
-                                      });
-                                      _audioPlayer.seek(Duration(
-                                        milliseconds: (value * (_audioPlayer.duration?.inMilliseconds ?? 0)).round(),
-                                      ));
-                                    },
+                                  return SliderTheme(
+                                    data: SliderThemeData(
+                                      inactiveTrackColor: widget.foregroundColor?.withAlpha(100),
+                                    ),
+                                    child: Slider(
+                                      thumbColor: widget.foregroundColor,
+                                      value: _sliderValue,
+                                      min: 0.0,
+                                      max: 1.0,
+                                      onChanged: (value) async {
+                                        _audioPlayer.pause();
+                                        setState(() {
+                                          _sliderValue = value;
+                                        });
+                                        _audioPlayer.seek(Duration(
+                                          milliseconds: (value * (_audioPlayer.duration?.inMilliseconds ?? 0)).round(),
+                                        ));
+                                      },
+                                    ),
                                   );
                                 }
                             );
@@ -134,36 +147,24 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                   ),
                   Row(
                     mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 4,),
                       StreamBuilder(
                           stream: _audioPlayer.positionStream,
                           builder: (context, snapshot) {
                             return Text("${snapshot.data?.format() ?? "??"}/${_audioPlayer.duration?.format() ??
-                                "??"}");
+                                "??"}",
+                              style: Theme
+                                  .of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: widget.foregroundColor?.withAlpha(150)),
+                            );
                           }
                       ),
                       const Spacer(),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                        child: Text(
-                          _dateFormat.format(widget.message.sendTime.toLocal()),
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(color: Colors.white54),
-                        ),
-                      ),
-                      const SizedBox(width: 4,),
-                      if (widget.message.senderId == ClientHolder
-                          .of(context)
-                          .apiClient
-                          .userId) Padding(
-                        padding: const EdgeInsets.only(right: 12.0),
-                        child: MessageStateIndicator(messageState: widget.message.state),
-                      ),
+                      MessageStateIndicator(message: widget.message, foregroundColor: widget.foregroundColor,),
                     ],
                   )
                 ],

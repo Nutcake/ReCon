@@ -3,21 +3,19 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/models/photo_asset.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 
 class MessageAsset extends StatelessWidget {
-  MessageAsset({required this.message, super.key});
+  const MessageAsset({required this.message, this.foregroundColor, super.key});
 
   final Message message;
-  final DateFormat _dateFormat = DateFormat.Hm();
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +27,6 @@ class MessageAsset extends StatelessWidget {
     final formattedName = FormatNode.fromText(content["name"]);
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Column(
         children: [
           CachedNetworkImage(
@@ -62,34 +59,20 @@ class MessageAsset extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Expanded(
-                child: FormattedText(
-                  formattedName,
-                  maxLines: null,
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: Colors.white60),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: FormattedText(
+                    formattedName,
+                    maxLines: null,
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: foregroundColor),
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: Text(
-                  _dateFormat.format(message.sendTime.toLocal()),
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: Colors.white54),
-                ),
-              ),
-              if (message.senderId == ClientHolder
-                  .of(context)
-                  .apiClient
-                  .userId) Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: MessageStateIndicator(messageState: message.state),
-              ),
+             MessageStateIndicator(message: message, foregroundColor: foregroundColor,),
             ],
           ),
         ],

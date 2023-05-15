@@ -163,16 +163,13 @@ class _MessagesListState extends State<MessagesList> {
                   itemCount: cache.messages.length,
                   itemBuilder: (context, index) {
                     final entry = cache.messages[index];
-                    final widget = entry.senderId == apiClient.userId
-                        ? MyMessageBubble(message: entry)
-                        : OtherMessageBubble(message: entry);
                     if (index == cache.messages.length - 1) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 12),
-                        child: widget,
+                        child: MessageBubble(message: entry,),
                       );
                     }
-                    return widget;
+                    return MessageBubble(message: entry,);
                   },
                 );
               },

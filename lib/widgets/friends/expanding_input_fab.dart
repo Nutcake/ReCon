@@ -29,12 +29,10 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
             duration: const Duration(milliseconds: 200),
             reverseDuration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Theme.of(context).colorScheme.secondaryContainer,
-              ),
-              padding: const EdgeInsets.all(4),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(16),
+              color: Theme.of(context).colorScheme.primaryContainer,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
@@ -46,10 +44,11 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
                       onChanged: widget.onInputChanged,
                       controller: _inputController,
                       decoration: const InputDecoration(
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                          ),
-                          isDense: true
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                       ),
                     ) : null,
                   ),

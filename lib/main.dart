@@ -9,6 +9,7 @@ import 'package:contacts_plus_plus/models/sem_ver.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
 import 'package:contacts_plus_plus/widgets/update_notifier.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:logging/logging.dart';
@@ -111,38 +112,40 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
     return ClientHolder(
       settingsClient: widget.settingsClient,
       authenticationData: _authData,
-      child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Contacts++',
-          theme: ThemeData(
+      child: DynamicColorBuilder(
+        builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Contacts++',
+            theme: ThemeData(
               useMaterial3: true,
               textTheme: _typography.white,
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark)
-          ),
-          home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
-            builder: (context) {
-              showUpdateDialogOnFirstBuild(context);
-              final clientHolder = ClientHolder.of(context);
-              return _authData.isAuthenticated ?
-              ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
-                create: (context) =>
-                    MessagingClient(
-                      apiClient: clientHolder.apiClient,
-                      notificationClient: clientHolder.notificationClient,
-                    ),
-                child: const FriendsList(),
-              ) :
-              LoginScreen(
-                onLoginSuccessful: (AuthenticationData authData) async {
-                  if (authData.isAuthenticated) {
-                    setState(() {
-                      _authData = authData;
-                    });
-                  }
-                },
-              );
-            }
-          )
+              colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+            ),
+            home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
+              builder: (context) {
+                showUpdateDialogOnFirstBuild(context);
+                final clientHolder = ClientHolder.of(context);
+                return _authData.isAuthenticated ?
+                ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
+                  create: (context) =>
+                      MessagingClient(
+                        apiClient: clientHolder.apiClient,
+                        notificationClient: clientHolder.notificationClient,
+                      ),
+                  child: const FriendsList(),
+                ) :
+                LoginScreen(
+                  onLoginSuccessful: (AuthenticationData authData) async {
+                    if (authData.isAuthenticated) {
+                      setState(() {
+                        _authData = authData;
+                      });
+                    }
+                  },
+                );
+              }
+            )
+        ),
       ),
     );
   }
