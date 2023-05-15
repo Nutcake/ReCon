@@ -166,15 +166,16 @@ class FormatData {
     "size": FormatAction(
         style: (param, baseStyle) {
           if (param == null) return baseStyle;
+          final baseSize = baseStyle.fontSize ?? 12;
           if (param.endsWith("%")) {
             final percentage = int.tryParse(param.replaceAll("%", ""));
             if (percentage == null || percentage <= 0) return baseStyle;
-            final baseSize = baseStyle.fontSize ?? 12;
             return baseStyle.copyWith(fontSize: baseSize * (percentage / 100));
           } else {
             final size = num.tryParse(param);
             if (size == null || size <= 0) return baseStyle;
-            return baseStyle.copyWith(fontSize: size.toDouble());
+            final realSize = baseSize * (size / 1000);
+            return baseStyle.copyWith(fontSize: realSize.toDouble().clamp(8, 400));
           }
         }
     ),

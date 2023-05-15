@@ -131,7 +131,7 @@ class SessionTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(session.name),
+                FormattedText(session.formattedName),
                 Text("${session.sessionUsers.length}/${session.maxUsers} active users")
               ],
             ),
