@@ -17,7 +17,7 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  const ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
 
@@ -33,7 +33,7 @@ class ApiClient {
     String? oneTimePad,
   }) async {
     final body = {
-      "username": username,
+      (username.contains("@") ? "email" : "username"): username.trim(),
       "password": password,
       "rememberMe": rememberMe,
       "secretMachineId": const Uuid().v4(),
@@ -107,7 +107,14 @@ class ApiClient {
       Phoenix.rebirth(context);
     }
   }
-  
+
+  Future<void> extendSession() async {
+    final response = await patch("/userSessions");
+    if (response.statusCode != 204) {
+      throw "Failed to extend session.";
+    }
+  }
+
   static void checkResponse(http.Response response) {
     if (response.statusCode == 429) {
       throw "Sorry, you are being rate limited";
@@ -150,5 +157,12 @@ class ApiClient {
     headers ??= {};
     headers.addAll(authorizationHeader);
     return http.delete(buildFullUri(path), headers: headers);
+  }
+
+  Future<http.Response> patch(String path, {Object? body, Map<String, String>? headers}) {
+    headers ??= {};
+    headers["Content-Type"] = "application/json";
+    headers.addAll(authorizationHeader);
+    return http.patch(buildFullUri(path), headers: headers, body: body);
   }
 }
