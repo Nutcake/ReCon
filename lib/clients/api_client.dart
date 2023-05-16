@@ -6,6 +6,7 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:contacts_plus_plus/models/authentication_data.dart';
+import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
 import '../config.dart';
@@ -17,9 +18,10 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  const ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
+  final Logger _logger = Logger("API");
 
   AuthenticationData get authenticationData => _authenticationData;
   String get userId => _authenticationData.userId;
@@ -133,36 +135,46 @@ class ApiClient {
 
   static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}/api$path");
 
-  Future<http.Response> get(String path, {Map<String, String>? headers}) {
+  Future<http.Response> get(String path, {Map<String, String>? headers}) async {
     headers ??= {};
     headers.addAll(authorizationHeader);
-    return http.get(buildFullUri(path), headers: headers);
+    final response = await http.get(buildFullUri(path), headers: headers);
+    _logger.info("GET $path => ${response.statusCode}");
+    return response;
   }
 
-  Future<http.Response> post(String path, {Object? body, Map<String, String>? headers}) {
+  Future<http.Response> post(String path, {Object? body, Map<String, String>? headers}) async {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    return http.post(buildFullUri(path), headers: headers, body: body);
+    final response = await http.post(buildFullUri(path), headers: headers, body: body);
+    _logger.info("PST $path => ${response.statusCode}");
+    return response;
   }
 
-  Future<http.Response> put(String path, {Object? body, Map<String, String>? headers}) {
+  Future<http.Response> put(String path, {Object? body, Map<String, String>? headers}) async {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    return http.put(buildFullUri(path), headers: headers, body: body);
+    final response = await http.put(buildFullUri(path), headers: headers, body: body);
+    _logger.info("PUT $path => ${response.statusCode}");
+    return response;
   }
 
-  Future<http.Response> delete(String path, {Map<String, String>? headers}) {
+  Future<http.Response> delete(String path, {Map<String, String>? headers}) async {
     headers ??= {};
     headers.addAll(authorizationHeader);
-    return http.delete(buildFullUri(path), headers: headers);
+    final response = await http.delete(buildFullUri(path), headers: headers);
+    _logger.info("DEL $path => ${response.statusCode}");
+    return response;
   }
 
-  Future<http.Response> patch(String path, {Object? body, Map<String, String>? headers}) {
+  Future<http.Response> patch(String path, {Object? body, Map<String, String>? headers}) async {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    return http.patch(buildFullUri(path), headers: headers, body: body);
+    final response = await http.patch(buildFullUri(path), headers: headers, body: body);
+    _logger.info("PAT $path => ${response.statusCode}");
+    return response;
   }
 }
