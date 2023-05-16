@@ -142,7 +142,7 @@ class ApiClient {
     headers ??= {};
     headers.addAll(authorizationHeader);
     final response = await http.get(buildFullUri(path), headers: headers);
-    _logger.info("GET $path => ${response.statusCode}");
+    _logger.info("GET $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
 
@@ -151,7 +151,7 @@ class ApiClient {
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
     final response = await http.post(buildFullUri(path), headers: headers, body: body);
-    _logger.info("PST $path => ${response.statusCode}");
+    _logger.info("PST $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
 
@@ -160,7 +160,7 @@ class ApiClient {
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
     final response = await http.put(buildFullUri(path), headers: headers, body: body);
-    _logger.info("PUT $path => ${response.statusCode}");
+    _logger.info("PUT $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
 
@@ -168,7 +168,7 @@ class ApiClient {
     headers ??= {};
     headers.addAll(authorizationHeader);
     final response = await http.delete(buildFullUri(path), headers: headers);
-    _logger.info("DEL $path => ${response.statusCode}");
+    _logger.info("DEL $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
 
@@ -177,7 +177,7 @@ class ApiClient {
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
     final response = await http.patch(buildFullUri(path), headers: headers, body: body);
-    _logger.info("PAT $path => ${response.statusCode}");
+    _logger.info("PAT $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
 }

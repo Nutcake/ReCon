@@ -53,10 +53,10 @@ class StorageQuotas {
 
   factory StorageQuotas.fromMap(Map map) {
     return StorageQuotas(
-      id: map["id"],
-      bytes: map["bytes"],
-      addedOn: DateTime.parse(map["addedOn"]),
-      expiresOn: DateTime.parse(map["expiresOn"]),
+      id: map["id"] ?? "",
+      bytes: map["bytes"] ?? 0,
+      addedOn: DateTime.tryParse(map["addedOn"]) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      expiresOn: DateTime.tryParse(map["expiresOn"]) ?? DateTime.fromMillisecondsSinceEpoch(0),
       giftedByUserId: map["giftedByUserId"] ?? "",
     );
   }
