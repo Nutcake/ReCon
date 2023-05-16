@@ -124,10 +124,13 @@ class ApiClient {
     if (response.statusCode == 403) {
       tryCachedLogin();
       // TODO: Show the login screen again if cached login was unsuccessful.
-      throw "You are not authorized to do that.";
+      throw "You are not authorized to do that";
+    }
+    if (response.statusCode == 500) {
+      throw "Internal server error";
     }
     if (response.statusCode != 200) {
-      throw "Unknown Error${kDebugMode ? ": ${response.statusCode}|${response.body}" : ""}";
+      throw "Unknown Error: ${response.statusCode}${kDebugMode ? "|${response.body}" : ""}";
     }
   }
 

@@ -114,7 +114,7 @@ class MessageCache {
   final List<Message> _messages = [];
   final ApiClient _apiClient;
   final String _userId;
-  Future? currentOperation;
+  Object? error;
 
   List<Message> get messages => _messages;
 
@@ -155,9 +155,14 @@ class MessageCache {
   }
 
   Future<void> loadMessages() async {
-    final messages = await MessageApi.getUserMessages(_apiClient, userId: _userId);
-    _messages.addAll(messages);
-    _ensureIntegrity();
+    error = null;
+    try {
+      final messages = await MessageApi.getUserMessages(_apiClient, userId: _userId);
+      _messages.addAll(messages);
+      _ensureIntegrity();
+    } catch (e) {
+      error = e;
+    }
   }
 
   void _ensureIntegrity() {

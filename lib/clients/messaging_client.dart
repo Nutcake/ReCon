@@ -196,6 +196,10 @@ class MessagingClient extends ChangeNotifier {
 
   MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
 
+  void deleteUserMessageCache(String userId) {
+    _messageCache.remove(userId);
+  }
+
   Future<void> loadUserMessageCache(String userId) async {
     final cache = getUserMessageCache(userId) ?? _createUserMessageCache(userId);
     await cache.loadMessages();
