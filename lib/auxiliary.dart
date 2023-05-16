@@ -90,3 +90,8 @@ extension Format on Duration {
     }
   }
 }
+
+extension DateTimeX on DateTime {
+  static DateTime epoch = DateTime.fromMillisecondsSinceEpoch(0);
+  static DateTime one = DateTime(1);
+}
