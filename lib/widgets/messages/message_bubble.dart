@@ -25,7 +25,7 @@ class MessageBubble extends StatelessWidget {
           Material(
             borderRadius: BorderRadius.circular(16),
             color: backgroundColor,
-            textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: foregroundColor),
+            textStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: foregroundColor),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: switch (message.type) {

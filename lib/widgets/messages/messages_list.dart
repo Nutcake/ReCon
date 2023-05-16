@@ -18,13 +18,14 @@ class MessagesList extends StatefulWidget {
   State<StatefulWidget> createState() => _MessagesListState();
 }
 
-class _MessagesListState extends State<MessagesList> {
+class _MessagesListState extends State<MessagesList> with SingleTickerProviderStateMixin {
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
   final ScrollController _messageScrollController = ScrollController();
 
   bool _isSendable = false;
   bool _showSessionListScrollChevron = false;
+  bool _showBottomBarShadow = false;
 
   double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
 
@@ -52,6 +53,19 @@ class _MessagesListState extends State<MessagesList> {
         });
       }
     });
+    _messageScrollController.addListener(() {
+      if (!_messageScrollController.hasClients) return;
+      if (_messageScrollController.position.atEdge && _messageScrollController.position.pixels == 0 &&
+          _showBottomBarShadow) {
+        setState(() {
+          _showBottomBarShadow = false;
+        });
+      } else if (!_showBottomBarShadow) {
+        setState(() {
+          _showBottomBarShadow = true;
+        });
+      }
+    });
   }
 
   @override
@@ -74,7 +88,11 @@ class _MessagesListState extends State<MessagesList> {
             Text(widget.friend.username),
             if (widget.friend.isHeadless) Padding(
               padding: const EdgeInsets.only(left: 12),
-              child: Icon(Icons.dns, size: 18, color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),),
+              child: Icon(Icons.dns, size: 18, color: Theme
+                  .of(context)
+                  .colorScheme
+                  .onSecondaryContainer
+                  .withAlpha(150),),
             ),
           ],
         ),
@@ -177,49 +195,57 @@ class _MessagesListState extends State<MessagesList> {
           ),
         ],
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: AnimatedContainer(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              blurRadius: _showBottomBarShadow ? 8 : 0,
+              color: Theme.of(context).shadowColor,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          color: Theme.of(context).colorScheme.background,
+        ),
         padding: MediaQuery
             .of(context)
-            .viewInsets,
-        child: BottomAppBar(
-          elevation: 0.0,
-          padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 6),
-          child: Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: TextField(
-                    autocorrect: true,
-                    controller: _messageTextController,
-                    maxLines: 4,
-                    minLines: 1,
-                    onChanged: (text) {
-                      if (text.isNotEmpty && !_isSendable) {
-                        setState(() {
-                          _isSendable = true;
-                        });
-                      } else if (text.isEmpty && _isSendable) {
-                        setState(() {
-                          _isSendable = false;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(
-                        isDense: true,
-                        hintText: "Send a message to ${widget.friend
-                            .username}...",
-                        contentPadding: const EdgeInsets.all(16),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24)
-                        )
-                    ),
+            .viewInsets + const EdgeInsets.symmetric(horizontal: 4),
+        duration: const Duration(milliseconds: 250),
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: TextField(
+                  autocorrect: true,
+                  controller: _messageTextController,
+                  maxLines: 4,
+                  minLines: 1,
+                  onChanged: (text) {
+                    if (text.isNotEmpty && !_isSendable) {
+                      setState(() {
+                        _isSendable = true;
+                      });
+                    } else if (text.isEmpty && _isSendable) {
+                      setState(() {
+                        _isSendable = false;
+                      });
+                    }
+                  },
+                  decoration: InputDecoration(
+                      isDense: true,
+                      hintText: "Send a message to ${widget.friend
+                          .username}...",
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24)
+                      )
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8, right: 4.0),
-                child: Consumer<MessagingClient>(
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 8, right: 4.0),
+              child: Consumer<MessagingClient>(
                   builder: (context, mClient, _) {
                     return IconButton(
                       splashRadius: 24,
@@ -255,11 +281,10 @@ class _MessagesListState extends State<MessagesList> {
                       iconSize: 28,
                       icon: const Icon(Icons.send),
                     );
-                  }
-                ),
-              )
-            ],
-          ),
+                  },
+              ),
+            )
+          ],
         ),
       ),
     );
