@@ -193,99 +193,97 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
               },
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: AnimatedContainer(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              blurRadius: _showBottomBarShadow ? 8 : 0,
-              color: Theme.of(context).shadowColor,
-              offset: const Offset(0, 4),
-            ),
-          ],
-          color: Theme.of(context).colorScheme.background,
-        ),
-        padding: MediaQuery
-            .of(context)
-            .viewInsets + const EdgeInsets.symmetric(horizontal: 4),
-        duration: const Duration(milliseconds: 250),
-        child: Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextField(
-                  autocorrect: true,
-                  controller: _messageTextController,
-                  maxLines: 4,
-                  minLines: 1,
-                  onChanged: (text) {
-                    if (text.isNotEmpty && !_isSendable) {
-                      setState(() {
-                        _isSendable = true;
-                      });
-                    } else if (text.isEmpty && _isSendable) {
-                      setState(() {
-                        _isSendable = false;
-                      });
-                    }
-                  },
-                  decoration: InputDecoration(
-                      isDense: true,
-                      hintText: "Send a message to ${widget.friend
-                          .username}...",
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24)
-                      )
-                  ),
+          AnimatedContainer(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: _showBottomBarShadow ? 8 : 0,
+                  color: Theme.of(context).shadowColor,
+                  offset: const Offset(0, 4),
                 ),
-              ),
+              ],
+              color: Theme.of(context).colorScheme.background,
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 8, right: 4.0),
-              child: Consumer<MessagingClient>(
-                  builder: (context, mClient, _) {
-                    return IconButton(
-                      splashRadius: 24,
-                      onPressed: _isSendable ? () async {
-                        setState(() {
-                          _isSendable = false;
-                        });
-                        final message = Message(
-                          id: Message.generateId(),
-                          recipientId: widget.friend.id,
-                          senderId: apiClient.userId,
-                          type: MessageType.text,
-                          content: _messageTextController.text,
-                          sendTime: DateTime.now().toUtc(),
-                        );
-                        try {
-                          mClient.sendMessage(message);
-                          _messageTextController.clear();
-                          setState(() {});
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Failed to send message\n$e",
-                                maxLines: null,
-                              ),
-                            ),
-                          );
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            duration: const Duration(milliseconds: 250),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: TextField(
+                      autocorrect: true,
+                      controller: _messageTextController,
+                      maxLines: 4,
+                      minLines: 1,
+                      onChanged: (text) {
+                        if (text.isNotEmpty && !_isSendable) {
                           setState(() {
                             _isSendable = true;
                           });
+                        } else if (text.isEmpty && _isSendable) {
+                          setState(() {
+                            _isSendable = false;
+                          });
                         }
-                      } : null,
-                      iconSize: 28,
-                      icon: const Icon(Icons.send),
-                    );
-                  },
-              ),
-            )
-          ],
-        ),
+                      },
+                      decoration: InputDecoration(
+                          isDense: true,
+                          hintText: "Send a message to ${widget.friend
+                              .username}...",
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24)
+                          )
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, right: 4.0),
+                  child: Consumer<MessagingClient>(
+                    builder: (context, mClient, _) {
+                      return IconButton(
+                        splashRadius: 24,
+                        onPressed: _isSendable ? () async {
+                          setState(() {
+                            _isSendable = false;
+                          });
+                          final message = Message(
+                            id: Message.generateId(),
+                            recipientId: widget.friend.id,
+                            senderId: apiClient.userId,
+                            type: MessageType.text,
+                            content: _messageTextController.text,
+                            sendTime: DateTime.now().toUtc(),
+                          );
+                          try {
+                            mClient.sendMessage(message);
+                            _messageTextController.clear();
+                            setState(() {});
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Failed to send message\n$e",
+                                  maxLines: null,
+                                ),
+                              ),
+                            );
+                            setState(() {
+                              _isSendable = true;
+                            });
+                          }
+                        } : null,
+                        iconSize: 28,
+                        icon: const Icon(Icons.send),
+                      );
+                    },
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
