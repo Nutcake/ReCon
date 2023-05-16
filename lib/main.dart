@@ -12,6 +12,8 @@ import 'package:contacts_plus_plus/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -26,8 +28,9 @@ void main() async {
         isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
     );
   }
-
-  Logger.root.onRecord.listen((event) => log(event.message, name: event.loggerName, time: event.time));
+  await Hive.initFlutter();
+  final dateFormat = DateFormat.Hms();
+  Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));

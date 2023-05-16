@@ -8,6 +8,7 @@ import 'package:contacts_plus_plus/clients/notification_client.dart';
 import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
@@ -46,10 +47,11 @@ class MessagingClient extends ChangeNotifier {
   static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
   static const String taskName = "periodic-unread-check";
-  static const Duration _autoRefreshDuration = Duration(seconds: 90);
-  static const Duration _refreshTimeoutDuration = Duration(seconds: 30);
+  static const Duration _autoRefreshDuration = Duration(seconds: 10);
+  static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
+  static const String _messageBoxKey = "message-box";
+  static const String _lastUpdateKey = "__last-update-time";
   final ApiClient _apiClient;
-  final Map<String, Friend> _friendsCache = {};
   final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, List<Message>> _unreads = {};
@@ -60,6 +62,7 @@ class MessagingClient extends ChangeNotifier {
   Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
   Timer? _refreshTimeout;
+  Timer? _unreadSafeguard;
   int _attempts = 0;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
@@ -71,7 +74,11 @@ class MessagingClient extends ChangeNotifier {
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient, _notificationClient = notificationClient {
-    refreshFriendsListWithErrorHandler();
+    Hive.openBox(_messageBoxKey).then((box) async {
+      box.delete(_lastUpdateKey);
+      await refreshFriendsListWithErrorHandler();
+      await _refreshUnreads();
+    });
     startWebsocket();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
       // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
@@ -99,7 +106,16 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void refreshFriendsListWithErrorHandler () async {
+  Future<void> _refreshUnreads() async {
+    _unreadSafeguard?.cancel();
+    try {
+      final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
+      updateAllUnreads(unreadMessages.toList());
+    } catch (_) {}
+    _unreadSafeguard = Timer(_unreadSafeguardDuration, _refreshUnreads);
+  }
+
+  Future<void> refreshFriendsListWithErrorHandler () async {
     try {
       await refreshFriendsList();
     } catch (e) {
@@ -109,24 +125,15 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> refreshFriendsList() async {
-    if (_refreshTimeout?.isActive == true) return;
-
+    DateTime? lastUpdateUtc = Hive.box(_messageBoxKey).get(_lastUpdateKey);
     _autoRefresh?.cancel();
     _autoRefresh = Timer(_autoRefreshDuration, () => refreshFriendsList());
-    _refreshTimeout?.cancel();
-    _refreshTimeout = Timer(_refreshTimeoutDuration, () {});
 
-    final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
-    updateAllUnreads(unreadMessages.toList());
-
-    final friends = await FriendApi.getFriendsList(_apiClient);
-    _friendsCache.clear();
+    final friends = await FriendApi.getFriendsList(_apiClient, lastStatusUpdate: lastUpdateUtc);
     for (final friend in friends) {
-      _friendsCache[friend.id] = friend;
+      await _updateFriend(friend);
     }
-    _sortedFriendsCache.clear();
-    _sortedFriendsCache.addAll(friends);
-    _sortFriendsCache();
+
     _initStatus = "";
     notifyListeners();
   }
@@ -183,7 +190,7 @@ class MessagingClient extends ChangeNotifier {
     return _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
   }
 
-  Friend? getAsFriend(String userId) => _friendsCache[userId];
+  Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
 
   List<Friend> get cachedFriends => _sortedFriendsCache;
 
@@ -196,8 +203,13 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _updateFriend(Friend friend) {
-    _friendsCache[friend.id] = friend;
+  Future<void> _updateFriend(Friend friend) async {
+    final box = Hive.box(_messageBoxKey);
+    box.put(friend.id, friend.toMap());
+    final lastStatusUpdate = box.get(_lastUpdateKey);
+    if (lastStatusUpdate == null || friend.userStatus.lastStatusChange.isAfter(lastStatusUpdate)) {
+      await box.put(_lastUpdateKey, friend.userStatus.lastStatusChange);
+    }
     final sIndex = _sortedFriendsCache.indexWhere((element) => element.id == friend.id);
     if (sIndex == -1) {
       _sortedFriendsCache.add(friend);
@@ -211,7 +223,7 @@ class MessagingClient extends ChangeNotifier {
     final friend = getAsFriend(userId);
     if (friend == null) return;
     final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
-    _updateFriend(friend.copyWith(userStatus: newStatus));
+    await _updateFriend(friend.copyWith(userStatus: newStatus));
     notifyListeners();
   }
 

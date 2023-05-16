@@ -33,6 +33,11 @@ class Friend implements Comparable {
     );
   }
 
+  static Friend? fromMapOrNull(Map? map) {
+    if (map == null) return null;
+    return Friend.fromMap(map);
+  }
+
   Friend copyWith({
     String? id, String? username, String? ownerId, UserStatus? userStatus, UserProfile? userProfile,
     FriendStatus? friendStatus, DateTime? latestMessageTime}) {

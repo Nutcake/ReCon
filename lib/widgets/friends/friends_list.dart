@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
@@ -135,12 +134,10 @@ class _FriendsListState extends State<FriendsList> {
                     ),
                     onPressed: () {
                       setState(() {
-                        _userStatusFuture = null;
-                      });
-                      setState(() {
                         _userStatusFuture = UserApi.getUserStatus(clientHolder.apiClient, userId: clientHolder.apiClient
                             .userId);
                       });
+
                     },
                     icon: const Icon(Icons.warning),
                     label: const Text("Retry"),
