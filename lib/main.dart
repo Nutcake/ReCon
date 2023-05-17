@@ -27,6 +27,7 @@ void main() async {
   Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
+  await settingsClient.changeSettings(settingsClient.currentSettings); // Save generated defaults to disk
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));
 }
 

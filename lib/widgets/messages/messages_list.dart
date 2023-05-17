@@ -1,11 +1,19 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:contacts_plus_plus/apis/record_api.dart';
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 
 import 'message_bubble.dart';
@@ -24,9 +32,11 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   final ScrollController _sessionListScrollController = ScrollController();
   final ScrollController _messageScrollController = ScrollController();
 
-  bool _isSendable = false;
+  bool _hasText = false;
+  bool _isSending = false;
   bool _showSessionListScrollChevron = false;
   bool _showBottomBarShadow = false;
+  File? _loadedFile;
 
   double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
 
@@ -66,6 +76,77 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
           _showBottomBarShadow = true;
         });
       }
+    });
+  }
+
+  Future<void> sendTextMessage(ScaffoldMessengerState scaffoldMessenger, ApiClient client, MessagingClient mClient, String content) async {
+    setState(() {
+      _isSending = true;
+    });
+    final message = Message(
+      id: Message.generateId(),
+      recipientId: widget.friend.id,
+      senderId: client.userId,
+      type: MessageType.text,
+      content: content,
+      sendTime: DateTime.now().toUtc(),
+    );
+    try {
+      mClient.sendMessage(message);
+      _messageTextController.clear();
+      setState(() {});
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text("Failed to send message\n$e",
+            maxLines: null,
+          ),
+        ),
+      );
+      setState(() {
+        _isSending = false;
+      });
+    }
+  }
+
+  Future<void> sendImageMessage(ScaffoldMessengerState scaffoldMessenger, ApiClient client, MessagingClient mClient, File file, machineId) async {
+    setState(() {
+      _isSending = true;
+    });
+    try {
+      var record = await RecordApi.uploadFile(
+        client,
+        file: file,
+        machineId: machineId,
+      );
+      final newUri = Aux.neosDbToHttp(record.assetUri);
+      record = record.copyWith(
+        assetUri: newUri,
+        thumbnailUri: newUri,
+      );
+
+      final message = Message(
+        id: Message.generateId(),
+        recipientId: widget.friend.id,
+        senderId: client.userId,
+        type: MessageType.object,
+        content: jsonEncode(record.toMap()),
+        sendTime: DateTime.now().toUtc(),
+      );
+      mClient.sendMessage(message);
+      _messageTextController.clear();
+      _loadedFile = null;
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text("Failed to send file\n$e",
+            maxLines: null,
+          ),
+        ),
+      );
+    }
+    setState(() {
+      _isSending = false;
     });
   }
 
@@ -207,6 +288,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                     },
                   ),
                 ),
+                if (_isSending && _loadedFile != null) const LinearProgressIndicator(),
                 AnimatedContainer(
                   decoration: BoxDecoration(
                     boxShadow: [
@@ -227,30 +309,43 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   duration: const Duration(milliseconds: 250),
                   child: Row(
                     children: [
+                      /*IconButton(
+                        onPressed: _hasText ? null : _loadedFile == null ? () async {
+                          //final machineId = ClientHolder.of(context).settingsClient.currentSettings.machineId.valueOrDefault;
+                          final result = await FilePicker.platform.pickFiles(type: FileType.image);
+
+                          if (result != null && result.files.single.path != null) {
+                            setState(() {
+                              _loadedFile = File(result.files.single.path!);
+                            });
+                          }
+                        } : () => setState(() => _loadedFile = null),
+                        icon: _loadedFile == null ? const Icon(Icons.attach_file) : const Icon(Icons.close),
+                      ),*/
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8),
                           child: TextField(
-                            enabled: cache != null && cache.error == null,
+                            enabled: cache != null && cache.error == null && _loadedFile == null,
                             autocorrect: true,
                             controller: _messageTextController,
                             maxLines: 4,
                             minLines: 1,
                             onChanged: (text) {
-                              if (text.isNotEmpty && !_isSendable) {
+                              if (text.isNotEmpty && !_hasText) {
                                 setState(() {
-                                  _isSendable = true;
+                                  _hasText = true;
                                 });
-                              } else if (text.isEmpty && _isSendable) {
+                              } else if (text.isEmpty && _hasText) {
                                 setState(() {
-                                  _isSendable = false;
+                                  _hasText = false;
                                 });
                               }
                             },
                             decoration: InputDecoration(
                                 isDense: true,
-                                hintText: "Message ${widget.friend
-                                    .username}...",
+                                hintText: _loadedFile == null ?  "Message ${widget.friend
+                                    .username}..." : "Send ${basename(_loadedFile?.path ?? "")}",
                                 hintMaxLines: 1,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 border: OutlineInputBorder(
@@ -264,35 +359,13 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         padding: const EdgeInsets.only(left: 8, right: 4.0),
                         child: IconButton(
                           splashRadius: 24,
-                          onPressed: _isSendable ? () async {
-                            setState(() {
-                              _isSendable = false;
-                            });
-                            final message = Message(
-                              id: Message.generateId(),
-                              recipientId: widget.friend.id,
-                              senderId: apiClient.userId,
-                              type: MessageType.text,
-                              content: _messageTextController.text,
-                              sendTime: DateTime.now().toUtc(),
-                            );
-                            try {
-                              mClient.sendMessage(message);
-                              _messageTextController.clear();
-                              setState(() {});
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Failed to send message\n$e",
-                                    maxLines: null,
-                                  ),
-                                ),
-                              );
-                              setState(() {
-                                _isSendable = true;
-                              });
+                          onPressed: _isSending ? null : () async {
+                            if (_loadedFile == null) {
+                              await sendTextMessage(ScaffoldMessenger.of(context), apiClient, mClient, _messageTextController.text);
+                            } else {
+                              await sendImageMessage(ScaffoldMessenger.of(context), apiClient, mClient, _loadedFile!, ClientHolder.of(context).settingsClient.currentSettings.machineId.valueOrDefault);
                             }
-                          } : null,
+                          },
                           iconSize: 28,
                           icon: const Icon(Icons.send),
                         ),

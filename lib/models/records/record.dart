@@ -38,9 +38,8 @@ class RecordId {
 }
 
 class Record {
-  final int id;
+  final String id;
   final RecordId combinedRecordId;
-  final String recordId;
   final String ownerId;
   final String assetUri;
   final int globalVersion;
@@ -73,7 +72,6 @@ class Record {
   Record({
     required this.id,
     required this.combinedRecordId,
-    required this.recordId,
     required this.isSynced,
     required this.fetchedOn,
     required this.path,
@@ -105,9 +103,8 @@ class Record {
 
   factory Record.fromMap(Map map) {
     return Record(
-      id: map["id"] ?? 0,
+      id: map["id"] ?? "0",
       combinedRecordId: RecordId.fromMap(map["combinedRecordId"]),
-      recordId: map["recordId"],
       ownerId: map["ownerId"] ?? "",
       assetUri: map["assetUri"] ?? "",
       globalVersion: map["globalVersion"] ?? 0,
@@ -139,7 +136,7 @@ class Record {
   }
 
   Record copyWith({
-    int? id,
+    String? id,
     String? ownerId,
     String? recordId,
     String? assetUri,
@@ -175,7 +172,6 @@ class Record {
     return Record(
       id: id ?? this.id,
       ownerId: ownerId ?? this.ownerId,
-      recordId: recordId ?? this.recordId,
       assetUri: assetUri ?? this.assetUri,
       globalVersion: globalVersion ?? this.globalVersion,
       localVersion: localVersion ?? this.localVersion,
@@ -210,12 +206,11 @@ class Record {
     return {
       "id": id,
       "ownerId": ownerId,
-      "recordId": recordId,
       "assetUri": assetUri,
       "globalVersion": globalVersion,
       "localVersion": localVersion,
       "name": name,
-      "description": description,
+      "description": description.asNullable,
       "tags": tags,
       "recordType": recordType.name,
       "thumbnailUri": thumbnailUri,
@@ -230,7 +225,7 @@ class Record {
       "combinedRecordId": combinedRecordId.toMap(),
       "isSynced": isSynced,
       "fetchedOn": fetchedOn.toUtc().toIso8601String(),
-      "path": path,
+      "path": path.asNullable,
       "manifest": manifest,
       "url": url,
       "isValidOwnerId": isValidOwnerId,
