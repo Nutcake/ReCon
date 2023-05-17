@@ -1,21 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+
 import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
-import 'package:contacts_plus_plus/models/authentication_data.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart' as http;
-
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
-import 'package:logging/logging.dart';
-import 'package:workmanager/workmanager.dart';
 
 enum EventType {
   unknown,
@@ -43,34 +42,29 @@ enum EventTarget {
 }
 
 class MessagingClient extends ChangeNotifier {
-  static const String eofChar = "";
-  static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$eofChar";
+  static const String _eofChar = "";
+  static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$_eofChar";
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
-  static const String taskName = "periodic-unread-check";
   static const Duration _autoRefreshDuration = Duration(seconds: 10);
   static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
   static const String _messageBoxKey = "message-box";
   static const String _lastUpdateKey = "__last-update-time";
+
   final ApiClient _apiClient;
   final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("NeosHub");
-  final Workmanager _workmanager = Workmanager();
   final NotificationClient _notificationClient;
+
   Friend? selectedFriend;
   Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
-  Timer? _refreshTimeout;
   Timer? _unreadSafeguard;
   int _attempts = 0;
   WebSocket? _wsChannel;
   bool _isConnecting = false;
   String? _initStatus;
-
-  String? get initStatus => _initStatus;
-
-  bool get websocketConnected => _wsChannel != null;
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient, _notificationClient = notificationClient {
@@ -79,7 +73,7 @@ class MessagingClient extends ChangeNotifier {
       await refreshFriendsListWithErrorHandler();
       await _refreshUnreads();
     });
-    startWebsocket();
+    _startWebsocket();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
       // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
       // but I don't feel like implementing that right now.
@@ -90,30 +84,29 @@ class MessagingClient extends ChangeNotifier {
   @override
   void dispose() {
     _autoRefresh?.cancel();
-    _refreshTimeout?.cancel();
     _notifyOnlineTimer?.cancel();
     _wsChannel?.close();
     super.dispose();
   }
 
-  void _sendData(data) {
-    if (_wsChannel == null) throw "Neos Hub is not connected";
-    _wsChannel!.add(jsonEncode(data)+eofChar);
-  }
+  String? get initStatus => _initStatus;
 
-  void resetStatus() {
-    _initStatus = null;
-    notifyListeners();
-  }
+  bool get websocketConnected => _wsChannel != null;
 
-  Future<void> _refreshUnreads() async {
-    _unreadSafeguard?.cancel();
-    try {
-      final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
-      updateAllUnreads(unreadMessages.toList());
-    } catch (_) {}
-    _unreadSafeguard = Timer(_unreadSafeguardDuration, _refreshUnreads);
-  }
+  List<Friend> get cachedFriends => _sortedFriendsCache;
+
+  List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.id] ?? [];
+
+  bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.id);
+
+  bool messageIsUnread(Message message) => _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
+
+  Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
+
+  MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
+
+  MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
+
 
   Future<void> refreshFriendsListWithErrorHandler () async {
     try {
@@ -138,29 +131,32 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _sortFriendsCache() {
-    _sortedFriendsCache.sort((a, b) {
-      var aVal = friendHasUnreads(a) ? -3 : 0;
-      var bVal = friendHasUnreads(b) ? -3 : 0;
-
-      aVal -= a.latestMessageTime.compareTo(b.latestMessageTime);
-      aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
-      return aVal.compareTo(bVal);
-    });
+  void sendMessage(Message message) async {
+    final msgBody = message.toMap();
+    final data = {
+      "type": EventType.message.index,
+      "target": "SendMessage",
+      "arguments": [
+        msgBody
+      ],
+    };
+    _sendData(data);
+    final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
+    cache.messages.add(message);
+    notifyListeners();
   }
 
-  void updateAllUnreads(List<Message> messages) {
-    _unreads.clear();
-    for (final msg in messages) {
-      if (msg.senderId != _apiClient.userId) {
-        final value = _unreads[msg.senderId];
-        if (value == null) {
-          _unreads[msg.senderId] = [msg];
-        } else {
-          value.add(msg);
-        }
-      }
-    }
+  void markMessagesRead(MarkReadBatch batch) {
+    final msgBody = batch.toMap();
+    final data = {
+      "type": EventType.message.index,
+      "target": "MarkMessagesRead",
+      "arguments": [
+        msgBody
+      ],
+    };
+    _sendData(data);
+    clearUnreadsForUser(batch.senderId);
   }
 
   void addUnread(Message message) {
@@ -177,24 +173,24 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateAllUnreads(List<Message> messages) {
+    _unreads.clear();
+    for (final msg in messages) {
+      if (msg.senderId != _apiClient.userId) {
+        final value = _unreads[msg.senderId];
+        if (value == null) {
+          _unreads[msg.senderId] = [msg];
+        } else {
+          value.add(msg);
+        }
+      }
+    }
+  }
+
   void clearUnreadsForUser(String userId) {
     _unreads[userId]?.clear();
     notifyListeners();
   }
-
-  List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.id] ?? [];
-
-  bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.id);
-
-  bool messageIsUnread(Message message) {
-    return _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
-  }
-
-  Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
-
-  List<Friend> get cachedFriends => _sortedFriendsCache;
-
-  MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
 
   void deleteUserMessageCache(String userId) {
     _messageCache.remove(userId);
@@ -205,6 +201,39 @@ class MessagingClient extends ChangeNotifier {
     await cache.loadMessages();
     _messageCache[userId] = cache;
     notifyListeners();
+  }
+
+  Future<void> updateFriendStatus(String userId) async {
+    final friend = getAsFriend(userId);
+    if (friend == null) return;
+    final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
+    await _updateFriend(friend.copyWith(userStatus: newStatus));
+    notifyListeners();
+  }
+
+  void resetInitStatus() {
+    _initStatus = null;
+    notifyListeners();
+  }
+
+  Future<void> _refreshUnreads() async {
+    _unreadSafeguard?.cancel();
+    try {
+      final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
+      updateAllUnreads(unreadMessages.toList());
+    } catch (_) {}
+    _unreadSafeguard = Timer(_unreadSafeguardDuration, _refreshUnreads);
+  }
+
+  void _sortFriendsCache() {
+    _sortedFriendsCache.sort((a, b) {
+      var aVal = friendHasUnreads(a) ? -3 : 0;
+      var bVal = friendHasUnreads(b) ? -3 : 0;
+
+      aVal -= a.latestMessageTime.compareTo(b.latestMessageTime);
+      aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
+      return aVal.compareTo(bVal);
+    });
   }
 
   Future<void> _updateFriend(Friend friend) async {
@@ -223,44 +252,15 @@ class MessagingClient extends ChangeNotifier {
     _sortFriendsCache();
   }
 
-  Future<void> updateFriendStatus(String userId) async {
-    final friend = getAsFriend(userId);
-    if (friend == null) return;
-    final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
-    await _updateFriend(friend.copyWith(userStatus: newStatus));
-    notifyListeners();
-  }
-
-  MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
-
-  static Future<void> backgroundCheckUnreads(Map<String, dynamic>? inputData) async {
-    if (inputData == null) return;
-    final auth = AuthenticationData.fromMap(inputData);
-    final unreads = await MessageApi.getUserMessages(ApiClient(authenticationData: auth), unreadOnly: true);
-    for (var message in unreads) {
-      throw UnimplementedError();
-    }
-  }
-
-  Future<void> _updateNotificationTask(int minuteInterval) async {
-    final auth = _apiClient.authenticationData;
-    if (!auth.isAuthenticated) throw "Unauthenticated";
-    await _workmanager.cancelByUniqueName(taskName);
-    _workmanager.registerPeriodicTask(
-      taskName,
-      taskName,
-      frequency: Duration(minutes: minuteInterval),
-      inputData: auth.toMap(),
-    );
-  }
+  // ===== Websocket Stuff =====
 
   void _onDisconnected(error) async {
     _wsChannel = null;
     _logger.warning("Neos Hub connection died with error '$error', reconnecting...");
-    await startWebsocket();
+    await _startWebsocket();
   }
 
-  Future<void> startWebsocket() async {
+  Future<void> _startWebsocket() async {
     if (!_apiClient.isAuthenticated) {
       _logger.info("Tried to connect to Neos Hub without authentication, this is probably fine for now.");
       return;
@@ -311,7 +311,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _handleEvent(event) {
-    final body = jsonDecode((event.toString().replaceAll(eofChar, "")));
+    final body = jsonDecode((event.toString().replaceAll(_eofChar, "")));
     final int rawType = body["type"] ?? 0;
     if (rawType > EventType.values.length) {
       _logger.info("Unhandled event type $rawType: $body");
@@ -378,31 +378,8 @@ class MessagingClient extends ChangeNotifier {
     }
   }
 
-  void sendMessage(Message message) async {
-    final msgBody = message.toMap();
-    final data = {
-      "type": EventType.message.index,
-      "target": "SendMessage",
-      "arguments": [
-        msgBody
-      ],
-    };
-    _sendData(data);
-    final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
-    cache.messages.add(message);
-    notifyListeners();
-  }
-
-  void markMessagesRead(MarkReadBatch batch) {
-    final msgBody = batch.toMap();
-    final data = {
-      "type": EventType.message.index,
-      "target": "MarkMessagesRead",
-      "arguments": [
-        msgBody
-      ],
-    };
-    _sendData(data);
-    clearUnreadsForUser(batch.senderId);
+  void _sendData(data) {
+    if (_wsChannel == null) throw "Neos Hub is not connected";
+    _wsChannel!.add(jsonEncode(data)+_eofChar);
   }
 }

@@ -17,34 +17,17 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:workmanager/workmanager.dart';
 import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isAndroid) {
-    await Workmanager().initialize(
-        callbackDispatcher, // The top level function, aka callbackDispatcher
-        isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
-    );
-  }
+
   await Hive.initFlutter();
   final dateFormat = DateFormat.Hms();
   Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));
-}
-
-@pragma('vm:entry-point') // Mandatory if the App is obfuscated or using Flutter 3.1+
-void callbackDispatcher() {
-  Workmanager().executeTask((String task, Map<String, dynamic>? inputData) async {
-    debugPrint("Native called background task: $task"); //simpleTask will be emitted here.
-    if (task == MessagingClient.taskName) {
-      final unreads = MessagingClient.backgroundCheckUnreads(inputData);
-    }
-    return Future.value(true);
-  });
 }
 
 class ContactsPlusPlus extends StatefulWidget {

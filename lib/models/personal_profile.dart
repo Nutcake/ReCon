@@ -1,5 +1,3 @@
-
-import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
 
 class PersonalProfile {

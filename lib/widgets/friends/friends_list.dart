@@ -239,7 +239,7 @@ class _FriendsListState extends State<FriendsList> {
                           child: DefaultErrorWidget(
                             message: mClient.initStatus,
                             onRetry: () async {
-                              mClient.resetStatus();
+                              mClient.resetInitStatus();
                               mClient.refreshFriendsListWithErrorHandler();
                             },
                           ),
