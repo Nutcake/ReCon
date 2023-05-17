@@ -38,6 +38,7 @@ class UserApi {
     final pkginfo = await PackageInfo.fromPlatform();
     status = status.copyWith(
       neosVersion: "${pkginfo.version} of ${pkginfo.appName}",
+      isMobile: true,
     );
     final body = jsonEncode(status.toMap(shallow: true));
     final response = await client.put("/users/${client.userId}/status", body: body);
