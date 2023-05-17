@@ -119,6 +119,9 @@ class ApiClient {
 
   static void checkResponse(http.Response response) {
     final error = "(${response.statusCode}${kDebugMode ? "|${response.body}" : ""})";
+    if (response.statusCode >= 300) {
+      FlutterError.reportError(FlutterErrorDetails(exception: error));
+    }
     if (response.statusCode == 429) {
       throw "Sorry, you are being rate limited. $error";
     }

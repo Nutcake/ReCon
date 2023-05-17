@@ -1,11 +1,11 @@
 
-class AssetDiff {
-  final String hash;
-  final int bytes;
+import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
+
+class AssetDiff extends NeosDBAsset{
   final Diff state;
   final bool isUploaded;
 
-  const AssetDiff({required this.hash, required this.bytes, required this.state, required this.isUploaded});
+  const AssetDiff({required hash, required bytes, required this.state, required this.isUploaded}) : super(hash: hash, bytes: bytes);
 
   factory AssetDiff.fromMap(Map map) {
     return AssetDiff(

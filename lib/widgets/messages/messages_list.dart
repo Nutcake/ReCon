@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:contacts_plus_plus/apis/record_api.dart';
-import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
@@ -80,6 +79,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   }
 
   Future<void> sendTextMessage(ScaffoldMessengerState scaffoldMessenger, ApiClient client, MessagingClient mClient, String content) async {
+    if (content.isEmpty) return;
     setState(() {
       _isSending = true;
     });
@@ -114,15 +114,10 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       _isSending = true;
     });
     try {
-      var record = await RecordApi.uploadFile(
+      final record = await RecordApi.uploadImage(
         client,
-        file: file,
+        image: file,
         machineId: machineId,
-      );
-      final newUri = Aux.neosDbToHttp(record.assetUri);
-      record = record.copyWith(
-        assetUri: newUri,
-        thumbnailUri: newUri,
       );
 
       final message = Message(
@@ -309,7 +304,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   duration: const Duration(milliseconds: 250),
                   child: Row(
                     children: [
-                      /*IconButton(
+                      IconButton(
                         onPressed: _hasText ? null : _loadedFile == null ? () async {
                           //final machineId = ClientHolder.of(context).settingsClient.currentSettings.machineId.valueOrDefault;
                           final result = await FilePicker.platform.pickFiles(type: FileType.image);
@@ -321,7 +316,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           }
                         } : () => setState(() => _loadedFile = null),
                         icon: _loadedFile == null ? const Icon(Icons.attach_file) : const Icon(Icons.close),
-                      ),*/
+                      ),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8),
