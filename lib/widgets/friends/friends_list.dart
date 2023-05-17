@@ -32,7 +32,6 @@ class FriendsList extends StatefulWidget {
 }
 
 class _FriendsListState extends State<FriendsList> {
-  Future<PersonalProfile>? _userProfileFuture;
   Future<UserStatus>? _userStatusFuture;
   ClientHolder? _clientHolder;
   String _searchFilter = "";
@@ -44,7 +43,6 @@ class _FriendsListState extends State<FriendsList> {
     if (_clientHolder != clientHolder) {
       _clientHolder = clientHolder;
       final apiClient = _clientHolder!.apiClient;
-      _userProfileFuture = UserApi.getPersonalProfile(apiClient);
       _refreshUserStatus();
     }
   }
@@ -137,7 +135,6 @@ class _FriendsListState extends State<FriendsList> {
                         _userStatusFuture = UserApi.getUserStatus(clientHolder.apiClient, userId: clientHolder.apiClient
                             .userId);
                       });
-
                     },
                     icon: const Icon(Icons.warning),
                     label: const Text("Retry"),
@@ -207,28 +204,7 @@ class _FriendsListState extends State<FriendsList> {
                         await showDialog(
                           context: context,
                           builder: (context) {
-                            return FutureBuilder(
-                                future: _userProfileFuture,
-                                builder: (context, snapshot) {
-                                  if (snapshot.hasData) {
-                                    final profile = snapshot.data as PersonalProfile;
-                                    return MyProfileDialog(profile: profile);
-                                  } else if (snapshot.hasError) {
-                                    return DefaultErrorWidget(
-                                      title: "Failed to load personal profile.",
-                                      onRetry: () {
-                                        setState(() {
-                                          _userProfileFuture = UserApi.getPersonalProfile(ClientHolder
-                                              .of(context)
-                                              .apiClient);
-                                        });
-                                      },
-                                    );
-                                  } else {
-                                    return const Center(child: CircularProgressIndicator(),);
-                                  }
-                                }
-                            );
+                            return const MyProfileDialog();
                           },
                         );
                       },

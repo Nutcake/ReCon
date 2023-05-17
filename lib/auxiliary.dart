@@ -47,16 +47,10 @@ class Aux {
   static String neosDbToHttp(String? neosdb) {
     if (neosdb == null || neosdb.isEmpty) return "";
     if (neosdb.startsWith("http")) return neosdb;
-    final fullUri = neosdb.replaceFirst("neosdb:///", Config.neosCdnUrl);
-    final lastPeriodIndex = fullUri.lastIndexOf(".");
-    if (lastPeriodIndex != -1 && fullUri.length - lastPeriodIndex < 8) {
-      // I feel like 8 is a good maximum for file extension length? Can neosdb Uris even come without file extensions?
-      return fullUri.substring(0, lastPeriodIndex);
-    }
-    return fullUri;
+    final filename = p.basenameWithoutExtension(neosdb);
+    return "${Config.neosCdnUrl}$filename";
   }
 }
-
 
 extension Unique<E, Id> on List<E> {
   List<E> unique([Id Function(E element)? id, bool inplace = true]) {
@@ -67,7 +61,7 @@ extension Unique<E, Id> on List<E> {
   }
 }
 
-extension Strip on String {
+extension StringX on String {
   String stripHtml() {
     final document = htmlparser.parse(this);
     return htmlparser.parse(document.body?.text).documentElement?.text ?? "";
@@ -76,6 +70,8 @@ extension Strip on String {
   // This won't be accurate since userIds can't contain certain characters that usernames can
   // but it's fine for just having a name to display
   String stripUid() => startsWith("U-") ? substring(2) : this;
+
+  String? get asNullable => isEmpty ? null : this;
 }
 
 extension Format on Duration {

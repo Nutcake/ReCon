@@ -1,61 +1,125 @@
+import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/models/personal_profile.dart';
+import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class MyProfileDialog extends StatelessWidget {
-  const MyProfileDialog({required this.profile, super.key});
+class MyProfileDialog extends StatefulWidget {
+  const MyProfileDialog({super.key});
 
-  final PersonalProfile profile;
+  @override
+  State<MyProfileDialog> createState() => _MyProfileDialogState();
+}
+
+class _MyProfileDialogState extends State<MyProfileDialog> {
+  ClientHolder? _clientHolder;
+  Future<PersonalProfile>? _personalProfileFuture;
+
+
+  @override
+  void didChangeDependencies() async {
+    super.didChangeDependencies();
+    final clientHolder = ClientHolder.of(context);
+    if (_clientHolder != clientHolder) {
+      _clientHolder = clientHolder;
+      final apiClient = _clientHolder!.apiClient;
+      _personalProfileFuture = UserApi.getPersonalProfile(apiClient);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
+    final tt = Theme
+        .of(context)
+        .textTheme;
     DateFormat dateFormat = DateFormat.yMd();
     return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
+      child: FutureBuilder(
+        future: _personalProfileFuture,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final profile = snapshot.data as PersonalProfile;
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(profile.username, style: tt.titleLarge),
+                          Text(profile.email, style: tt.labelMedium?.copyWith(color: Colors.white54),)
+                        ],
+                      ),
+                      GenericAvatar(imageUri: Aux.neosDbToHttp(profile.userProfile.iconUrl), radius: 24,)
+                    ],
+                  ),
+                  const SizedBox(height: 16,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [Text("User ID: ", style: tt.labelLarge,), Text(profile.id)],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("2FA: ", style: tt.labelLarge,),
+                      Text(profile.twoFactor ? "Enabled" : "Disabled")
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Patreon Supporter: ", style: tt.labelLarge,),
+                      Text(profile.isPatreonSupporter ? "Yes" : "No")
+                    ],
+                  ),
+                  if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [Text("Ban Expiration: ", style: tt.labelLarge,),
+                        Text(dateFormat.format(profile.publicBanExpiration!))],
+                    ),
+                  StorageIndicator(usedBytes: profile.usedBytes, maxBytes: profile.quotaBytes,),
+                ],
+              ),
+            );
+          }
+          else if (snapshot.hasError) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(profile.username, style: tt.titleLarge),
-                    Text(profile.email, style: tt.labelMedium?.copyWith(color: Colors.white54),)
-                  ],
+                DefaultErrorWidget(
+                  message: snapshot.error.toString(),
+                  onRetry: () {
+                    setState(() {
+                      _personalProfileFuture = UserApi.getPersonalProfile(ClientHolder
+                          .of(context)
+                          .apiClient);
+                    });
+                  },
                 ),
-                GenericAvatar(imageUri: Aux.neosDbToHttp(profile.userProfile.iconUrl), radius: 24,)
               ],
-            ),
-            const SizedBox(height: 16,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("User ID: ", style: tt.labelLarge,), Text(profile.id)],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("2FA: ", style: tt.labelLarge,), Text(profile.twoFactor ? "Enabled" : "Disabled")],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Patreon Supporter: ", style: tt.labelLarge,), Text(profile.isPatreonSupporter ? "Yes" : "No")],
-            ),
-            if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)
-              Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Ban Expiration: ", style: tt.labelLarge,),
-                Text(dateFormat.format(profile.publicBanExpiration!))],
-            ),
-            StorageIndicator(usedBytes: profile.usedBytes, maxBytes: profile.maxBytes,),
-          ],
-        ),
+            );
+          } else {
+            return const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 96, horizontal: 64),
+                  child: CircularProgressIndicator(),
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }

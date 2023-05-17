@@ -10,6 +10,7 @@ class PersonalProfile {
   final String? publicBanType;
   final List<StorageQuotas> storageQuotas;
   final Map<String, int> quotaBytesSource;
+  final int quotaBytes;
   final int usedBytes;
   final bool twoFactor;
   final bool isPatreonSupporter;
@@ -17,8 +18,8 @@ class PersonalProfile {
 
   PersonalProfile({
     required this.id, required this.username, required this.email, required this.publicBanExpiration,
-    required this.publicBanType, required this.storageQuotas, required this.quotaBytesSource, required this.usedBytes,
-    required this.twoFactor, required this.isPatreonSupporter, required this.userProfile,
+    required this.publicBanType, required this.storageQuotas, required this.quotaBytesSource, required this.quotaBytes,
+    required this.usedBytes, required this.twoFactor, required this.isPatreonSupporter, required this.userProfile,
   });
 
   factory PersonalProfile.fromMap(Map map) {
@@ -28,17 +29,15 @@ class PersonalProfile {
       email: map["email"] ?? "",
       publicBanExpiration: DateTime.tryParse(map["publicBanExpiration"] ?? ""),
       publicBanType: map["publicBanType"],
-      storageQuotas: (map["storageQuotas"] as List).map((e) => StorageQuotas.fromMap(e)).toList(),
-      quotaBytesSource: (map["quotaBytesSources"] as Map).map((key, value) => MapEntry(key, value as int)),
+      storageQuotas: (map["storageQuotas"] as List? ?? []).map((e) => StorageQuotas.fromMap(e)).toList(),
+      quotaBytesSource: (map["quotaBytesSources"] as Map? ?? {}).map((key, value) => MapEntry(key, value as int)),
+      quotaBytes: map["quotaBytes"] ?? 0,
       usedBytes: map["usedBytes"] ?? 0,
       twoFactor: map["2fa_login"] ?? false,
       isPatreonSupporter: map["patreonData"]?["isPatreonSupporter"] ?? false,
       userProfile: UserProfile.fromMap(map["profile"]),
     );
   }
-
-  int get maxBytes => (quotaBytesSource.values.maxOrNull ?? 0)
-      + (storageQuotas.isEmpty ? 0 : storageQuotas.map((e) => e.bytes).reduce((value, element) => value + element));
 }
 
 class StorageQuotas {

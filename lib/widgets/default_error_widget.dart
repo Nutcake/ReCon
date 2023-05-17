@@ -11,7 +11,7 @@ class DefaultErrorWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 64, vertical: 128,),
+      padding: const EdgeInsets.all(64),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.max,

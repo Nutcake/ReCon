@@ -118,19 +118,20 @@ class ApiClient {
   }
 
   static void checkResponse(http.Response response) {
+    final error = "(${response.statusCode}${kDebugMode ? "|${response.body}" : ""})";
     if (response.statusCode == 429) {
-      throw "Sorry, you are being rate limited";
+      throw "Sorry, you are being rate limited. $error";
     }
     if (response.statusCode == 403) {
       tryCachedLogin();
       // TODO: Show the login screen again if cached login was unsuccessful.
-      throw "You are not authorized to do that";
+      throw "You are not authorized to do that. $error";
     }
     if (response.statusCode == 500) {
-      throw "Internal server error";
+      throw "Internal server error. $error";
     }
-    if (response.statusCode != 200) {
-      throw "Unknown Error: ${response.statusCode}${kDebugMode ? "|${response.body}" : ""}";
+    if (response.statusCode >= 300) {
+      throw "Unknown Error. $error";
     }
   }
 
