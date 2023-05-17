@@ -1,4 +1,6 @@
 import 'package:contacts_plus_plus/auxiliary.dart';
+import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/models/records/asset_digest.dart';
 import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
 import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:flutter/material.dart';
@@ -100,6 +102,53 @@ class Record {
     required this.rating,
     required this.randomOrder,
   }) : formattedName = FormatNode.fromText(name);
+
+  factory Record.fromRequiredData({
+    required RecordType recordType,
+    required String userId,
+    required String machineId,
+    required String assetUri,
+    required String filename,
+    required String thumbnailUri,
+    required List<AssetDigest> digests,
+  }) {
+    final combinedRecordId = RecordId(id: Record.generateId(), ownerId: userId, isValid: true);
+    return Record(
+      id: combinedRecordId.id.toString(),
+      combinedRecordId: combinedRecordId,
+      assetUri: assetUri,
+      name: filename,
+      tags: [
+        filename,
+        "message_item",
+        "message_id:${Message.generateId()}"
+      ],
+      recordType: recordType,
+      thumbnailUri: thumbnailUri,
+      isPublic: false,
+      isForPatreons: false,
+      isListed: false,
+      neosDBManifest: digests.map((e) => e.asset).toList(),
+      globalVersion: 0,
+      localVersion: 1,
+      lastModifyingUserId: userId,
+      lastModifyingMachineId: machineId,
+      lastModificationTime: DateTime.now().toUtc(),
+      creationTime: DateTime.now().toUtc(),
+      ownerId: userId,
+      isSynced: false,
+      fetchedOn: DateTimeX.one,
+      path: '',
+      description: '',
+      manifest: digests.map((e) => e.dbUri).toList(),
+      url: "neosrec:///$userId/${combinedRecordId.id}",
+      isValidOwnerId: true,
+      isValidRecordId: true,
+      visits: 0,
+      rating: 0,
+      randomOrder: 0,
+    );
+  }
 
   factory Record.fromMap(Map map) {
     return Record(
