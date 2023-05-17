@@ -30,15 +30,16 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
   final ScrollController _messageScrollController = ScrollController();
+  final List<File> _loadedFiles = [];
 
   bool _hasText = false;
   bool _isSending = false;
-  bool _showSessionListScrollChevron = false;
+  bool _attachmentPickerOpen = false;
+
   bool _showBottomBarShadow = false;
-  File? _loadedFile;
+  bool _showSessionListScrollChevron = false;
 
   double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
-
 
   @override
   void dispose() {
@@ -65,6 +66,11 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     });
     _messageScrollController.addListener(() {
       if (!_messageScrollController.hasClients) return;
+      if (_attachmentPickerOpen && _loadedFiles.isEmpty) {
+        setState(() {
+          _attachmentPickerOpen = false;
+        });
+      }
       if (_messageScrollController.position.atEdge && _messageScrollController.position.pixels == 0 &&
           _showBottomBarShadow) {
         setState(() {
@@ -78,11 +84,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     });
   }
 
-  Future<void> sendTextMessage(ScaffoldMessengerState scaffoldMessenger, ApiClient client, MessagingClient mClient, String content) async {
+  Future<void> sendTextMessage(ApiClient client, MessagingClient mClient,
+      String content) async {
     if (content.isEmpty) return;
-    setState(() {
-      _isSending = true;
-    });
     final message = Message(
       id: Message.generateId(),
       recipientId: widget.friend.id,
@@ -91,58 +95,26 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       content: content,
       sendTime: DateTime.now().toUtc(),
     );
-    try {
-      mClient.sendMessage(message);
-      _messageTextController.clear();
-      setState(() {});
-    } catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text("Failed to send message\n$e",
-            maxLines: null,
-          ),
-        ),
-      );
-      setState(() {
-        _isSending = false;
-      });
-    }
+    mClient.sendMessage(message);
+    _messageTextController.clear();
   }
 
-  Future<void> sendImageMessage(ScaffoldMessengerState scaffoldMessenger, ApiClient client, MessagingClient mClient, File file, machineId) async {
-    setState(() {
-      _isSending = true;
-    });
-    try {
-      final record = await RecordApi.uploadImage(
-        client,
-        image: file,
-        machineId: machineId,
-      );
-
-      final message = Message(
-        id: Message.generateId(),
-        recipientId: widget.friend.id,
-        senderId: client.userId,
-        type: MessageType.object,
-        content: jsonEncode(record.toMap()),
-        sendTime: DateTime.now().toUtc(),
-      );
-      mClient.sendMessage(message);
-      _messageTextController.clear();
-      _loadedFile = null;
-    } catch (e) {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text("Failed to send file\n$e",
-            maxLines: null,
-          ),
-        ),
-      );
-    }
-    setState(() {
-      _isSending = false;
-    });
+  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, machineId) async {
+    final record = await RecordApi.uploadImage(
+      client,
+      image: file,
+      machineId: machineId,
+    );
+    final message = Message(
+      id: Message.generateId(),
+      recipientId: widget.friend.id,
+      senderId: client.userId,
+      type: MessageType.object,
+      content: jsonEncode(record.toMap()),
+      sendTime: DateTime.now().toUtc(),
+    );
+    mClient.sendMessage(message);
+    _messageTextController.clear();
   }
 
   @override
@@ -223,72 +195,154 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   ),
                 ),
                 Expanded(
-                  child: Builder(
-                    builder: (context) {
-                      if (cache == null) {
-                        return const Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            LinearProgressIndicator()
-                          ],
-                        );
-                      }
-                      if (cache.error != null) {
-                        return DefaultErrorWidget(
-                          message: cache.error.toString(),
-                          onRetry: () {
-                            setState(() {
-                              mClient.deleteUserMessageCache(widget.friend.id);
-                            });
-                            mClient.loadUserMessageCache(widget.friend.id);
-                          },
-                        );
-                      }
-                      if (cache.messages.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.message_outlined),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24),
-                                child: Text(
-                                  "There are no messages here\nWhy not say hello?",
-                                  textAlign: TextAlign.center,
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .titleMedium,
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-                      }
-                      return ListView.builder(
-                        controller: _messageScrollController,
-                        reverse: true,
-                        itemCount: cache.messages.length,
-                        itemBuilder: (context, index) {
-                          final entry = cache.messages[index];
-                          if (index == cache.messages.length - 1) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: MessageBubble(message: entry,),
+                  child: Stack(
+                    children: [
+                      Builder(
+                        builder: (context) {
+                          if (cache == null) {
+                            return const Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                LinearProgressIndicator()
+                              ],
                             );
                           }
-                          return MessageBubble(message: entry,);
+                          if (cache.error != null) {
+                            return DefaultErrorWidget(
+                              message: cache.error.toString(),
+                              onRetry: () {
+                                setState(() {
+                                  mClient.deleteUserMessageCache(widget.friend.id);
+                                });
+                                mClient.loadUserMessageCache(widget.friend.id);
+                              },
+                            );
+                          }
+                          if (cache.messages.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.message_outlined),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 24),
+                                    child: Text(
+                                      "There are no messages here\nWhy not say hello?",
+                                      textAlign: TextAlign.center,
+                                      style: Theme
+                                          .of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            controller: _messageScrollController,
+                            reverse: true,
+                            itemCount: cache.messages.length,
+                            itemBuilder: (context, index) {
+                              final entry = cache.messages[index];
+                              if (index == cache.messages.length - 1) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: MessageBubble(message: entry,),
+                                );
+                              }
+                              return MessageBubble(message: entry,);
+                            },
+                          );
                         },
-                      );
-                    },
+                      ),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    blurRadius: 8,
+                                    color: Theme
+                                        .of(context)
+                                        .shadowColor,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                color: Theme
+                                    .of(context)
+                                    .colorScheme
+                                    .background,
+                              ),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                switchInCurve: Curves.easeOut,
+                                switchOutCurve: Curves.easeOut,
+                                transitionBuilder: (Widget child, animation) => SizeTransition(sizeFactor: animation, child: child,),
+                                child: switch ((_attachmentPickerOpen, _loadedFiles)) {
+                                  (true, []) => Row(
+                                    key: const ValueKey("attachment-picker"),
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: () async {
+                                          final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                                          if (result != null && result.files.single.path != null) {
+                                            setState(() {
+                                              _loadedFiles.add(File(result.files.single.path!));
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(Icons.image),
+                                        label: const Text("Gallery"),
+                                      ),
+                                      TextButton.icon(onPressed: (){}, icon: const Icon(Icons.camera), label: const Text("Camera"),),
+                                    ],
+                                  ),
+                                  (false, []) => null,
+                                  (_, _) => Row(
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: _loadedFiles.map((e) => TextButton.icon(onPressed: (){}, label: Text(basename(e.path)), icon: const Icon(Icons.attach_file))).toList()
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(onPressed: () async {
+                                        final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                                        if (result != null && result.files.single.path != null) {
+                                          setState(() {
+                                            _loadedFiles.add(File(result.files.single.path!));
+                                          });
+                                        }
+                                      }, icon: const Icon(Icons.image)),
+                                      IconButton(onPressed: () {}, icon: const Icon(Icons.camera)),
+                                    ],
+                                  )
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_isSending && _loadedFiles.isNotEmpty)
+                        const Align(
+                        alignment: Alignment.bottomCenter,
+                        child: LinearProgressIndicator(),
+                      ),
+                    ],
                   ),
                 ),
-                if (_isSending && _loadedFile != null) const LinearProgressIndicator(),
                 AnimatedContainer(
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        blurRadius: _showBottomBarShadow ? 8 : 0,
+                        blurRadius: _showBottomBarShadow && !_attachmentPickerOpen ? 8 : 0,
                         color: Theme
                             .of(context)
                             .shadowColor,
@@ -304,24 +358,42 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   duration: const Duration(milliseconds: 250),
                   child: Row(
                     children: [
-                      IconButton(
-                        onPressed: _hasText ? null : _loadedFile == null ? () async {
-                          //final machineId = ClientHolder.of(context).settingsClient.currentSettings.machineId.valueOrDefault;
-                          final result = await FilePicker.platform.pickFiles(type: FileType.image);
-
-                          if (result != null && result.files.single.path != null) {
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        transitionBuilder: (Widget child, Animation<double> animation) =>
+                            FadeTransition(
+                              opacity: animation,
+                              child: RotationTransition(
+                                turns: Tween<double>(begin: 0.6, end: 1).animate(animation),
+                                child: child,
+                              ),
+                            ),
+                        child: !_attachmentPickerOpen ?
+                        IconButton(
+                          key: const ValueKey("add-attachment-icon"),
+                          onPressed: () async {
                             setState(() {
-                              _loadedFile = File(result.files.single.path!);
+                              _attachmentPickerOpen = true;
                             });
-                          }
-                        } : () => setState(() => _loadedFile = null),
-                        icon: _loadedFile == null ? const Icon(Icons.attach_file) : const Icon(Icons.close),
+                          },
+                          icon: const Icon(Icons.attach_file),
+                        ) :
+                        IconButton(
+                          key: const ValueKey("remove-attachment-icon"),
+                          onPressed: () {
+                            setState(() {
+                              _loadedFiles.clear();
+                              _attachmentPickerOpen = false;
+                            });
+                          },
+                          icon: const Icon(Icons.close),
+                        ),
                       ),
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8),
                           child: TextField(
-                            enabled: cache != null && cache.error == null && _loadedFile == null,
+                            enabled: cache != null && cache.error == null,
                             autocorrect: true,
                             controller: _messageTextController,
                             maxLines: 4,
@@ -339,8 +411,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             },
                             decoration: InputDecoration(
                                 isDense: true,
-                                hintText: _loadedFile == null ?  "Message ${widget.friend
-                                    .username}..." : "Send ${basename(_loadedFile?.path ?? "")}",
+                                hintText: "Message ${widget.friend
+                                    .username}...",
                                 hintMaxLines: 1,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 border: OutlineInputBorder(
@@ -352,17 +424,52 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 8, right: 4.0),
-                        child: IconButton(
-                          splashRadius: 24,
-                          onPressed: _isSending ? null : () async {
-                            if (_loadedFile == null) {
-                              await sendTextMessage(ScaffoldMessenger.of(context), apiClient, mClient, _messageTextController.text);
-                            } else {
-                              await sendImageMessage(ScaffoldMessenger.of(context), apiClient, mClient, _loadedFile!, ClientHolder.of(context).settingsClient.currentSettings.machineId.valueOrDefault);
-                            }
-                          },
-                          iconSize: 28,
-                          icon: const Icon(Icons.send),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          transitionBuilder: (Widget child, Animation<double> animation) =>
+                              FadeTransition(opacity: animation, child: RotationTransition(
+                                turns: Tween<double>(begin: 0.5, end: 1).animate(animation), child: child,),),
+                          child: _hasText || _loadedFiles.isNotEmpty ? IconButton(
+                            key: const ValueKey("send-button"),
+                            splashRadius: 24,
+                            onPressed: _isSending ? null : () async {
+                              final sMsgnr = ScaffoldMessenger.of(context);
+                              setState(() {
+                                _isSending = true;
+                              });
+                              try {
+                                for (final file in _loadedFiles) {
+                                  await sendImageMessage(apiClient, mClient, file, ClientHolder
+                                      .of(context)
+                                      .settingsClient
+                                      .currentSettings
+                                      .machineId
+                                      .valueOrDefault);
+                                }
+
+                                if (_hasText) {
+                                  await sendTextMessage(apiClient, mClient, _messageTextController.text);
+                                }
+                                _messageTextController.clear();
+                                _loadedFiles.clear();
+                                _attachmentPickerOpen = false;
+                              } catch (e, s) {
+                                FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                                sMsgnr.showSnackBar(SnackBar(content: Text("Failed to send a message: $e")));
+                              }
+                              setState(() {
+                                _isSending = false;
+                              });
+                            },
+                            iconSize: 28,
+                            icon: const Icon(Icons.send),
+                          ) : IconButton(
+                            key: const ValueKey("mic-button"),
+                            splashRadius: 24,
+                            onPressed: _isSending ? null : () async {},
+                            iconSize: 28,
+                            icon: const Icon(Icons.mic_outlined),
+                          ),
                         ),
                       ),
                     ],
