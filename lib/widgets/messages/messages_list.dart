@@ -9,6 +9,7 @@ import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
+import 'package:contacts_plus_plus/widgets/messages/message_camera_view.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -286,47 +287,133 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 switchOutCurve: Curves.easeOut,
                                 transitionBuilder: (Widget child, animation) => SizeTransition(sizeFactor: animation, child: child,),
                                 child: switch ((_attachmentPickerOpen, _loadedFiles)) {
-                                  (true, []) => Row(
-                                    key: const ValueKey("attachment-picker"),
-                                    children: [
-                                      TextButton.icon(
-                                        onPressed: _isSending ? null : () async {
-                                          final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                                          if (result != null && result.files.single.path != null) {
-                                            setState(() {
-                                              _loadedFiles.add(File(result.files.single.path!));
-                                            });
-                                          }
-                                        },
-                                        icon: const Icon(Icons.image),
-                                        label: const Text("Gallery"),
-                                      ),
-                                      TextButton.icon(onPressed: _isSending ? null : (){}, icon: const Icon(Icons.camera), label: const Text("Camera"),),
-                                    ],
-                                  ),
-                                  (false, []) => null,
-                                  (_, _) => Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            children: _loadedFiles.map((e) => TextButton.icon(onPressed: _isSending ? null : (){}, label: Text(basename(e.path)), icon: const Icon(Icons.attach_file))).toList()
+                                  (true, []) =>
+                                      Row(
+                                        key: const ValueKey("attachment-picker"),
+                                        children: [
+                                          TextButton.icon(
+                                            onPressed: _isSending ? null : () async {
+                                              final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                                              if (result != null && result.files.single.path != null) {
+                                                setState(() {
+                                                  _loadedFiles.add(File(result.files.single.path!));
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(Icons.image),
+                                            label: const Text("Gallery"),
                                           ),
-                                        ),
+                                          TextButton.icon(
+                                            onPressed: _isSending ? null : () async {
+                                              final picture = await Navigator.of(context).push(
+                                                  MaterialPageRoute(builder: (context) => const MessageCameraView()));
+                                              if (picture != null) {
+                                                setState(() {
+                                                  _loadedFiles.add(picture);
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(Icons.camera_alt),
+                                            label: const Text("Camera"),
+                                          ),
+                                        ],
                                       ),
-                                      IconButton(onPressed: _isSending ? null : () async {
-                                        final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                                        if (result != null && result.files.single.path != null) {
-                                          setState(() {
-                                            _loadedFiles.add(File(result.files.single.path!));
-                                          });
-                                        }
-                                      }, icon: const Icon(Icons.image)),
-                                      IconButton(onPressed: _isSending ? null : () {}, icon: const Icon(Icons.camera)),
-                                    ],
-                                  )
+                                  (false, []) => null,
+                                  (_, _) =>
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Expanded(
+                                            child: ShaderMask(
+                                              shaderCallback: (Rect bounds) {
+                                                return LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [Colors.transparent, Colors.transparent, Colors.transparent, Theme.of(context).colorScheme.background],
+                                                  stops: const [0.0, 0.1, 0.9, 1.0], // 10% purple, 80% transparent, 10% purple
+                                                ).createShader(bounds);
+                                              },
+                                              blendMode: BlendMode.dstOut,
+                                              child: SingleChildScrollView(
+                                                scrollDirection: Axis.horizontal,
+                                                child: Row(
+                                                    children: _loadedFiles.map((file) =>
+                                                        Padding(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                                          child: TextButton.icon(
+                                                            onPressed: _isSending ? null : () {
+                                                              showDialog(context: context, builder: (context) =>
+                                                                  AlertDialog(
+                                                                    title: const Text("Remove attachment"),
+                                                                    content: Text(
+                                                                        "This will remove attachment '${basename(
+                                                                            file.path)}', are you sure?"),
+                                                                    actions: [
+                                                                      TextButton(
+                                                                        onPressed: () {
+                                                                          Navigator.of(context).pop();
+                                                                        },
+                                                                        child: const Text("No"),
+                                                                      ),
+                                                                      TextButton(
+                                                                        onPressed: () {
+                                                                          setState(() {
+                                                                            _loadedFiles.remove(file);
+                                                                          });
+                                                                          Navigator.of(context).pop();
+                                                                        },
+                                                                        child: const Text("Yes"),
+                                                                      )
+                                                                    ],
+                                                                  ));
+                                                            },
+                                                            style: TextButton.styleFrom(
+                                                              foregroundColor: Theme
+                                                                  .of(context)
+                                                                  .colorScheme
+                                                                  .onBackground,
+                                                              side: BorderSide(
+                                                                  color: Theme
+                                                                      .of(context)
+                                                                      .colorScheme
+                                                                      .primary,
+                                                                  width: 1
+                                                              ),
+                                                            ),
+                                                            label: Text(basename(file.path)),
+                                                            icon: const Icon(Icons.attach_file),
+                                                          ),
+                                                        ),
+                                                    ).toList()
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: _isSending ? null : () async {
+                                              final result = await FilePicker.platform.pickFiles(type: FileType.image);
+                                              if (result != null && result.files.single.path != null) {
+                                                setState(() {
+                                                  _loadedFiles.add(File(result.files.single.path!));
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(Icons.add_photo_alternate),
+                                          ),
+                                          IconButton(
+                                            onPressed: _isSending ? null : () async {
+                                              final picture = await Navigator.of(context).push(
+                                                  MaterialPageRoute(builder: (context) => const MessageCameraView()));
+                                              if (picture != null) {
+                                                setState(() {
+                                                  _loadedFiles.add(picture);
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(Icons.add_a_photo),
+                                          ),
+                                        ],
+                                      ),
                                 },
                               ),
                             ),
@@ -383,11 +470,35 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         ) :
                         IconButton(
                           key: const ValueKey("remove-attachment-icon"),
-                          onPressed: _isSending ? null : () {
-                            setState(() {
-                              _loadedFiles.clear();
-                              _attachmentPickerOpen = false;
-                            });
+                          onPressed: _isSending ? null : () async {
+                            if (_loadedFiles.isNotEmpty) {
+                              await showDialog(context: context, builder: (context) => AlertDialog(
+                                title: const Text("Remove all attachments"),
+                                content: const Text("This will remove all attachments, are you sure?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text("No"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _loadedFiles.clear();
+                                        _attachmentPickerOpen = false;
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text("Yes"),
+                                  )
+                                ],
+                              ));
+                            } else {
+                              setState(() {
+                                _attachmentPickerOpen = false;
+                              });
+                            }
                           },
                           icon: const Icon(Icons.close),
                         ),
@@ -481,7 +592,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           ) : IconButton(
                             key: const ValueKey("mic-button"),
                             splashRadius: 24,
-                            onPressed: _isSending ? null : () async {},
+                            onPressed: _isSending ? null : () async {
+                              // TODO: Implement voice message recording
+                            },
                             iconSize: 28,
                             icon: const Icon(Icons.mic_outlined),
                           ),
