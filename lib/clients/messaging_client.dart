@@ -142,7 +142,7 @@ class MessagingClient extends ChangeNotifier {
     };
     _sendData(data);
     final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
-    cache.messages.add(message);
+    cache.addMessage(message);
     notifyListeners();
   }
 

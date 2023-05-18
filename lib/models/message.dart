@@ -125,7 +125,7 @@ class MessageCache {
   bool addMessage(Message message) {
     final existingIdx = _messages.indexWhere((element) => element.id == message.id);
     if (existingIdx == -1) {
-      _messages.add(message);
+      _messages.insert(0, message);
       _ensureIntegrity();
     } else {
       _messages[existingIdx] = message;

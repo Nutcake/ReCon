@@ -11,6 +11,7 @@ import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_attachment_list.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_camera_view.dart';
+import 'package:contacts_plus_plus/widgets/messages/message_record_button.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +102,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     _hasText = false;
   }
 
-  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, String machineId, void Function(double progress) progressCallback) async {
+  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
+      void Function(double progress) progressCallback) async {
     final record = await RecordApi.uploadImage(
       client,
       image: file,
@@ -109,7 +111,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       progressCallback: progressCallback,
     );
     final message = Message(
-      id: Message.generateId(),
+      id: record.extractMessageId() ?? Message.generateId(),
       recipientId: widget.friend.id,
       senderId: client.userId,
       type: MessageType.object,
@@ -120,6 +122,29 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     _messageTextController.clear();
     _hasText = false;
   }
+
+
+  Future<void> sendVoiceMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
+      void Function(double progress) progressCallback) async {
+    final record = await RecordApi.uploadVoiceClip(
+      client,
+      voiceClip: file,
+      machineId: machineId,
+      progressCallback: progressCallback,
+    );
+    final message = Message(
+      id: record.extractMessageId() ?? Message.generateId(),
+      recipientId: widget.friend.id,
+      senderId: client.userId,
+      type: MessageType.sound,
+      content: jsonEncode(record.toMap()),
+      sendTime: DateTime.now().toUtc(),
+    );
+    mClient.sendMessage(message);
+    _messageTextController.clear();
+    _hasText = false;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -285,7 +310,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 duration: const Duration(milliseconds: 200),
                                 switchInCurve: Curves.easeOut,
                                 switchOutCurve: Curves.easeOut,
-                                transitionBuilder: (Widget child, animation) => SizeTransition(sizeFactor: animation, child: child,),
+                                transitionBuilder: (Widget child, animation) =>
+                                    SizeTransition(sizeFactor: animation, child: child,),
                                 child: switch ((_attachmentPickerOpen, _loadedFiles)) {
                                   (true, []) =>
                                       Row(
@@ -319,14 +345,16 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                         ],
                                       ),
                                   (false, []) => null,
-                                  (_, _) => MessageAttachmentList(
-                                    disabled: _isSending,
-                                    initialFiles: _loadedFiles,
-                                    onChange: (List<File> loadedFiles) => setState(() {
-                                      _loadedFiles.clear();
-                                      _loadedFiles.addAll(loadedFiles);
-                                    }),
-                                  )
+                                  (_, _) =>
+                                      MessageAttachmentList(
+                                        disabled: _isSending,
+                                        initialFiles: _loadedFiles,
+                                        onChange: (List<File> loadedFiles) =>
+                                            setState(() {
+                                              _loadedFiles.clear();
+                                              _loadedFiles.addAll(loadedFiles);
+                                            }),
+                                      )
                                 },
                               ),
                             ),
@@ -335,9 +363,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                       ),
                       if (_isSending && _sendProgress != null)
                         Align(
-                        alignment: Alignment.bottomCenter,
-                        child: LinearProgressIndicator(value: _sendProgress),
-                      ),
+                          alignment: Alignment.bottomCenter,
+                          child: LinearProgressIndicator(value: _sendProgress),
+                        ),
                     ],
                   ),
                 ),
@@ -374,7 +402,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         child: !_attachmentPickerOpen ?
                         IconButton(
                           key: const ValueKey("add-attachment-icon"),
-                          onPressed:_isSending ? null : () {
+                          onPressed: _isSending ? null : () {
                             setState(() {
                               _attachmentPickerOpen = true;
                             });
@@ -385,28 +413,29 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           key: const ValueKey("remove-attachment-icon"),
                           onPressed: _isSending ? null : () async {
                             if (_loadedFiles.isNotEmpty) {
-                              await showDialog(context: context, builder: (context) => AlertDialog(
-                                title: const Text("Remove all attachments"),
-                                content: const Text("This will remove all attachments, are you sure?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text("No"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _loadedFiles.clear();
-                                        _attachmentPickerOpen = false;
-                                      });
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text("Yes"),
-                                  )
-                                ],
-                              ));
+                              await showDialog(context: context, builder: (context) =>
+                                  AlertDialog(
+                                    title: const Text("Remove all attachments"),
+                                    content: const Text("This will remove all attachments, are you sure?"),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text("No"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _loadedFiles.clear();
+                                            _attachmentPickerOpen = false;
+                                          });
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text("Yes"),
+                                      )
+                                    ],
+                                  ));
                             } else {
                               setState(() {
                                 _attachmentPickerOpen = false;
@@ -470,7 +499,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               });
                               try {
                                 for (int i = 0; i < toSend.length; i++) {
-                                  final totalProgress = i/toSend.length;
+                                  final totalProgress = i / toSend.length;
                                   final file = toSend[i];
                                   await sendImageMessage(apiClient, mClient, file, ClientHolder
                                       .of(context)
@@ -480,7 +509,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                       .valueOrDefault,
                                         (progress) =>
                                         setState(() {
-                                          _sendProgress = totalProgress + progress * 1/toSend.length;
+                                          _sendProgress = totalProgress + progress * 1 / toSend.length;
                                         }),
                                   );
                                 }
@@ -506,14 +535,35 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             },
                             iconSize: 28,
                             icon: const Icon(Icons.send),
-                          ) : IconButton(
+                          ) : MessageRecordButton(
                             key: const ValueKey("mic-button"),
-                            splashRadius: 24,
-                            onPressed: _isSending ? null : () async {
-                              // TODO: Implement voice message recording
+                            disabled: _isSending,
+                            onRecordEnd: (File? file) async {
+                              if (file == null) return;
+                              setState(() {
+                                _isSending = true;
+                                _sendProgress = 0;
+                              });
+                              await sendVoiceMessage(
+                                  apiClient,
+                                  mClient,
+                                  file,
+                                  ClientHolder
+                                      .of(context)
+                                      .settingsClient
+                                      .currentSettings
+                                      .machineId
+                                      .valueOrDefault, (progress) {
+                                setState(() {
+                                  _sendProgress = progress;
+                                });
+                              }
+                              );
+                              setState(() {
+                                _isSending = false;
+                                _sendProgress = null;
+                              });
                             },
-                            iconSize: 28,
-                            icon: const Icon(Icons.mic_outlined),
                           ),
                         ),
                       ),

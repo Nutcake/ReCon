@@ -154,4 +154,33 @@ class RecordApi {
     progressCallback?.call(1);
     return record;
   }
+
+  static Future<Record> uploadVoiceClip(ApiClient client, {required File voiceClip, required String machineId, void Function(double progress)? progressCallback}) async {
+    progressCallback?.call(0);
+    final voiceDigest = await AssetDigest.fromData(await voiceClip.readAsBytes(), basename(voiceClip.path));
+
+    final filename = basenameWithoutExtension(voiceClip.path);
+    final digests = [voiceDigest];
+
+    final record = Record.fromRequiredData(
+      recordType: RecordType.texture,
+      userId: client.userId,
+      machineId: machineId,
+      assetUri: voiceDigest.dbUri,
+      filename: filename,
+      thumbnailUri: "",
+      digests: digests,
+    );
+    progressCallback?.call(.1);
+    final status = await tryPreprocessRecord(client, record: record);
+    final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
+    progressCallback?.call(.2);
+
+    await uploadAssets(
+        client,
+        assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+        progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    progressCallback?.call(1);
+    return record;
+  }
 }

@@ -262,7 +262,7 @@ class Record {
       "description": description.asNullable,
       "tags": tags,
       "recordType": recordType.name,
-      "thumbnailUri": thumbnailUri,
+      "thumbnailUri": thumbnailUri.asNullable,
       "isPublic": isPublic,
       "isForPatreons": isForPatreons,
       "isListed": isListed,
@@ -287,5 +287,15 @@ class Record {
 
   static String generateId() {
     return "R-${const Uuid().v4()}";
+  }
+
+  String? extractMessageId() {
+    const key = "message_id:";
+    for (final tag in tags) {
+      if (tag.startsWith(key)) {
+        return tag.replaceFirst(key, "");
+      }
+    }
+    return null;
   }
 }
