@@ -35,6 +35,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   bool _hasText = false;
   bool _isSending = false;
   bool _attachmentPickerOpen = false;
+  double _sendProgress = 0;
 
   bool _showBottomBarShadow = false;
   bool _showSessionListScrollChevron = false;
@@ -84,8 +85,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     });
   }
 
-  Future<void> sendTextMessage(ApiClient client, MessagingClient mClient,
-      String content) async {
+  Future<void> sendTextMessage(ApiClient client, MessagingClient mClient, String content) async {
     if (content.isEmpty) return;
     final message = Message(
       id: Message.generateId(),
@@ -97,13 +97,15 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     );
     mClient.sendMessage(message);
     _messageTextController.clear();
+    _hasText = false;
   }
 
-  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, machineId) async {
+  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, String machineId, void Function(double progress) progressCallback) async {
     final record = await RecordApi.uploadImage(
       client,
       image: file,
       machineId: machineId,
+      progressCallback: progressCallback,
     );
     final message = Message(
       id: Message.generateId(),
@@ -115,6 +117,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     );
     mClient.sendMessage(message);
     _messageTextController.clear();
+    _hasText = false;
   }
 
   @override
@@ -287,7 +290,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                     key: const ValueKey("attachment-picker"),
                                     children: [
                                       TextButton.icon(
-                                        onPressed: () async {
+                                        onPressed: _isSending ? null : () async {
                                           final result = await FilePicker.platform.pickFiles(type: FileType.image);
                                           if (result != null && result.files.single.path != null) {
                                             setState(() {
@@ -298,7 +301,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                         icon: const Icon(Icons.image),
                                         label: const Text("Gallery"),
                                       ),
-                                      TextButton.icon(onPressed: (){}, icon: const Icon(Icons.camera), label: const Text("Camera"),),
+                                      TextButton.icon(onPressed: _isSending ? null : (){}, icon: const Icon(Icons.camera), label: const Text("Camera"),),
                                     ],
                                   ),
                                   (false, []) => null,
@@ -309,11 +312,11 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
                                           child: Row(
-                                            children: _loadedFiles.map((e) => TextButton.icon(onPressed: (){}, label: Text(basename(e.path)), icon: const Icon(Icons.attach_file))).toList()
+                                            children: _loadedFiles.map((e) => TextButton.icon(onPressed: _isSending ? null : (){}, label: Text(basename(e.path)), icon: const Icon(Icons.attach_file))).toList()
                                           ),
                                         ),
                                       ),
-                                      IconButton(onPressed: () async {
+                                      IconButton(onPressed: _isSending ? null : () async {
                                         final result = await FilePicker.platform.pickFiles(type: FileType.image);
                                         if (result != null && result.files.single.path != null) {
                                           setState(() {
@@ -321,7 +324,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                           });
                                         }
                                       }, icon: const Icon(Icons.image)),
-                                      IconButton(onPressed: () {}, icon: const Icon(Icons.camera)),
+                                      IconButton(onPressed: _isSending ? null : () {}, icon: const Icon(Icons.camera)),
                                     ],
                                   )
                                 },
@@ -331,9 +334,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         ),
                       ),
                       if (_isSending && _loadedFiles.isNotEmpty)
-                        const Align(
+                        Align(
                         alignment: Alignment.bottomCenter,
-                        child: LinearProgressIndicator(),
+                        child: LinearProgressIndicator(value: _sendProgress),
                       ),
                     ],
                   ),
@@ -371,7 +374,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         child: !_attachmentPickerOpen ?
                         IconButton(
                           key: const ValueKey("add-attachment-icon"),
-                          onPressed: () async {
+                          onPressed:_isSending ? null : () {
                             setState(() {
                               _attachmentPickerOpen = true;
                             });
@@ -380,7 +383,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         ) :
                         IconButton(
                           key: const ValueKey("remove-attachment-icon"),
-                          onPressed: () {
+                          onPressed: _isSending ? null : () {
                             setState(() {
                               _loadedFiles.clear();
                               _attachmentPickerOpen = false;
@@ -393,7 +396,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         child: Padding(
                           padding: const EdgeInsets.all(8),
                           child: TextField(
-                            enabled: cache != null && cache.error == null,
+                            enabled: cache != null && cache.error == null && !_isSending,
                             autocorrect: true,
                             controller: _messageTextController,
                             maxLines: 4,
@@ -436,16 +439,28 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               final sMsgnr = ScaffoldMessenger.of(context);
                               setState(() {
                                 _isSending = true;
+                                _sendProgress = 0;
                               });
                               try {
-                                for (final file in _loadedFiles) {
+                                for (int i = 0; i < _loadedFiles.length; i++) {
+                                  final totalProgress = i/_loadedFiles.length;
+                                  final file = _loadedFiles[i];
                                   await sendImageMessage(apiClient, mClient, file, ClientHolder
                                       .of(context)
                                       .settingsClient
                                       .currentSettings
                                       .machineId
-                                      .valueOrDefault);
+                                      .valueOrDefault,
+                                        (progress) =>
+                                        setState(() {
+                                          _sendProgress = totalProgress + progress * 1/_loadedFiles.length;
+                                        }),
+                                  );
                                 }
+
+                                setState(() {
+                                  _sendProgress = 1;
+                                });
 
                                 if (_hasText) {
                                   await sendTextMessage(apiClient, mClient, _messageTextController.text);

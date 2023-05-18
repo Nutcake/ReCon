@@ -72,8 +72,9 @@ class RecordApi {
   }
 
   static Future<void> uploadAsset(ApiClient client,
-      {required AssetUploadData uploadData, required String filename, required NeosDBAsset asset, required Uint8List data}) async {
+      {required AssetUploadData uploadData, required String filename, required NeosDBAsset asset, required Uint8List data, void Function(double number)? progressCallback}) async {
     for (int i = 0; i < uploadData.totalChunks; i++) {
+      progressCallback?.call(i/uploadData.totalChunks);
       final offset = i * uploadData.chunkSize;
       final end = (i + 1) * uploadData.chunkSize;
       final request = http.MultipartRequest(
@@ -87,6 +88,7 @@ class RecordApi {
       final response = await request.send();
       final bodyBytes = await response.stream.toBytes();
       ApiClient.checkResponse(http.Response.bytes(bodyBytes, response.statusCode));
+      progressCallback?.call(1);
     }
   }
 
@@ -95,18 +97,30 @@ class RecordApi {
     ApiClient.checkResponse(response);
   }
 
-  static Future<void> uploadAssets(ApiClient client, {required List<AssetDigest> assets}) async {
-    for (final entry in assets) {
+  static Future<void> uploadAssets(ApiClient client, {required List<AssetDigest> assets, void Function(double progress)? progressCallback}) async {
+    progressCallback?.call(0);
+    for (int i = 0; i < assets.length; i++) {
+      final totalProgress = i/assets.length;
+      progressCallback?.call(totalProgress);
+      final entry = assets[i];
       final uploadData = await beginUploadAsset(client, asset: entry.asset);
       if (uploadData.uploadState == UploadState.failed) {
         throw "Asset upload failed: ${uploadData.uploadState.name}";
       }
-      await uploadAsset(client, uploadData: uploadData, asset: entry.asset, data: entry.data, filename: entry.name);
+      await uploadAsset(client,
+        uploadData: uploadData,
+        asset: entry.asset,
+        data: entry.data,
+        filename: entry.name,
+        progressCallback: (progress) => progressCallback?.call(totalProgress + progress * 1/assets.length),
+      );
       await finishUpload(client, asset: entry.asset);
     }
+    progressCallback?.call(1);
   }
 
-  static Future<Record> uploadImage(ApiClient client, {required File image, required String machineId}) async {
+  static Future<Record> uploadImage(ApiClient client, {required File image, required String machineId, void Function(double progress)? progressCallback}) async {
+    progressCallback?.call(0);
     final imageDigest = await AssetDigest.fromData(await image.readAsBytes(), basename(image.path));
     final imageData = await decodeImageFromList(imageDigest.data);
 
@@ -128,12 +142,16 @@ class RecordApi {
       thumbnailUri: imageDigest.dbUri,
       digests: digests,
     );
-
+    progressCallback?.call(.1);
     final status = await tryPreprocessRecord(client, record: record);
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
+    progressCallback?.call(.2);
 
     await uploadAssets(
-        client, assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList());
+      client,
+      assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+      progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    progressCallback?.call(1);
     return record;
   }
 }
