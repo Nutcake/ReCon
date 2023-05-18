@@ -9,11 +9,11 @@ import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
+import 'package:contacts_plus_plus/widgets/messages/message_attachment_list.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_camera_view.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 
 import 'message_bubble.dart';
@@ -36,7 +36,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   bool _hasText = false;
   bool _isSending = false;
   bool _attachmentPickerOpen = false;
-  double _sendProgress = 0;
+  double? _sendProgress;
 
   bool _showBottomBarShadow = false;
   bool _showSessionListScrollChevron = false;
@@ -319,108 +319,21 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                         ],
                                       ),
                                   (false, []) => null,
-                                  (_, _) =>
-                                      Row(
-                                        mainAxisSize: MainAxisSize.max,
-                                        children: [
-                                          Expanded(
-                                            child: ShaderMask(
-                                              shaderCallback: (Rect bounds) {
-                                                return LinearGradient(
-                                                  begin: Alignment.centerLeft,
-                                                  end: Alignment.centerRight,
-                                                  colors: [Colors.transparent, Colors.transparent, Colors.transparent, Theme.of(context).colorScheme.background],
-                                                  stops: const [0.0, 0.1, 0.9, 1.0], // 10% purple, 80% transparent, 10% purple
-                                                ).createShader(bounds);
-                                              },
-                                              blendMode: BlendMode.dstOut,
-                                              child: SingleChildScrollView(
-                                                scrollDirection: Axis.horizontal,
-                                                child: Row(
-                                                    children: _loadedFiles.map((file) =>
-                                                        Padding(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                                          child: TextButton.icon(
-                                                            onPressed: _isSending ? null : () {
-                                                              showDialog(context: context, builder: (context) =>
-                                                                  AlertDialog(
-                                                                    title: const Text("Remove attachment"),
-                                                                    content: Text(
-                                                                        "This will remove attachment '${basename(
-                                                                            file.path)}', are you sure?"),
-                                                                    actions: [
-                                                                      TextButton(
-                                                                        onPressed: () {
-                                                                          Navigator.of(context).pop();
-                                                                        },
-                                                                        child: const Text("No"),
-                                                                      ),
-                                                                      TextButton(
-                                                                        onPressed: () {
-                                                                          setState(() {
-                                                                            _loadedFiles.remove(file);
-                                                                          });
-                                                                          Navigator.of(context).pop();
-                                                                        },
-                                                                        child: const Text("Yes"),
-                                                                      )
-                                                                    ],
-                                                                  ));
-                                                            },
-                                                            style: TextButton.styleFrom(
-                                                              foregroundColor: Theme
-                                                                  .of(context)
-                                                                  .colorScheme
-                                                                  .onBackground,
-                                                              side: BorderSide(
-                                                                  color: Theme
-                                                                      .of(context)
-                                                                      .colorScheme
-                                                                      .primary,
-                                                                  width: 1
-                                                              ),
-                                                            ),
-                                                            label: Text(basename(file.path)),
-                                                            icon: const Icon(Icons.attach_file),
-                                                          ),
-                                                        ),
-                                                    ).toList()
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            onPressed: _isSending ? null : () async {
-                                              final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                                              if (result != null && result.files.single.path != null) {
-                                                setState(() {
-                                                  _loadedFiles.add(File(result.files.single.path!));
-                                                });
-                                              }
-                                            },
-                                            icon: const Icon(Icons.add_photo_alternate),
-                                          ),
-                                          IconButton(
-                                            onPressed: _isSending ? null : () async {
-                                              final picture = await Navigator.of(context).push(
-                                                  MaterialPageRoute(builder: (context) => const MessageCameraView()));
-                                              if (picture != null) {
-                                                setState(() {
-                                                  _loadedFiles.add(picture);
-                                                });
-                                              }
-                                            },
-                                            icon: const Icon(Icons.add_a_photo),
-                                          ),
-                                        ],
-                                      ),
+                                  (_, _) => MessageAttachmentList(
+                                    disabled: _isSending,
+                                    initialFiles: _loadedFiles,
+                                    onChange: (List<File> loadedFiles) => setState(() {
+                                      _loadedFiles.clear();
+                                      _loadedFiles.addAll(loadedFiles);
+                                    }),
+                                  )
                                 },
                               ),
                             ),
                           ],
                         ),
                       ),
-                      if (_isSending && _loadedFiles.isNotEmpty)
+                      if (_isSending && _sendProgress != null)
                         Align(
                         alignment: Alignment.bottomCenter,
                         child: LinearProgressIndicator(value: _sendProgress),
@@ -548,14 +461,17 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             splashRadius: 24,
                             onPressed: _isSending ? null : () async {
                               final sMsgnr = ScaffoldMessenger.of(context);
+                              final toSend = List.from(_loadedFiles);
                               setState(() {
                                 _isSending = true;
                                 _sendProgress = 0;
+                                _attachmentPickerOpen = false;
+                                _loadedFiles.clear();
                               });
                               try {
-                                for (int i = 0; i < _loadedFiles.length; i++) {
-                                  final totalProgress = i/_loadedFiles.length;
-                                  final file = _loadedFiles[i];
+                                for (int i = 0; i < toSend.length; i++) {
+                                  final totalProgress = i/toSend.length;
+                                  final file = toSend[i];
                                   await sendImageMessage(apiClient, mClient, file, ClientHolder
                                       .of(context)
                                       .settingsClient
@@ -564,13 +480,13 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                       .valueOrDefault,
                                         (progress) =>
                                         setState(() {
-                                          _sendProgress = totalProgress + progress * 1/_loadedFiles.length;
+                                          _sendProgress = totalProgress + progress * 1/toSend.length;
                                         }),
                                   );
                                 }
 
                                 setState(() {
-                                  _sendProgress = 1;
+                                  _sendProgress = null;
                                 });
 
                                 if (_hasText) {
@@ -585,6 +501,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               }
                               setState(() {
                                 _isSending = false;
+                                _sendProgress = null;
                               });
                             },
                             iconSize: 28,
