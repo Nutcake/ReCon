@@ -175,7 +175,7 @@ class AudioClipContent {
   final String id;
   final String assetUri;
 
-  AudioClipContent({required this.id, required this.assetUri});
+  const AudioClipContent({required this.id, required this.assetUri});
 
   factory AudioClipContent.fromMap(Map map) {
     return AudioClipContent(
@@ -190,7 +190,7 @@ class MarkReadBatch {
   final List<String> ids;
   final DateTime readTime;
 
-  MarkReadBatch({required this.senderId, required this.ids, required this.readTime});
+  const MarkReadBatch({required this.senderId, required this.ids, required this.readTime});
 
   Map toMap() {
     return {

@@ -17,20 +17,44 @@ class MessageAudioPlayer extends StatefulWidget {
   State<MessageAudioPlayer> createState() => _MessageAudioPlayerState();
 }
 
-class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
+class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBindingObserver {
   final AudioPlayer _audioPlayer = AudioPlayer();
   double _sliderValue = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (Platform.isAndroid) {
+      //TODO: Add caching of audio-files
       _audioPlayer.setUrl(
           Aux.neosDbToHttp(AudioClipContent
-              .fromMap(jsonDecode(widget.message.content))
-              .assetUri),
+              .fromMap(jsonDecode(widget.message.content)).assetUri),
           preload: true).whenComplete(() => _audioPlayer.setLoopMode(LoopMode.off));
     }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _audioPlayer.stop();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _audioPlayer.setUrl(
+        Aux.neosDbToHttp(AudioClipContent
+            .fromMap(jsonDecode(widget.message.content)).assetUri),
+        preload: true).whenComplete(() => _audioPlayer.setLoopMode(LoopMode.off));
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _audioPlayer.dispose();
+    super.dispose();
   }
 
   Widget _createErrorWidget(String error) {
@@ -114,8 +138,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> {
                       StreamBuilder(
                           stream: _audioPlayer.positionStream,
                           builder: (context, snapshot) {
-                            _sliderValue = (_audioPlayer.position.inMilliseconds /
-                                (_audioPlayer.duration?.inMilliseconds ?? 0)).clamp(0, 1);
+                            _sliderValue = _audioPlayer.duration == null ? 0 : (_audioPlayer.position.inMilliseconds /
+                                (_audioPlayer.duration!.inMilliseconds)).clamp(0, 1);
                             return StatefulBuilder( // Not sure if this makes sense here...
                                 builder: (context, setState) {
                                   return SliderTheme(
