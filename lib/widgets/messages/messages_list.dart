@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/apis/record_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:contacts_plus_plus/clients/audio_cache_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
@@ -124,7 +124,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     _messageTextController.clear();
     _hasText = false;
   }
-
 
   Future<void> sendVoiceMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
       void Function(double progress) progressCallback) async {
@@ -291,20 +290,23 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               ),
                             );
                           }
-                          return ListView.builder(
-                            controller: _messageScrollController,
-                            reverse: true,
-                            itemCount: cache.messages.length,
-                            itemBuilder: (context, index) {
-                              final entry = cache.messages[index];
-                              if (index == cache.messages.length - 1) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 12),
-                                  child: MessageBubble(message: entry,),
-                                );
-                              }
-                              return MessageBubble(message: entry,);
-                            },
+                          return Provider(
+                            create: (BuildContext context) => AudioCacheClient(),
+                            child: ListView.builder(
+                              controller: _messageScrollController,
+                              reverse: true,
+                              itemCount: cache.messages.length,
+                              itemBuilder: (context, index) {
+                                final entry = cache.messages[index];
+                                if (index == cache.messages.length - 1) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: MessageBubble(message: entry,),
+                                  );
+                                }
+                                return MessageBubble(message: entry,);
+                              },
+                            ),
                           );
                         },
                       ),

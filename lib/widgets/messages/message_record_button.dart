@@ -33,19 +33,16 @@ class _MessageRecordButtonState extends State<MessageRecordButton> {
     return Material(
       child: GestureDetector(
         onTapDown: widget.disabled ? null : (_) async {
-          // TODO: Implement voice message recording
-          debugPrint("Down");
           HapticFeedback.vibrate();
           widget.onRecordStart?.call();
           final dir = await getTemporaryDirectory();
           await _recorder.start(
-            path: "${dir.path}/A-${const Uuid().v4()}.wav",
-            encoder: AudioEncoder.wav,
+            path: "${dir.path}/A-${const Uuid().v4()}.ogg",
+            encoder: AudioEncoder.opus,
             samplingRate: 44100,
           );
         },
         onTapUp: (_) async {
-          debugPrint("Up");
           if (await _recorder.isRecording()) {
             final recording = await _recorder.stop();
             widget.onRecordEnd?.call(recording == null ? null : File(recording));

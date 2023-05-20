@@ -130,6 +130,9 @@ class ApiClient {
       // TODO: Show the login screen again if cached login was unsuccessful.
       throw "You are not authorized to do that. $error";
     }
+    if (response.statusCode == 404) {
+      throw "Resource not found. $error";
+    }
     if (response.statusCode == 500) {
       throw "Internal server error. $error";
     }

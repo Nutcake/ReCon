@@ -163,7 +163,7 @@ class RecordApi {
     final digests = [voiceDigest];
 
     final record = Record.fromRequiredData(
-      recordType: RecordType.texture,
+      recordType: RecordType.audio,
       userId: client.userId,
       machineId: machineId,
       assetUri: voiceDigest.dbUri,
