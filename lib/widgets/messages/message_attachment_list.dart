@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_camera_view.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,8 @@ import 'package:path/path.dart';
 class MessageAttachmentList extends StatefulWidget {
   const MessageAttachmentList({required this.onChange, required this.disabled, this.initialFiles, super.key});
 
-  final List<File>? initialFiles;
-  final Function(List<File> files) onChange;
+  final List<(FileType, File)>? initialFiles;
+  final Function(List<(FileType, File)> files) onChange;
   final bool disabled;
 
   @override
@@ -17,7 +18,7 @@ class MessageAttachmentList extends StatefulWidget {
 }
 
 class _MessageAttachmentListState extends State<MessageAttachmentList> {
-  final List<File> _loadedFiles = [];
+  final List<(FileType, File)> _loadedFiles = [];
   final ScrollController _scrollController = ScrollController();
   bool _showShadow = true;
 
@@ -71,7 +72,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                                   title: const Text("Remove attachment"),
                                   content: Text(
                                       "This will remove attachment '${basename(
-                                          file.path)}', are you sure?"),
+                                          file.$2.path)}', are you sure?"),
                                   actions: [
                                     TextButton(
                                       onPressed: () {
@@ -104,8 +105,11 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                                 width: 1
                             ),
                           ),
-                          label: Text(basename(file.path)),
-                          icon: const Icon(Icons.attach_file),
+                          label: Text(basename(file.$2.path)),
+                          icon:  switch (file.$1) {
+                            FileType.image => const Icon(Icons.image),
+                            _ => const Icon(Icons.attach_file)
+                          }
                         ),
                       ),
                   ).toList()
@@ -115,10 +119,13 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
         ),
         IconButton(
           onPressed: widget.disabled ? null : () async {
-            final result = await FilePicker.platform.pickFiles(type: FileType.image);
-            if (result != null && result.files.single.path != null) {
-              _loadedFiles.add(File(result.files.single.path!));
-              await widget.onChange(_loadedFiles);
+            final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
+            if (result != null) {
+              setState(() {
+                _loadedFiles.addAll(
+                    result.files.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
+                        .whereNotNull());
+              });
             }
           },
           icon: const Icon(Icons.add_photo_alternate),
@@ -133,6 +140,18 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
             }
           },
           icon: const Icon(Icons.add_a_photo),
+        ),
+        IconButton(
+          onPressed: widget.disabled ? null : () async {
+            final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
+            if (result != null) {
+              setState(() {
+                _loadedFiles.addAll(
+                    result.files.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null).whereNotNull());
+              });
+            }
+          },
+          icon: const Icon(Icons.file_present_rounded),
         ),
       ],
     );

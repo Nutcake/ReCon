@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/apis/record_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
@@ -32,7 +34,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   final TextEditingController _messageTextController = TextEditingController();
   final ScrollController _sessionListScrollController = ScrollController();
   final ScrollController _messageScrollController = ScrollController();
-  final List<File> _loadedFiles = [];
+  final List<(FileType, File)> _loadedFiles = [];
 
   bool _hasText = false;
   bool _isSending = false;
@@ -137,6 +139,27 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       recipientId: widget.friend.id,
       senderId: client.userId,
       type: MessageType.sound,
+      content: jsonEncode(record.toMap()),
+      sendTime: DateTime.now().toUtc(),
+    );
+    mClient.sendMessage(message);
+    _messageTextController.clear();
+    _hasText = false;
+  }
+
+  Future<void> sendRawFileMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
+      void Function(double progress) progressCallback) async {
+    final record = await RecordApi.uploadRawFile(
+      client,
+      file: file,
+      machineId: machineId,
+      progressCallback: progressCallback,
+    );
+    final message = Message(
+      id: record.extractMessageId() ?? Message.generateId(),
+      recipientId: widget.friend.id,
+      senderId: client.userId,
+      type: MessageType.object,
       content: jsonEncode(record.toMap()),
       sendTime: DateTime.now().toUtc(),
     );
@@ -319,10 +342,14 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                         children: [
                                           TextButton.icon(
                                             onPressed: _isSending ? null : () async {
-                                              final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                                              if (result != null && result.files.single.path != null) {
+                                              final result = await FilePicker.platform.pickFiles(
+                                                  type: FileType.image, allowMultiple: true);
+                                              if (result != null) {
                                                 setState(() {
-                                                  _loadedFiles.add(File(result.files.single.path!));
+                                                  _loadedFiles.addAll(
+                                                      result.files.map((e) =>
+                                                      e.path != null ? (FileType.image, File(e.path!)) : null)
+                                                          .whereNotNull());
                                                 });
                                               }
                                             },
@@ -332,29 +359,45 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                           TextButton.icon(
                                             onPressed: _isSending ? null : () async {
                                               final picture = await Navigator.of(context).push(
-                                                  MaterialPageRoute(builder: (context) => const MessageCameraView()));
+                                                  MaterialPageRoute(builder: (context) => const MessageCameraView())) as File?;
                                               if (picture != null) {
                                                 setState(() {
-                                                  _loadedFiles.add(picture);
+                                                  _loadedFiles.add((FileType.image, picture));
                                                 });
                                               }
                                             },
                                             icon: const Icon(Icons.camera_alt),
                                             label: const Text("Camera"),
                                           ),
+                                          TextButton.icon(
+                                            onPressed: _isSending ? null : () async {
+                                              final result = await FilePicker.platform.pickFiles(
+                                                  type: FileType.any, allowMultiple: true);
+                                              if (result != null) {
+                                                setState(() {
+                                                  _loadedFiles.addAll(
+                                                      result.files.map((e) =>
+                                                      e.path != null ? (FileType.any, File(e.path!)) : null)
+                                                          .whereNotNull());
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(Icons.file_present_rounded),
+                                            label: const Text("Document"),
+                                          ),
                                         ],
                                       ),
                                   (false, []) => null,
                                   (_, _) =>
                                       MessageAttachmentList(
-                                        disabled: _isSending,
-                                        initialFiles: _loadedFiles,
-                                        onChange: (List<File> loadedFiles) =>
-                                            setState(() {
-                                              _loadedFiles.clear();
-                                              _loadedFiles.addAll(loadedFiles);
-                                            }),
-                                      )
+                                          disabled: _isSending,
+                                          initialFiles: _loadedFiles,
+                                          onChange: (List<(FileType, File)> loadedFiles) =>
+                                          setState(() {
+                                _loadedFiles.clear();
+                                _loadedFiles.addAll(loadedFiles);
+                                }),
+                                )
                                 },
                               ),
                             ),
@@ -490,7 +533,11 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             splashRadius: 24,
                             onPressed: _isSending ? null : () async {
                               final sMsgnr = ScaffoldMessenger.of(context);
-                              final toSend = List.from(_loadedFiles);
+                              final settings = ClientHolder
+                                  .of(context)
+                                  .settingsClient
+                                  .currentSettings;
+                              final toSend = List<(FileType, File)>.from(_loadedFiles);
                               setState(() {
                                 _isSending = true;
                                 _sendProgress = 0;
@@ -501,19 +548,21 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 for (int i = 0; i < toSend.length; i++) {
                                   final totalProgress = i / toSend.length;
                                   final file = toSend[i];
-                                  await sendImageMessage(apiClient, mClient, file, ClientHolder
-                                      .of(context)
-                                      .settingsClient
-                                      .currentSettings
-                                      .machineId
-                                      .valueOrDefault,
-                                        (progress) =>
-                                        setState(() {
-                                          _sendProgress = totalProgress + progress * 1 / toSend.length;
-                                        }),
-                                  );
+                                  if (file.$1 == FileType.image) {
+                                    await sendImageMessage(
+                                      apiClient, mClient, file.$2, settings.machineId.valueOrDefault,
+                                          (progress) =>
+                                          setState(() {
+                                            _sendProgress = totalProgress + progress * 1 / toSend.length;
+                                          }),
+                                    );
+                                  } else {
+                                    await sendRawFileMessage(
+                                        apiClient, mClient, file.$2, settings.machineId.valueOrDefault, (progress) =>
+                                        setState(() =>
+                                        _sendProgress = totalProgress + progress * 1 / toSend.length));
+                                  }
                                 }
-
                                 setState(() {
                                   _sendProgress = null;
                                 });

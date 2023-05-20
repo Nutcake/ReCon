@@ -4,7 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/models/records/asset_digest.dart';
-import 'package:contacts_plus_plus/models/records/image_template.dart';
+import 'package:contacts_plus_plus/models/records/json_template.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
@@ -125,7 +125,7 @@ class RecordApi {
     final imageData = await decodeImageFromList(imageDigest.data);
 
     final objectJson = jsonEncode(
-        ImageTemplate(imageUri: imageDigest.dbUri, width: imageData.width, height: imageData.height).data);
+        JsonTemplate.image(imageUri: imageDigest.dbUri, width: imageData.width, height: imageData.height).data);
     final objectBytes = Uint8List.fromList(utf8.encode(objectJson));
 
     final objectDigest = await AssetDigest.fromData(objectBytes, "${basenameWithoutExtension(image.path)}.json");
@@ -169,6 +169,39 @@ class RecordApi {
       assetUri: voiceDigest.dbUri,
       filename: filename,
       thumbnailUri: "",
+      digests: digests,
+    );
+    progressCallback?.call(.1);
+    final status = await tryPreprocessRecord(client, record: record);
+    final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
+    progressCallback?.call(.2);
+
+    await uploadAssets(
+        client,
+        assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+        progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    progressCallback?.call(1);
+    return record;
+  }
+
+  static Future<Record> uploadRawFile(ApiClient client, {required File file, required String machineId, void Function(double progress)? progressCallback}) async {
+    progressCallback?.call(0);
+    final fileDigest = await AssetDigest.fromData(await file.readAsBytes(), basename(file.path));
+
+    final objectJson = jsonEncode(JsonTemplate.rawFile(assetUri: fileDigest.dbUri, filename: fileDigest.name).data);
+    final objectBytes = Uint8List.fromList(utf8.encode(objectJson));
+
+    final objectDigest = await AssetDigest.fromData(objectBytes, "${basenameWithoutExtension(file.path)}.json");
+
+    final digests = [fileDigest, objectDigest];
+
+    final record = Record.fromRequiredData(
+      recordType: RecordType.texture,
+      userId: client.userId,
+      machineId: machineId,
+      assetUri: objectDigest.dbUri,
+      filename: fileDigest.name,
+      thumbnailUri: JsonTemplate.thumbUrl,
       digests: digests,
     );
     progressCallback?.call(.1);

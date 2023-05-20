@@ -51,6 +51,7 @@ class MessageAsset extends StatelessWidget {
                 ),
               );
             },
+            errorWidget: (context, url, error) => const Icon(Icons.image_not_supported, size: 128,),
             placeholder: (context, uri) => const CircularProgressIndicator(),
           ),
           const SizedBox(height: 8,),
