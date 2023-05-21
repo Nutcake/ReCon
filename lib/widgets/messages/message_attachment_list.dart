@@ -21,6 +21,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
   final List<(FileType, File)> _loadedFiles = [];
   final ScrollController _scrollController = ScrollController();
   bool _showShadow = true;
+  bool _popupIsOpen = false;
 
   @override
   void initState() {
@@ -121,146 +122,131 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
             ),
           ),
         ),
-        PopupMenuButton<DocumentType>(
-          offset: const Offset(0, -64),
-          constraints: const BoxConstraints.tightFor(width: 48 * 3, height: 64),
-          shadowColor: Colors.transparent,
-          position: PopupMenuPosition.over,
-          color: Colors.transparent,
-          enableFeedback: true,
-          padding: EdgeInsets.zero,
-          surfaceTintColor: Colors.transparent,
-          iconSize: 24,
-          itemBuilder: (context) =>
-          [
-            PopupMenuItem(
-              padding: EdgeInsets.zero,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    iconSize: 24,
-                    style: IconButton.styleFrom(
-                        backgroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .surface,
-                        foregroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .onSurface,
-                        side: BorderSide(
-                          width: 1,
-                          color: Theme
-                              .of(context)
-                              .colorScheme
-                              .secondary,
-                        )
-                    ),
-                    padding: EdgeInsets.zero,
-                    onPressed: () async {
-                      final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
-                      if (result != null) {
-                        setState(() {
-                          _loadedFiles.addAll(
-                              result.files.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
-                                  .whereNotNull());
-                        });
-                      }
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    icon: const Icon(Icons.image,),
-                  ),
-                  IconButton(
-                    iconSize: 24,
-                    style: IconButton.styleFrom(
-                        backgroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .surface,
-                        foregroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .onSurface,
-                        side: BorderSide(
-                          width: 1,
-                          color: Theme
-                              .of(context)
-                              .colorScheme
-                              .secondary,
-                        )
-                    ),
-                    padding: EdgeInsets.zero,
-                    onPressed: () async {
-                      final picture = await Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const MessageCameraView())) as File?;
-                      if (picture != null) {
-                        _loadedFiles.add((FileType.image, picture));
-                        await widget.onChange(_loadedFiles);
-                      }
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    icon: const Icon(Icons.camera,),
-                  ),
-                  IconButton(
-                    iconSize: 24,
-                    style: IconButton.styleFrom(
-                        backgroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .surface,
-                        foregroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .onSurface,
-                        side: BorderSide(
-                          width: 1,
-                          color: Theme
-                              .of(context)
-                              .colorScheme
-                              .secondary,
-                        )
-                    ),
-                    padding: EdgeInsets.zero,
-                    onPressed: () async {
-                      final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
-                      if (result != null) {
-                        setState(() {
-                          _loadedFiles.addAll(
-                              result.files.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null)
-                                  .whereNotNull());
-                        });
-                      }
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    icon: const Icon(Icons.file_present_rounded,),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          icon: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(64),
-              border: Border.all(
-                color: Theme
-                    .of(context)
-                    .colorScheme
-                    .primary,
-              ),
-            ),
-            child: Icon(
-              Icons.add,
-              color: Theme.of(context).colorScheme.onSurface,
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          switchInCurve: Curves.decelerate,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SizeTransition(
+              sizeFactor: animation,
+              axis: Axis.horizontal,
+              //position: Tween<Offset>(begin: const Offset(1, 0), end: const Offset(0, 0)).animate(animation),
+              child: child,
             ),
           ),
+          child: _popupIsOpen ? Row(
+            key: const ValueKey("popup-buttons"),
+            children: [
+              IconButton(
+                iconSize: 24,
+                style: IconButton.styleFrom(
+                    backgroundColor: Theme
+                        .of(context)
+                        .colorScheme
+                        .surface,
+                    foregroundColor: Theme
+                        .of(context)
+                        .colorScheme
+                        .onSurface,
+                    side: BorderSide(
+                      width: 1,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .secondary,
+                    )
+                ),
+                padding: EdgeInsets.zero, 
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
+                  if (result != null) {
+                    setState(() {
+                      _loadedFiles.addAll(
+                          result.files.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
+                              .whereNotNull());
+                    });
+                  }
+
+                },
+                icon: const Icon(Icons.image,),
+              ),
+              IconButton(
+                iconSize: 24,
+                style: IconButton.styleFrom(
+                    backgroundColor: Theme
+                        .of(context)
+                        .colorScheme
+                        .surface,
+                    foregroundColor: Theme
+                        .of(context)
+                        .colorScheme
+                        .onSurface,
+                    side: BorderSide(
+                      width: 1,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .secondary,
+                    )
+                ),
+                padding: EdgeInsets.zero,
+                onPressed: () async {
+                  final picture = await Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const MessageCameraView())) as File?;
+                  if (picture != null) {
+                    _loadedFiles.add((FileType.image, picture));
+                    await widget.onChange(_loadedFiles);
+                  }
+                },
+                icon: const Icon(Icons.camera,),
+              ),
+              IconButton(
+                iconSize: 24,
+                style: IconButton.styleFrom(
+                    backgroundColor: Theme
+                        .of(context)
+                        .colorScheme
+                        .surface,
+                    foregroundColor: Theme
+                        .of(context)
+                        .colorScheme
+                        .onSurface,
+                    side: BorderSide(
+                      width: 1,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .secondary,
+                    )
+                ),
+                padding: EdgeInsets.zero,
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
+                  if (result != null) {
+                    setState(() {
+                      _loadedFiles.addAll(
+                          result.files.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null)
+                              .whereNotNull());
+                    });
+                  }
+                },
+                icon: const Icon(Icons.file_present_rounded,),
+              ),
+            ],
+          ) : const SizedBox.shrink(),
         ),
+        Container(
+          color: Theme.of(context).colorScheme.surface,
+          child: IconButton(onPressed: () {
+            setState(() {
+              _popupIsOpen = !_popupIsOpen;
+            });
+          }, icon: AnimatedRotation(
+            duration: const Duration(milliseconds: 200),
+            turns: _popupIsOpen ? 3/8 : 0,
+            child: const Icon(Icons.add),
+          )),
+        )
       ],
     );
   }

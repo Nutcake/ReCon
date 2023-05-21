@@ -270,7 +270,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                 });
                               }
                             },
-                            icon: const Icon(Icons.camera_alt),
+                            icon: const Icon(Icons.camera),
                             label: const Text("Camera"),
                           ),
                           TextButton.icon(
@@ -393,11 +393,13 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             hintText: _isRecording ? "" : "Message ${widget.recipient
                                 .username}...",
                             hintMaxLines: 1,
-
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            fillColor: Colors.black38,
+                            filled: true,
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24)
-                            ),
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(24),
+                            )
                           ),
                         ),
                         AnimatedSwitcher(
