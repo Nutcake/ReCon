@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:uuid/uuid.dart';
 
 class MessageRecordButton extends StatefulWidget {
   const MessageRecordButton({required this.disabled, this.onRecordStart, this.onRecordEnd, super.key});
