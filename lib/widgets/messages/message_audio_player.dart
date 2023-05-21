@@ -88,8 +88,26 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
     return FutureBuilder(
       future: _audioFileFuture,
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return IntrinsicWidth(
+        if (snapshot.hasError) {
+          return SizedBox(
+            width: 300,
+            child: Row(
+              children: [
+                const Icon(Icons.volume_off),
+                const SizedBox(width: 8,),
+                Expanded(
+                  child: Text(
+                    "Failed to load voice message: ${snapshot.error}",
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return IntrinsicWidth(
           child: StreamBuilder<PlayerState>(
               stream: _audioPlayer.playerStateStream,
               builder: (context, snapshot) {
@@ -103,7 +121,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          IconButton(
+                          snapshot.hasData ? IconButton(
                             onPressed: () {
                               switch (playerState.processingState) {
                                 case ProcessingState.idle:
@@ -124,16 +142,15 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                               }
                             },
                             color: widget.foregroundColor,
-                            icon: SizedBox(
-                              width: 24,
-                              height: 24,
+                            icon: SizedBox.square(
+                              dimension: 24,
                               child: playerState.processingState == ProcessingState.loading
                                   ? const Center(child: CircularProgressIndicator(),)
                                   : Icon(((_audioPlayer.duration ?? Duration.zero) - _audioPlayer.position).inMilliseconds <
                                   10 ? Icons.replay
                                   : (playerState.playing ? Icons.pause : Icons.play_arrow)),
                             ),
-                          ),
+                          ) : const SizedBox.square(dimension: 24, child: CircularProgressIndicator(),),
                           StreamBuilder(
                               stream: _audioPlayer.positionStream,
                               builder: (context, snapshot) {
@@ -200,36 +217,6 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
               }
           ),
         );
-        } else if (snapshot.hasError) {
-          return SizedBox(
-            width: 300,
-            child: Row(
-              children: [
-                const Icon(Icons.volume_off),
-                const SizedBox(width: 8,),
-                Expanded(
-                  child: Text(
-                    "Failed to load voice message: ${snapshot.error}",
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: true,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          return const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Icon(Icons.volume_up),
-                SizedBox(width: 8,),
-                Center(child: CircularProgressIndicator()),
-              ],
-            ),
-          );
-        }
       }
     );
   }

@@ -98,6 +98,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       type: MessageType.text,
       content: content,
       sendTime: DateTime.now().toUtc(),
+      state: MessageState.local,
     );
     mClient.sendMessage(message);
     _messageTextController.clear();
@@ -119,6 +120,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       type: MessageType.object,
       content: jsonEncode(record.toMap()),
       sendTime: DateTime.now().toUtc(),
+      state: MessageState.local
     );
     mClient.sendMessage(message);
     _messageTextController.clear();
@@ -140,6 +142,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       type: MessageType.sound,
       content: jsonEncode(record.toMap()),
       sendTime: DateTime.now().toUtc(),
+      state: MessageState.local,
     );
     mClient.sendMessage(message);
     _messageTextController.clear();
@@ -161,6 +164,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       type: MessageType.object,
       content: jsonEncode(record.toMap()),
       sendTime: DateTime.now().toUtc(),
+      state: MessageState.local,
     );
     mClient.sendMessage(message);
     _messageTextController.clear();
@@ -195,7 +199,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         .of(context)
                         .colorScheme
                         .onSecondaryContainer
-                        .withAlpha(150),),
+                        .withAlpha(150),
+                    ),
                   ),
                 ],
               ),
@@ -452,7 +457,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               _attachmentPickerOpen = true;
                             });
                           },
-                          icon: const Icon(Icons.attach_file),
+                          icon: const Icon(Icons.attach_file, size: 28,),
                         ) :
                         IconButton(
                           key: const ValueKey("remove-attachment-icon"),
@@ -487,12 +492,12 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               });
                             }
                           },
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, size: 28,),
                         ),
                       ),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                           child: TextField(
                             enabled: cache != null && cache.error == null && !_isSending,
                             autocorrect: true,
@@ -518,13 +523,13 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(24)
-                                )
+                                ),
                             ),
                           ),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 8, right: 4.0),
+                        padding: const EdgeInsets.all(4),
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 200),
                           transitionBuilder: (Widget child, Animation<double> animation) =>
@@ -533,6 +538,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           child: _hasText || _loadedFiles.isNotEmpty ? IconButton(
                             key: const ValueKey("send-button"),
                             splashRadius: 24,
+                            padding: EdgeInsets.zero,
                             onPressed: _isSending ? null : () async {
                               final sMsgnr = ScaffoldMessenger.of(context);
                               final settings = ClientHolder
@@ -584,7 +590,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 _sendProgress = null;
                               });
                             },
-                            iconSize: 28,
                             icon: const Icon(Icons.send),
                           ) : MessageRecordButton(
                             key: const ValueKey("mic-button"),

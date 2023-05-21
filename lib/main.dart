@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:io' show Platform;
 
 import 'package:contacts_plus_plus/apis/github_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';

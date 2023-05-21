@@ -49,7 +49,7 @@ class Message implements Comparable {
   final MessageState state;
 
   Message({required this.id, required this.recipientId, required this.senderId, required this.type,
-    required this.content, required DateTime sendTime, this.state=MessageState.local})
+    required this.content, required DateTime sendTime, required this.state})
       : formattedContent = FormatNode.fromText(content), sendTime = sendTime.toUtc();
 
   factory Message.fromMap(Map map, {MessageState? withState}) {
@@ -65,7 +65,7 @@ class Message implements Comparable {
       type: type,
       content: map["content"],
       sendTime: DateTime.parse(map["sendTime"]),
-      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.local)
+      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.sent)
     );
   }
 

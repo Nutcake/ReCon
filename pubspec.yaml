@@ -60,6 +60,7 @@ dependencies:
   record: ^4.4.4
   camera: ^0.10.5
   path_provider: ^2.0.15
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

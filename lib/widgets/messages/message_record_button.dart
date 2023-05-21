@@ -34,6 +34,7 @@ class _MessageRecordButtonState extends State<MessageRecordButton> {
       child: GestureDetector(
         onTapDown: widget.disabled ? null : (_) async {
           HapticFeedback.vibrate();
+          /*
           widget.onRecordStart?.call();
           final dir = await getTemporaryDirectory();
           await _recorder.start(
@@ -41,16 +42,19 @@ class _MessageRecordButtonState extends State<MessageRecordButton> {
             encoder: AudioEncoder.opus,
             samplingRate: 44100,
           );
+           */
         },
-        onTapUp: (_) async {
+        onLongPressUp: () async {
+          /*
           if (await _recorder.isRecording()) {
             final recording = await _recorder.stop();
             widget.onRecordEnd?.call(recording == null ? null : File(recording));
           }
+           */
         },
-        child: const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Icon(Icons.mic_outlined),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(Icons.mic_outlined, size: 28, color: Theme.of(context).colorScheme.onSurface,),
         ),
       ),
     );
