@@ -205,7 +205,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
       },
       child: Container(
         decoration: BoxDecoration(
-          border: const Border(top: BorderSide(width: 1, color: Colors.black38)),
+          border: const Border(top: BorderSide(width: 1, color: Colors.black)),
           color: Theme
               .of(context)
               .colorScheme
@@ -389,13 +389,14 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             }
                             _currentText = text;
                           },
+                          style: Theme.of(context).textTheme.bodyLarge,
                           decoration: InputDecoration(
                             isDense: true,
                             hintText: _isRecording ? "" : "Message ${widget.recipient
                                 .username}...",
                             hintMaxLines: 1,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            fillColor: Colors.black38,
+                            fillColor: Colors.black26,
                             filled: true,
                             border: OutlineInputBorder(
                               borderSide: BorderSide.none,

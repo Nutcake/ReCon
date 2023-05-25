@@ -1,4 +1,5 @@
 import 'package:contacts_plus_plus/config.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' as htmlparser;
 
@@ -90,4 +91,14 @@ extension Format on Duration {
 extension DateTimeX on DateTime {
   static DateTime epoch = DateTime.fromMillisecondsSinceEpoch(0);
   static DateTime one = DateTime(1);
+}
+
+extension ColorX on Color {
+  Color invert() {
+    final r = 255 - red;
+    final g = 255 - green;
+    final b = 255 - blue;
+
+    return Color.fromARGB((opacity * 255).round(), r, g, b);
+  }
 }

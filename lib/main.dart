@@ -120,9 +120,15 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                   title: 'Contacts++',
                   theme: ThemeData(
                     useMaterial3: true,
+                    textTheme: _typography.black,
+                    colorScheme: lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
+                  ),
+                  darkTheme: ThemeData(
+                    useMaterial3: true,
                     textTheme: _typography.white,
                     colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
                   ),
+                  themeMode: ThemeMode.dark,
                   home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
                     builder: (context) {
                       showUpdateDialogOnFirstBuild(context);

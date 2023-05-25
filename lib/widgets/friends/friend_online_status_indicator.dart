@@ -15,11 +15,11 @@ class FriendOnlineStatusIndicator extends StatelessWidget {
         child: Image.asset(
           "assets/images/logo-white.png",
           alignment: Alignment.center,
-          color: userStatus.onlineStatus.color,
+          color: userStatus.onlineStatus.color(context),
         ),
       ) : Icon(
         userStatus.onlineStatus == OnlineStatus.offline ? Icons.circle_outlined : Icons.circle,
-        color: userStatus.onlineStatus.color,
+        color: userStatus.onlineStatus.color(context),
         size: 10,
       );
   }

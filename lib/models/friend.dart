@@ -93,14 +93,14 @@ enum OnlineStatus {
   online;
 
   static final List<Color> _colors = [
-    Colors.white54,
-    Colors.white54,
+    Colors.transparent,
+    Colors.transparent,
     Colors.yellow,
     Colors.red,
     Colors.green,
   ];
 
-  Color get color => _colors[index];
+  Color color(BuildContext context) => this == OnlineStatus.offline || this == OnlineStatus.invisible ? Theme.of(context).colorScheme.onSurface : _colors[index];
 
   factory OnlineStatus.fromString(String? text) {
     return OnlineStatus.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),

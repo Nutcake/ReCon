@@ -77,7 +77,7 @@ class _FriendsListState extends State<FriendsList> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(right: 8.0),
-                            child: Icon(Icons.circle, size: 16, color: userStatus.onlineStatus.color,),
+                            child: Icon(Icons.circle, size: 16, color: userStatus.onlineStatus.color(context),),
                           ),
                           Text(toBeginningOfSentenceCase(userStatus.onlineStatus.name) ?? "Unknown"),
                         ],
@@ -112,7 +112,7 @@ class _FriendsListState extends State<FriendsList> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Icon(Icons.circle, size: 16, color: item.color,),
+                                    Icon(Icons.circle, size: 16, color: item.color(context),),
                                     const SizedBox(width: 8,),
                                     Text(toBeginningOfSentenceCase(item.name)!),
                                   ],

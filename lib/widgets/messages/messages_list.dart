@@ -1,3 +1,4 @@
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/audio_cache_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
@@ -89,7 +90,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   constraints: const BoxConstraints(maxHeight: 64),
                   decoration: BoxDecoration(
                       color: appBarColor,
-                      border: const Border(top: BorderSide(width: 1, color: Colors.black26),)
+                      border: const Border(bottom: BorderSide(width: 1, color: Colors.black),)
                   ),
                   child: Stack(
                     children: [
