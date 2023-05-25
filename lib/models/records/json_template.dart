@@ -7,12 +7,13 @@ class JsonTemplate {
 
   JsonTemplate({required this.data});
 
-  factory JsonTemplate.image({required String imageUri, required int width, required int height}) {
+  factory JsonTemplate.image({required String imageUri, required String filename, required int width, required int height}) {
     final texture2dUid = const Uuid().v4();
     final quadMeshUid = const Uuid().v4();
     final quadMeshSizeUid = const Uuid().v4();
     final materialId = const Uuid().v4();
     final boxColliderSizeUid = const Uuid().v4();
+    final ratio = height/width;
     final data = {
       "Object": {
         "ID": const Uuid().v4(),
@@ -508,8 +509,8 @@ class JsonTemplate {
                 "Size": {
                   "ID": quadMeshSizeUid,
                   "Data": [
-                    1,
-                    height/width
+                    ratio > 1 ? ratio : 1,
+                    ratio > 1 ? 1 : ratio
                   ]
                 },
                 "UVScale": {
@@ -706,7 +707,7 @@ class JsonTemplate {
         },
         "Name": {
           "ID": const Uuid().v4(),
-          "Data": "alice"
+          "Data": filename
         },
         "Tag": {
           "ID": const Uuid().v4(),

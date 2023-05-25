@@ -286,7 +286,7 @@ class MessagingClient extends ChangeNotifier {
             Uri.parse("${Config.neosHubUrl}/negotiate"),
             headers: _apiClient.authorizationHeader,
           );
-          ApiClient.checkResponse(response);
+          _apiClient.checkResponse(response);
         } catch (e) {
           throw "Failed to acquire connection info from Neos API: $e";
         }

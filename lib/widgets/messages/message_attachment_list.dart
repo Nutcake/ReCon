@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:contacts_plus_plus/widgets/messages/message_camera_view.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
 class MessageAttachmentList extends StatefulWidget {
@@ -22,7 +22,6 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
   final ScrollController _scrollController = ScrollController();
   bool _showShadow = true;
   bool _popupIsOpen = false;
-
   @override
   void initState() {
     super.initState();
@@ -88,7 +87,9 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                                       TextButton(
                                         onPressed: () async {
                                           Navigator.of(context).pop();
-                                          _loadedFiles.remove(file);
+                                          setState(() {
+                                            _loadedFiles.remove(file);
+                                          });
                                           await widget.onChange(_loadedFiles);
                                         },
                                         child: const Text("Yes"),
@@ -156,7 +157,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                           .secondary,
                     )
                 ),
-                padding: EdgeInsets.zero, 
+                padding: EdgeInsets.zero,
                 onPressed: () async {
                   final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
                   if (result != null) {
@@ -191,11 +192,19 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                 ),
                 padding: EdgeInsets.zero,
                 onPressed: () async {
-                  final picture = await Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const MessageCameraView())) as File?;
+                  final picture = await ImagePicker().pickImage(source: ImageSource.camera);
                   if (picture != null) {
-                    _loadedFiles.add((FileType.image, picture));
-                    await widget.onChange(_loadedFiles);
+                    final file = File(picture.path);
+                    if (await file.exists()) {
+                      setState(() {
+                      _loadedFiles.add((FileType.image, file));
+                      });
+                      await widget.onChange(_loadedFiles);
+                    } else {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to load image file")));
+                      }
+                    }
                   }
                 },
                 icon: const Icon(Icons.camera,),

@@ -19,7 +19,7 @@ import 'package:path/path.dart';
 class RecordApi {
   static Future<List<Record>> getRecordsAt(ApiClient client, {required String path}) async {
     final response = await client.get("/users/${client.userId}/records?path=$path");
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
     final body = jsonDecode(response.body) as List;
     return body.map((e) => Record.fromMap(e)).toList();
   }
@@ -28,7 +28,7 @@ class RecordApi {
     final body = jsonEncode(record.toMap());
     final response = await client.post(
         "/users/${record.ownerId}/records/${record.id}/preprocess", body: body);
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
     final resultBody = jsonDecode(response.body);
     return PreprocessStatus.fromMap(resultBody);
   }
@@ -38,7 +38,7 @@ class RecordApi {
     final response = await client.get(
         "/users/${preprocessStatus.ownerId}/records/${preprocessStatus.recordId}/preprocess/${preprocessStatus.id}"
     );
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
     final body = jsonDecode(response.body);
     return PreprocessStatus.fromMap(body);
   }
@@ -58,7 +58,7 @@ class RecordApi {
 
   static Future<AssetUploadData> beginUploadAsset(ApiClient client, {required NeosDBAsset asset}) async {
     final response = await client.post("/users/${client.userId}/assets/${asset.hash}/chunks");
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
     final body = jsonDecode(response.body);
     final res = AssetUploadData.fromMap(body);
     if (res.uploadState == UploadState.failed) throw body;
@@ -68,7 +68,7 @@ class RecordApi {
   static Future<void> upsertRecord(ApiClient client, {required Record record}) async {
     final body = jsonEncode(record.toMap());
     final response = await client.put("/users/${client.userId}/records/${record.id}", body: body);
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
   }
 
   static Future<void> uploadAsset(ApiClient client,
@@ -87,14 +87,14 @@ class RecordApi {
         ..headers.addAll(client.authorizationHeader);
       final response = await request.send();
       final bodyBytes = await response.stream.toBytes();
-      ApiClient.checkResponse(http.Response.bytes(bodyBytes, response.statusCode));
+      client.checkResponse(http.Response.bytes(bodyBytes, response.statusCode));
       progressCallback?.call(1);
     }
   }
 
   static Future<void> finishUpload(ApiClient client, {required NeosDBAsset asset}) async {
     final response = await client.patch("/users/${client.userId}/assets/${asset.hash}/chunks");
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
   }
 
   static Future<void> uploadAssets(ApiClient client, {required List<AssetDigest> assets, void Function(double progress)? progressCallback}) async {
@@ -123,14 +123,14 @@ class RecordApi {
     progressCallback?.call(0);
     final imageDigest = await AssetDigest.fromData(await image.readAsBytes(), basename(image.path));
     final imageData = await decodeImageFromList(imageDigest.data);
+    final filename = basenameWithoutExtension(image.path);
 
     final objectJson = jsonEncode(
-        JsonTemplate.image(imageUri: imageDigest.dbUri, width: imageData.width, height: imageData.height).data);
+        JsonTemplate.image(imageUri: imageDigest.dbUri, filename: filename, width: imageData.width, height: imageData.height).data);
     final objectBytes = Uint8List.fromList(utf8.encode(objectJson));
 
     final objectDigest = await AssetDigest.fromData(objectBytes, "${basenameWithoutExtension(image.path)}.json");
 
-    final filename = basenameWithoutExtension(image.path);
     final digests = [imageDigest, objectDigest];
 
     final record = Record.fromRequiredData(

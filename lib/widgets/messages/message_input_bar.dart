@@ -10,10 +10,10 @@ import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_attachment_list.dart';
-import 'package:contacts_plus_plus/widgets/messages/message_camera_view.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
@@ -21,9 +21,8 @@ import 'package:uuid/uuid.dart';
 
 
 class MessageInputBar extends StatefulWidget {
-  const MessageInputBar({this.showShadow=true, this.disabled=false, required this.recipient, this.onMessageSent, super.key});
+  const MessageInputBar({this.disabled=false, required this.recipient, this.onMessageSent, super.key});
 
-  final bool showShadow;
   final bool disabled;
   final Friend recipient;
   final Function()? onMessageSent;
@@ -36,6 +35,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
   final TextEditingController _messageTextController = TextEditingController();
   final List<(FileType, File)> _loadedFiles = [];
   final Record _recorder = Record();
+  final ImagePicker _imagePicker = ImagePicker();
 
   DateTime? _recordingStartTime;
 
@@ -46,7 +46,6 @@ class _MessageInputBarState extends State<MessageInputBar> {
   bool get _isRecording => _recordingStartTime != null;
   set _isRecording(value) => _recordingStartTime = value ? DateTime.now() : null;
   bool _recordingCancelled = false;
-
 
   Future<void> sendTextMessage(ApiClient client, MessagingClient mClient, String content) async {
     if (content.isEmpty) return;
@@ -204,24 +203,15 @@ class _MessageInputBarState extends State<MessageInputBar> {
           }
         }
       },
-      child: AnimatedContainer(
+      child: Container(
         decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              blurRadius: widget.showShadow ? 8 : 0,
-              color: Theme
-                  .of(context)
-                  .shadowColor,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: const Border(top: BorderSide(width: 1, color: Colors.black38)),
           color: Theme
               .of(context)
               .colorScheme
               .background,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 4),
-        duration: const Duration(milliseconds: 250),
         child: Column(
           children: [
             if (_isSending && _sendProgress != null)
@@ -262,13 +252,24 @@ class _MessageInputBarState extends State<MessageInputBar> {
                           ),
                           TextButton.icon(
                             onPressed: _isSending ? null : () async {
-                              final picture = await Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (context) => const MessageCameraView())) as File?;
-                              if (picture != null) {
-                                setState(() {
-                                  _loadedFiles.add((FileType.image, picture));
-                                });
+                              final picture = await _imagePicker.pickImage(source: ImageSource.camera);
+                              if (picture == null) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to get image path")));
+                                }
+                                return;
                               }
+                              final file = File(picture.path);
+                              if (await file.exists()) {
+                                setState(() {
+                                  _loadedFiles.add((FileType.image, file));
+                                });
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to load image file")));
+                                }
+                              }
+
                             },
                             icon: const Icon(Icons.camera),
                             label: const Text("Camera"),

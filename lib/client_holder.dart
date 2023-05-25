@@ -30,5 +30,6 @@ class ClientHolder extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant ClientHolder oldWidget) =>
       oldWidget.apiClient != apiClient
-          || oldWidget.settingsClient != settingsClient;
+          || oldWidget.settingsClient != settingsClient
+          || oldWidget.notificationClient != notificationClient;
 }

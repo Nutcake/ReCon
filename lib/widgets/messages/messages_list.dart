@@ -21,9 +21,7 @@ class MessagesList extends StatefulWidget {
 
 class _MessagesListState extends State<MessagesList> with SingleTickerProviderStateMixin {
   final ScrollController _sessionListScrollController = ScrollController();
-  final ScrollController _messageScrollController = ScrollController();
 
-  bool _showBottomBarShadow = false;
   bool _showSessionListScrollChevron = false;
 
   double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
@@ -47,19 +45,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
           && _showSessionListScrollChevron) {
         setState(() {
           _showSessionListScrollChevron = false;
-        });
-      }
-    });
-    _messageScrollController.addListener(() {
-      if (!_messageScrollController.hasClients) return;
-      if (_messageScrollController.position.atEdge && _messageScrollController.position.pixels == 0 &&
-          _showBottomBarShadow) {
-        setState(() {
-          _showBottomBarShadow = false;
-        });
-      } else if (!_showBottomBarShadow) {
-        setState(() {
-          _showBottomBarShadow = true;
         });
       }
     });
@@ -189,7 +174,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           return Provider(
                             create: (BuildContext context) => AudioCacheClient(),
                             child: ListView.builder(
-                              controller: _messageScrollController,
                               reverse: true,
                               itemCount: cache.messages.length,
                               itemBuilder: (context, index) {
@@ -212,7 +196,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                 MessageInputBar(
                   recipient: widget.friend,
                   disabled: cache == null || cache.error != null,
-                  showShadow: _showBottomBarShadow,
                   onMessageSent: () {
                     setState(() {});
                   },

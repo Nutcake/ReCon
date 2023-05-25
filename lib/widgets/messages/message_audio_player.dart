@@ -19,7 +19,7 @@ class MessageAudioPlayer extends StatefulWidget {
   State<MessageAudioPlayer> createState() => _MessageAudioPlayerState();
 }
 
-class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBindingObserver {
+class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
   final AudioPlayer _audioPlayer = AudioPlayer();
   Future? _audioFileFuture;
   double _sliderValue = 0;
@@ -82,6 +82,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (!Platform.isAndroid) {
       return _createErrorWidget("Sorry, audio-messages are not\n supported on this platform.");
     }
@@ -220,4 +221,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
       }
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
