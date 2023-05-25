@@ -252,6 +252,7 @@ class _FriendsListState extends State<FriendsList> {
                     friends.sort((a, b) => a.username.length.compareTo(b.username.length));
                   }
                   return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
                     itemCount: friends.length,
                     itemBuilder: (context, index) {
                       final friend = friends[index];

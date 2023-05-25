@@ -1,4 +1,3 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/audio_cache_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
@@ -24,6 +23,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   final ScrollController _sessionListScrollController = ScrollController();
 
   bool _showSessionListScrollChevron = false;
+  bool _sessionListOpen = false;
 
   double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
 
@@ -50,7 +50,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       }
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -81,50 +80,78 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   ),
                 ],
               ),
+              bottom: sessions.isNotEmpty && _sessionListOpen ? null : PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(
+                  height: 1,
+                  color: Colors.black,
+                ),
+              ),
+              actions: [
+                if (sessions.isNotEmpty) AnimatedRotation(
+                  turns: _sessionListOpen ? -1/4 : 1/4,
+                  duration: const Duration(milliseconds: 200),
+                  child: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _sessionListOpen = !_sessionListOpen;
+                      });
+                    },
+                    icon: const Icon(Icons.chevron_right),
+                  ),
+                ),
+                const SizedBox(width: 4,)
+              ],
               scrolledUnderElevation: 0.0,
               backgroundColor: appBarColor,
+              surfaceTintColor: Colors.transparent,
+              shadowColor: Colors.transparent,
             ),
             body: Column(
               children: [
-                if (sessions.isNotEmpty) Container(
-                  constraints: const BoxConstraints(maxHeight: 64),
-                  decoration: BoxDecoration(
-                      color: appBarColor,
-                      border: const Border(bottom: BorderSide(width: 1, color: Colors.black),)
-                  ),
-                  child: Stack(
-                    children: [
-                      ListView.builder(
-                        controller: _sessionListScrollController,
-                        scrollDirection: Axis.horizontal,
-                        itemCount: sessions.length,
-                        itemBuilder: (context, index) => SessionTile(session: sessions[index]),
-                      ),
-                      AnimatedOpacity(
-                        opacity: _shevronOpacity,
-                        curve: Curves.easeOut,
-                        duration: const Duration(milliseconds: 200),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Container(
-                            padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  appBarColor.withOpacity(0),
-                                  appBarColor,
-                                  appBarColor,
-                                ],
-                              ),
-                            ),
-                            height: double.infinity,
-                            child: const Icon(Icons.chevron_right),
-                          ),
+                if (sessions.isNotEmpty) AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) => SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
+                  child: sessions.isEmpty || !_sessionListOpen ? null : Container(
+                    constraints: const BoxConstraints(maxHeight: 64),
+                    decoration: BoxDecoration(
+                        color: appBarColor,
+                        border: const Border(bottom: BorderSide(width: 1, color: Colors.black),)
+                    ),
+                    child: Stack(
+                      children: [
+                        ListView.builder(
+                          controller: _sessionListScrollController,
+                          scrollDirection: Axis.horizontal,
+                          itemCount: sessions.length,
+                          itemBuilder: (context, index) => SessionTile(session: sessions[index]),
                         ),
-                      )
-                    ],
+                        AnimatedOpacity(
+                          opacity: _shevronOpacity,
+                          curve: Curves.easeOut,
+                          duration: const Duration(milliseconds: 200),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    appBarColor.withOpacity(0),
+                                    appBarColor,
+                                    appBarColor,
+                                  ],
+                                ),
+                              ),
+                              height: double.infinity,
+                              child: const Icon(Icons.chevron_right),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
@@ -176,6 +203,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             create: (BuildContext context) => AudioCacheClient(),
                             child: ListView.builder(
                               reverse: true,
+                              physics: const BouncingScrollPhysics(),
                               itemCount: cache.messages.length,
                               itemBuilder: (context, index) {
                                 final entry = cache.messages[index];

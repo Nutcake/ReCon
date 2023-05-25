@@ -72,6 +72,7 @@ class MessagingClient extends ChangeNotifier {
       box.delete(_lastUpdateKey);
       await refreshFriendsListWithErrorHandler();
       await _refreshUnreads();
+      _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
     });
     _startWebsocket();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
@@ -85,6 +86,7 @@ class MessagingClient extends ChangeNotifier {
   void dispose() {
     _autoRefresh?.cancel();
     _notifyOnlineTimer?.cancel();
+    _unreadSafeguard?.cancel();
     _wsChannel?.close();
     super.dispose();
   }
@@ -217,12 +219,10 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> _refreshUnreads() async {
-    _unreadSafeguard?.cancel();
     try {
       final unreadMessages = await MessageApi.getUserMessages(_apiClient, unreadOnly: true);
       updateAllUnreads(unreadMessages.toList());
     } catch (_) {}
-    _unreadSafeguard = Timer(_unreadSafeguardDuration, _refreshUnreads);
   }
 
   void _sortFriendsCache() {
