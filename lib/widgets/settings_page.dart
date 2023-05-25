@@ -1,5 +1,7 @@
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -26,6 +28,31 @@ class SettingsPage extends StatelessWidget {
             title: "Enable Notifications",
             initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
             onChanged: (value) async => await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
+          ),
+          const ListSectionHeader(name: "Appearance"),
+          ListTile(
+            trailing: StatefulBuilder(
+                builder: (context, setState) {
+                  return DropdownButton<ThemeMode>(
+                    items: ThemeMode.values.map((mode) => DropdownMenuItem<ThemeMode>(
+                      value: mode,
+                      child: Text("${toBeginningOfSentenceCase(mode.name)}",),
+                    )).toList(),
+                    value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
+                    onChanged: (ThemeMode? value) async {
+                      final currentSetting = sClient.currentSettings.themeMode.value;
+                      if (currentSetting != value?.index) {
+                        await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
+                        if (context.mounted) {
+                          Phoenix.rebirth(context);
+                        }
+                      }
+                      setState(() {});
+                    },
+                  );
+                }
+            ),
+            title: const Text("Theme Mode"),
           ),
           const ListSectionHeader(name: "Other"),
           ListTile(

@@ -128,7 +128,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                     textTheme: _typography.white,
                     colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
                   ),
-                  themeMode: ThemeMode.dark,
+                  themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
                   home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
                     builder: (context) {
                       showUpdateDialogOnFirstBuild(context);
