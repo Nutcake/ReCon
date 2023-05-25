@@ -14,8 +14,9 @@ class ClientHolder extends InheritedWidget {
     super.key,
     required AuthenticationData authenticationData,
     required this.settingsClient,
-    required super.child
-  }) : apiClient = ApiClient(authenticationData: authenticationData);
+    required super.child,
+    required Function() onLogout,
+  }) : apiClient = ApiClient(authenticationData: authenticationData, onLogout: onLogout);
 
   static ClientHolder? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ClientHolder>();

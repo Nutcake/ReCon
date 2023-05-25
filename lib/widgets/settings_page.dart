@@ -44,7 +44,7 @@ class SettingsPage extends StatelessWidget {
                         TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
                         TextButton(
                           onPressed: () async {
-                            await ClientHolder.of(context).apiClient.logout(context);
+                            await ClientHolder.of(context).apiClient.logout();
                           },
                           child: const Text("Yes"),
                         ),

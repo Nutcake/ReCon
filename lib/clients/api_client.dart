@@ -18,10 +18,12 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData, required this.onLogout}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
+  // Saving the context here feels kinda cringe ngl
+  final Function() onLogout;
 
   AuthenticationData get authenticationData => _authenticationData;
   String get userId => _authenticationData.userId;
@@ -103,7 +105,7 @@ class ApiClient {
     return AuthenticationData.unauthenticated();
   }
 
-  Future<void> logout(BuildContext context) async {
+  Future<void> logout() async {
     const FlutterSecureStorage storage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     );
@@ -111,9 +113,7 @@ class ApiClient {
     await storage.delete(key: machineIdKey);
     await storage.delete(key: tokenKey);
     await storage.delete(key: passwordKey);
-    if (context.mounted) {
-      Phoenix.rebirth(context);
-    }
+    onLogout();
   }
 
   Future<void> extendSession() async {
@@ -127,7 +127,7 @@ class ApiClient {
     if (response.statusCode == 403) {
       tryCachedLogin().then((value) {
         if (!value.isAuthenticated) {
-          // TODO: Turn api-client into a change notifier to present login screen when logged out
+          onLogout();
         }
       });
     }
@@ -138,7 +138,7 @@ class ApiClient {
     if (response.statusCode < 300) return;
 
     final error = "${switch (response.statusCode) {
-      429 => "Sorry, you are being rate limited.",
+      429 => "You are being rate limited.",
       403 => "You are not authorized to do that.",
       404 => "Resource not found.",
       500 => "Internal server error.",

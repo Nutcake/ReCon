@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:contacts_plus_plus/apis/github_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
+import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
@@ -26,14 +27,20 @@ void main() async {
   Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
-  await settingsClient.changeSettings(settingsClient.currentSettings); // Save generated defaults to disk
-  runApp(Phoenix(child: ContactsPlusPlus(settingsClient: settingsClient,)));
+  final newSettings = settingsClient.currentSettings.copyWith(machineId: settingsClient.currentSettings.machineId.valueOrDefault);
+  await settingsClient.changeSettings(newSettings); // Save generated machineId to disk
+  AuthenticationData cachedAuth = AuthenticationData.unauthenticated();
+  try {
+    cachedAuth = await ApiClient.tryCachedLogin();
+  } catch (_) {}
+  runApp(ContactsPlusPlus(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
 }
 
 class ContactsPlusPlus extends StatefulWidget {
-  const ContactsPlusPlus({required this.settingsClient, super.key});
+  const ContactsPlusPlus({required this.settingsClient, required this.cachedAuthentication, super.key});
 
   final SettingsClient settingsClient;
+  final AuthenticationData cachedAuthentication;
 
   @override
   State<ContactsPlusPlus> createState() => _ContactsPlusPlusState();
@@ -41,7 +48,7 @@ class ContactsPlusPlus extends StatefulWidget {
 
 class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
-  AuthenticationData _authData = AuthenticationData.unauthenticated();
+  late AuthenticationData _authData = widget.cachedAuthentication;
   bool _checkedForUpdate = false;
 
   void showUpdateDialogOnFirstBuild(BuildContext context) {
@@ -95,43 +102,55 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
 
   @override
   Widget build(BuildContext context) {
-    return ClientHolder(
-      settingsClient: widget.settingsClient,
-      authenticationData: _authData,
-      child: DynamicColorBuilder(
-        builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'Contacts++',
-            theme: ThemeData(
-              useMaterial3: true,
-              textTheme: _typography.white,
-              colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
-            ),
-            home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
-              builder: (context) {
-                showUpdateDialogOnFirstBuild(context);
-                final clientHolder = ClientHolder.of(context);
-                return _authData.isAuthenticated ?
-                ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
-                  create: (context) =>
-                      MessagingClient(
-                        apiClient: clientHolder.apiClient,
-                        notificationClient: clientHolder.notificationClient,
-                      ),
-                  child: const FriendsList(),
-                ) :
-                LoginScreen(
-                  onLoginSuccessful: (AuthenticationData authData) async {
-                    if (authData.isAuthenticated) {
-                      setState(() {
-                        _authData = authData;
-                      });
+    return Phoenix(
+      child: Builder(
+        builder: (context) {
+          return ClientHolder(
+            settingsClient: widget.settingsClient,
+            authenticationData: _authData,
+            onLogout: () {
+              setState(() {
+                _authData = AuthenticationData.unauthenticated();
+              });
+              Phoenix.rebirth(context);
+            },
+            child: DynamicColorBuilder(
+              builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  title: 'Contacts++',
+                  theme: ThemeData(
+                    useMaterial3: true,
+                    textTheme: _typography.white,
+                    colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+                  ),
+                  home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
+                    builder: (context) {
+                      showUpdateDialogOnFirstBuild(context);
+                      final clientHolder = ClientHolder.of(context);
+                      return _authData.isAuthenticated ?
+                      ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
+                        create: (context) =>
+                            MessagingClient(
+                              apiClient: clientHolder.apiClient,
+                              notificationClient: clientHolder.notificationClient,
+                            ),
+                        child: const FriendsList(),
+                      ) :
+                      LoginScreen(
+                        onLoginSuccessful: (AuthenticationData authData) async {
+                          if (authData.isAuthenticated) {
+                            setState(() {
+                              _authData = authData;
+                            });
+                          }
+                        },
+                      );
                     }
-                  },
-                );
-              }
-            )
-        ),
+                  )
+              ),
+            ),
+          );
+        }
       ),
     );
   }

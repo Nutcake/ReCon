@@ -19,12 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _totpController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  late final Future<AuthenticationData> _cachedLoginFuture = ApiClient.tryCachedLogin().then((value) async {
-    if (value.isAuthenticated) {
-      await loginSuccessful(value);
-    }
-    return value;
-  });
+
   late final FocusNode _passwordFocusNode;
   late final FocusNode _totpFocusNode;
 
@@ -150,102 +145,94 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text("Contacts++"),
       ),
-      body: FutureBuilder(
-          future: _cachedLoginFuture,
-          builder: (context, snapshot) {
-            if (snapshot.hasData || snapshot.hasError) {
-              final authData = snapshot.data;
-              if (authData?.isAuthenticated ?? false) {
-                return const SizedBox.shrink();
-              }
-              return ListView(
-                controller: _scrollController,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 64),
-                    child: Center(
-                      child: Text("Sign In", style: Theme
-                          .of(context)
-                          .textTheme
-                          .headlineMedium),
+      body: Builder(
+          builder: (context) {
+            return ListView(
+              controller: _scrollController,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 64),
+                  child: Center(
+                    child: Text("Sign In", style: Theme
+                        .of(context)
+                        .textTheme
+                        .headlineMedium),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                  child: TextField(
+                    autofocus: true,
+                    controller: _usernameController,
+                    onEditingComplete: () => _passwordFocusNode.requestFocus(),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      labelText: 'Username',
                     ),
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                  child: TextField(
+                    controller: _passwordController,
+                    focusNode: _passwordFocusNode,
+                    onEditingComplete: submit,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(32)
+                      ),
+                      labelText: 'Password',
+                    ),
+                  ),
+                ),
+                if (_needsTotp)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
                     child: TextField(
-                      autofocus: true,
-                      controller: _usernameController,
-                      onEditingComplete: () => _passwordFocusNode.requestFocus(),
+                      controller: _totpController,
+                      focusNode: _totpFocusNode,
+                      onEditingComplete: submit,
+                      obscureText: false,
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(32),
                         ),
-                        labelText: 'Username',
+                        labelText: '2FA Code',
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-                    child: TextField(
-                      controller: _passwordController,
-                      focusNode: _passwordFocusNode,
-                      onEditingComplete: submit,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(32)
-                        ),
-                        labelText: 'Password',
-                      ),
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: _isLoading ?
+                  const Center(child: CircularProgressIndicator()) :
+                  TextButton.icon(
+                    onPressed: submit,
+                    icon: const Icon(Icons.login),
+                    label: const Text("Login"),
                   ),
-                  if (_needsTotp)
-                    Padding(
+                ),
+                Center(
+                  child: AnimatedOpacity(
+                    opacity: _errorOpacity,
+                    duration: const Duration(milliseconds: 200),
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-                      child: TextField(
-                        controller: _totpController,
-                        focusNode: _totpFocusNode,
-                        onEditingComplete: submit,
-                        obscureText: false,
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(32),
-                          ),
-                          labelText: '2FA Code',
-                        ),
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: _isLoading ?
-                    const Center(child: CircularProgressIndicator()) :
-                    TextButton.icon(
-                      onPressed: submit,
-                      icon: const Icon(Icons.login),
-                      label: const Text("Login"),
+                      child: Text(_error, style: Theme
+                          .of(context)
+                          .textTheme
+                          .labelMedium
+                          ?.copyWith(color: Colors.red)),
                     ),
                   ),
-                  Center(
-                    child: AnimatedOpacity(
-                      opacity: _errorOpacity,
-                      duration: const Duration(milliseconds: 200),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-                        child: Text(_error, style: Theme
-                            .of(context)
-                            .textTheme
-                            .labelMedium
-                            ?.copyWith(color: Colors.red)),
-                      ),
-                    ),
-                  )
-                ],
-              );
-            }
-            return const LinearProgressIndicator();
+                )
+              ],
+            );
           }
       ),
     );
