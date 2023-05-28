@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import 'package:uuid/uuid.dart';
@@ -526,12 +527,18 @@ class _MessageInputBarState extends State<MessageInputBar> {
                     },
                     onTapDown: widget.disabled ? null : (_) async {
                       HapticFeedback.vibrate();
-                      if (!await _recorder.hasPermission()) {
+                      final hadToAsk = await Permission.microphone.isDenied;
+                      final hasPermission = !await _recorder.hasPermission();
+                      if (hasPermission) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                             content: Text("No permission to record audio."),
                           ));
                         }
+                        return;
+                      }
+                      if (hadToAsk) {
+                        // We had to ask for permissions so the user removed their finger from the record button.
                         return;
                       }
 
