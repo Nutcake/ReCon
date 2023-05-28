@@ -42,8 +42,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
           _showSessionListScrollChevron = true;
         });
       }
-      if (_sessionListScrollController.position.atEdge && _sessionListScrollController.position.pixels > 0
-          && _showSessionListScrollChevron) {
+      if (_sessionListScrollController.position.atEdge &&
+          _sessionListScrollController.position.pixels > 0 &&
+          _showSessionListScrollChevron) {
         setState(() {
           _showSessionListScrollChevron = false;
         });
@@ -54,185 +55,191 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final sessions = widget.friend.userStatus.activeSessions;
-    final appBarColor = Theme
-        .of(context)
-        .colorScheme
-        .surfaceVariant;
-    return Consumer<MessagingClient>(
-        builder: (context, mClient, _) {
-          final cache = mClient.getUserMessageCache(widget.friend.id);
-          return Scaffold(
-            appBar: AppBar(
-              title: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+    final appBarColor = Theme.of(context).colorScheme.surfaceVariant;
+    return Consumer<MessagingClient>(builder: (context, mClient, _) {
+      final cache = mClient.getUserMessageCache(widget.friend.id);
+      return Scaffold(
+        appBar: AppBar(
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              FriendOnlineStatusIndicator(userStatus: widget.friend.userStatus),
+              const SizedBox(
+                width: 8,
+              ),
+              Text(widget.friend.username),
+              if (widget.friend.isHeadless)
+                Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Icon(
+                    Icons.dns,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),
+                  ),
+                ),
+            ],
+          ),
+          bottom: sessions.isNotEmpty && _sessionListOpen
+              ? null
+              : PreferredSize(
+                  preferredSize: const Size.fromHeight(1),
+                  child: Container(
+                    height: 1,
+                    color: Colors.black,
+                  ),
+                ),
+          actions: [
+            if (sessions.isNotEmpty)
+              AnimatedRotation(
+                turns: _sessionListOpen ? -1 / 4 : 1 / 4,
+                duration: const Duration(milliseconds: 200),
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _sessionListOpen = !_sessionListOpen;
+                    });
+                  },
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ),
+            const SizedBox(
+              width: 4,
+            )
+          ],
+          scrolledUnderElevation: 0.0,
+          backgroundColor: appBarColor,
+          surfaceTintColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+        ),
+        body: Column(
+          children: [
+            if (sessions.isNotEmpty)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, animation) =>
+                    SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
+                child: sessions.isEmpty || !_sessionListOpen
+                    ? null
+                    : Container(
+                        constraints: const BoxConstraints(maxHeight: 64),
+                        decoration: BoxDecoration(
+                            color: appBarColor,
+                            border: const Border(
+                              bottom: BorderSide(width: 1, color: Colors.black),
+                            )),
+                        child: Stack(
+                          children: [
+                            ListView.builder(
+                              controller: _sessionListScrollController,
+                              scrollDirection: Axis.horizontal,
+                              itemCount: sessions.length,
+                              itemBuilder: (context, index) => SessionTile(session: sessions[index]),
+                            ),
+                            AnimatedOpacity(
+                              opacity: _shevronOpacity,
+                              curve: Curves.easeOut,
+                              duration: const Duration(milliseconds: 200),
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                      colors: [
+                                        appBarColor.withOpacity(0),
+                                        appBarColor,
+                                        appBarColor,
+                                      ],
+                                    ),
+                                  ),
+                                  height: double.infinity,
+                                  child: const Icon(Icons.chevron_right),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+              ),
+            Expanded(
+              child: Stack(
                 children: [
-                  FriendOnlineStatusIndicator(userStatus: widget.friend.userStatus),
-                  const SizedBox(width: 8,),
-                  Text(widget.friend.username),
-                  if (widget.friend.isHeadless) Padding(
-                    padding: const EdgeInsets.only(left: 12),
-                    child: Icon(Icons.dns, size: 18, color: Theme
-                        .of(context)
-                        .colorScheme
-                        .onSecondaryContainer
-                        .withAlpha(150),
-                    ),
+                  Builder(
+                    builder: (context) {
+                      if (cache == null) {
+                        return const Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [LinearProgressIndicator()],
+                        );
+                      }
+                      if (cache.error != null) {
+                        return DefaultErrorWidget(
+                          message: cache.error.toString(),
+                          onRetry: () {
+                            setState(() {
+                              mClient.deleteUserMessageCache(widget.friend.id);
+                            });
+                            mClient.loadUserMessageCache(widget.friend.id);
+                          },
+                        );
+                      }
+                      if (cache.messages.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.message_outlined),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                child: Text(
+                                  "There are no messages here\nWhy not say hello?",
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                              )
+                            ],
+                          ),
+                        );
+                      }
+                      return Provider(
+                        create: (BuildContext context) => AudioCacheClient(),
+                        child: ListView.builder(
+                          reverse: true,
+                          physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
+                          itemCount: cache.messages.length,
+                          itemBuilder: (context, index) {
+                            final entry = cache.messages[index];
+                            if (index == cache.messages.length - 1) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 12),
+                                child: MessageBubble(
+                                  message: entry,
+                                ),
+                              );
+                            }
+                            return MessageBubble(
+                              message: entry,
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
-              bottom: sessions.isNotEmpty && _sessionListOpen ? null : PreferredSize(
-                preferredSize: const Size.fromHeight(1),
-                child: Container(
-                  height: 1,
-                  color: Colors.black,
-                ),
-              ),
-              actions: [
-                if (sessions.isNotEmpty) AnimatedRotation(
-                  turns: _sessionListOpen ? -1/4 : 1/4,
-                  duration: const Duration(milliseconds: 200),
-                  child: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _sessionListOpen = !_sessionListOpen;
-                      });
-                    },
-                    icon: const Icon(Icons.chevron_right),
-                  ),
-                ),
-                const SizedBox(width: 4,)
-              ],
-              scrolledUnderElevation: 0.0,
-              backgroundColor: appBarColor,
-              surfaceTintColor: Colors.transparent,
-              shadowColor: Colors.transparent,
             ),
-            body: Column(
-              children: [
-                if (sessions.isNotEmpty) AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, animation) => SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
-                  child: sessions.isEmpty || !_sessionListOpen ? null : Container(
-                    constraints: const BoxConstraints(maxHeight: 64),
-                    decoration: BoxDecoration(
-                        color: appBarColor,
-                        border: const Border(bottom: BorderSide(width: 1, color: Colors.black),)
-                    ),
-                    child: Stack(
-                      children: [
-                        ListView.builder(
-                          controller: _sessionListScrollController,
-                          scrollDirection: Axis.horizontal,
-                          itemCount: sessions.length,
-                          itemBuilder: (context, index) => SessionTile(session: sessions[index]),
-                        ),
-                        AnimatedOpacity(
-                          opacity: _shevronOpacity,
-                          curve: Curves.easeOut,
-                          duration: const Duration(milliseconds: 200),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    appBarColor.withOpacity(0),
-                                    appBarColor,
-                                    appBarColor,
-                                  ],
-                                ),
-                              ),
-                              height: double.infinity,
-                              child: const Icon(Icons.chevron_right),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Builder(
-                        builder: (context) {
-                          if (cache == null) {
-                            return const Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                LinearProgressIndicator()
-                              ],
-                            );
-                          }
-                          if (cache.error != null) {
-                            return DefaultErrorWidget(
-                              message: cache.error.toString(),
-                              onRetry: () {
-                                setState(() {
-                                  mClient.deleteUserMessageCache(widget.friend.id);
-                                });
-                                mClient.loadUserMessageCache(widget.friend.id);
-                              },
-                            );
-                          }
-                          if (cache.messages.isEmpty) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.message_outlined),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 24),
-                                    child: Text(
-                                      "There are no messages here\nWhy not say hello?",
-                                      textAlign: TextAlign.center,
-                                      style: Theme
-                                          .of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            );
-                          }
-                          return Provider(
-                            create: (BuildContext context) => AudioCacheClient(),
-                            child: ListView.builder(
-                              reverse: true,
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: cache.messages.length,
-                              itemBuilder: (context, index) {
-                                final entry = cache.messages[index];
-                                if (index == cache.messages.length - 1) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 12),
-                                    child: MessageBubble(message: entry,),
-                                  );
-                                }
-                                return MessageBubble(message: entry,);
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                MessageInputBar(
-                  recipient: widget.friend,
-                  disabled: cache == null || cache.error != null,
-                  onMessageSent: () {
-                    setState(() {});
-                  },
-                ),
-              ],
+            MessageInputBar(
+              recipient: widget.friend,
+              disabled: cache == null || cache.error != null,
+              onMessageSent: () {
+                setState(() {});
+              },
             ),
-          );
-        }
-    );
+          ],
+        ),
+      );
+    });
   }
 }
