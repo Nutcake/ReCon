@@ -111,6 +111,7 @@ class Record {
     required String filename,
     required String thumbnailUri,
     required List<AssetDigest> digests,
+    List<String>? extraTags,
   }) {
     final combinedRecordId = RecordId(id: Record.generateId(), ownerId: userId, isValid: true);
     return Record(
@@ -118,11 +119,12 @@ class Record {
       combinedRecordId: combinedRecordId,
       assetUri: assetUri,
       name: filename,
-      tags: [
+      tags: ([
         filename,
         "message_item",
-        "message_id:${Message.generateId()}"
-      ],
+        "message_id:${Message.generateId()}",
+        "contacts-plus-plus"
+      ] + (extraTags ?? [])).unique(),
       recordType: recordType,
       thumbnailUri: thumbnailUri,
       isPublic: false,

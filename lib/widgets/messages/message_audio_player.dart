@@ -46,6 +46,14 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
   }
 
   @override
+  void didUpdateWidget(covariant MessageAudioPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final audioCache = Provider.of<AudioCacheClient>(context);
+    _audioFileFuture = audioCache.cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content)))
+        .then((value) => _audioPlayer.setFilePath(value.path)).whenComplete(() => _audioPlayer.setLoopMode(LoopMode.off));
+  }
+
+  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _audioPlayer.dispose();

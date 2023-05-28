@@ -141,6 +141,7 @@ class RecordApi {
       filename: filename,
       thumbnailUri: imageDigest.dbUri,
       digests: digests,
+      extraTags: ["image"],
     );
     progressCallback?.call(.1);
     final status = await tryPreprocessRecord(client, record: record);
@@ -151,6 +152,7 @@ class RecordApi {
       client,
       assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
       progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;
   }
@@ -170,6 +172,7 @@ class RecordApi {
       filename: filename,
       thumbnailUri: "",
       digests: digests,
+      extraTags: ["voice", "message"],
     );
     progressCallback?.call(.1);
     final status = await tryPreprocessRecord(client, record: record);
@@ -180,6 +183,7 @@ class RecordApi {
         client,
         assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
         progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;
   }
@@ -203,6 +207,7 @@ class RecordApi {
       filename: fileDigest.name,
       thumbnailUri: JsonTemplate.thumbUrl,
       digests: digests,
+      extraTags: ["document"],
     );
     progressCallback?.call(.1);
     final status = await tryPreprocessRecord(client, record: record);
@@ -213,6 +218,7 @@ class RecordApi {
         client,
         assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
         progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;
   }

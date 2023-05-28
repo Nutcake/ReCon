@@ -20,39 +20,46 @@ class MessageAsset extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = jsonDecode(message.content);
-    PhotoAsset? photoAsset;
-    try {
-      photoAsset = PhotoAsset.fromTags((content["tags"] as List).map((e) => "$e").toList());
-    } catch (_) {}
     final formattedName = FormatNode.fromText(content["name"]);
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
       child: Column(
         children: [
-          CachedNetworkImage(
-            imageUrl: Aux.neosDbToHttp(content["thumbnailUri"]),
-            imageBuilder: (context, image) {
-              return InkWell(
-                onTap: () async {
-                  await Navigator.push(
-                    context, MaterialPageRoute(builder: (context) =>
-                      PhotoView(
-                        minScale: PhotoViewComputedScale.contained,
-                        imageProvider: photoAsset == null
-                            ? image
-                            : CachedNetworkImageProvider(Aux.neosDbToHttp(photoAsset.imageUri)),
-                        heroAttributes: PhotoViewHeroAttributes(tag: message.id),
-                      ),
-                  ),);
-                },
-                child: Hero(
-                  tag: message.id,
-                  child: ClipRRect(borderRadius: BorderRadius.circular(16), child: Image(image: image,)),
-                ),
-              );
-            },
-            errorWidget: (context, url, error) => const Icon(Icons.image_not_supported, size: 128,),
-            placeholder: (context, uri) => const CircularProgressIndicator(),
+          SizedBox(
+            height: 256,
+            width: double.infinity,
+            child: CachedNetworkImage(
+              imageUrl: Aux.neosDbToHttp(content["thumbnailUri"]),
+              imageBuilder: (context, image) {
+                return InkWell(
+                  onTap: () async {
+                    PhotoAsset? photoAsset;
+                    try {
+                      photoAsset = PhotoAsset.fromTags((content["tags"] as List).map((e) => "$e").toList());
+                    } catch (_) {}
+                    await Navigator.push(
+                      context, MaterialPageRoute(builder: (context) =>
+                        PhotoView(
+                          minScale: PhotoViewComputedScale.contained,
+                          imageProvider: photoAsset == null
+                              ? image
+                              : CachedNetworkImageProvider(Aux.neosDbToHttp(photoAsset.imageUri)),
+                          heroAttributes: PhotoViewHeroAttributes(tag: message.id),
+                        ),
+                    ),);
+                  },
+                  child: Hero(
+                    tag: message.id,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image(image: image, fit: BoxFit.cover,),
+                    ),
+                  ),
+                );
+              },
+              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 64,),
+              placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
+            ),
           ),
           const SizedBox(height: 8,),
           Row(

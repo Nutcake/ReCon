@@ -47,6 +47,13 @@ class _MessageInputBarState extends State<MessageInputBar> {
   set _isRecording(value) => _recordingStartTime = value ? DateTime.now() : null;
   bool _recordingCancelled = false;
 
+  @override
+  void dispose() {
+    _recorder.dispose();
+    _messageTextController.dispose();
+    super.dispose();
+  }
+
   Future<void> sendTextMessage(ApiClient client, MessagingClient mClient, String content) async {
     if (content.isEmpty) return;
     final message = Message(
@@ -160,7 +167,6 @@ class _MessageInputBarState extends State<MessageInputBar> {
         if (_isRecording) {
           if (_recordingCancelled) {
             setState(() {
-              _recordingCancelled = false;
               _isRecording = false;
             });
             final recording = await _recorder.stop();
@@ -319,7 +325,9 @@ class _MessageInputBarState extends State<MessageInputBar> {
                       ),
                   child: switch((_attachmentPickerOpen, _isRecording)) {
                   (_, true) => IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+
+                    },
                     icon: Icon(Icons.delete, color: _recordingCancelled ? Theme.of(context).colorScheme.error : null,),
                   ),
                   (false, _) => IconButton(
@@ -513,13 +521,25 @@ class _MessageInputBarState extends State<MessageInputBar> {
                     },
                     icon: const Icon(Icons.send),
                   ) : GestureDetector(
+                    onTapUp: (_) {
+                      _recordingCancelled = true;
+                    },
                     onTapDown: widget.disabled ? null : (_) async {
                       HapticFeedback.vibrate();
+                      if (!await _recorder.hasPermission()) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text("No permission to record audio."),
+                          ));
+                        }
+                        return;
+                      }
+
                       final dir = await getTemporaryDirectory();
                       await _recorder.start(
-                        path: "${dir.path}/A-${const Uuid().v4()}.ogg",
-                        encoder: AudioEncoder.opus,
-                        samplingRate: 44100,
+                        path: "${dir.path}/A-${const Uuid().v4()}.wav",
+                        encoder: AudioEncoder.wav,
+                        samplingRate: 44100
                       );
                       setState(() {
                         _isRecording = true;
@@ -527,7 +547,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                     },
                     child: IconButton(
                       icon: const Icon(Icons.mic_outlined),
-                      onPressed: () {
+                      onPressed: _isSending ? null : () {
                         // Empty onPressed for that sweet sweet ripple effect
                       },
                     ),
