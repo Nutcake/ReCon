@@ -14,8 +14,9 @@ class ClientHolder extends InheritedWidget {
     super.key,
     required AuthenticationData authenticationData,
     required this.settingsClient,
-    required super.child
-  }) : apiClient = ApiClient(authenticationData: authenticationData);
+    required super.child,
+    required Function() onLogout,
+  }) : apiClient = ApiClient(authenticationData: authenticationData, onLogout: onLogout);
 
   static ClientHolder? maybeOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<ClientHolder>();
@@ -30,5 +31,6 @@ class ClientHolder extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant ClientHolder oldWidget) =>
       oldWidget.apiClient != apiClient
-          || oldWidget.settingsClient != settingsClient;
+          || oldWidget.settingsClient != settingsClient
+          || oldWidget.notificationClient != notificationClient;
 }

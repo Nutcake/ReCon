@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:contacts_plus_plus/models/authentication_data.dart';
@@ -18,10 +16,12 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData, required this.onLogout}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
+  // Saving the context here feels kinda cringe ngl
+  final Function() onLogout;
 
   AuthenticationData get authenticationData => _authenticationData;
   String get userId => _authenticationData.userId;
@@ -31,7 +31,7 @@ class ApiClient {
     required String username,
     required String password,
     bool rememberMe=true,
-    bool rememberPass=false,
+    bool rememberPass=true,
     String? oneTimePad,
   }) async {
     final body = {
@@ -54,11 +54,13 @@ class ApiClient {
     if (response.statusCode == 400) {
       throw "Invalid Credentials";
     } 
-    checkResponse(response);
+    checkResponseCode(response);
 
     final authData = AuthenticationData.fromMap(jsonDecode(response.body));
     if (authData.isAuthenticated) {
-      const FlutterSecureStorage storage = FlutterSecureStorage();
+      const FlutterSecureStorage storage = FlutterSecureStorage(
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
       await storage.write(key: userIdKey, value: authData.userId);
       await storage.write(key: machineIdKey, value: authData.secretMachineId);
       await storage.write(key: tokenKey, value: authData.token);
@@ -68,7 +70,9 @@ class ApiClient {
   }
 
   static Future<AuthenticationData> tryCachedLogin() async {
-    const FlutterSecureStorage storage = FlutterSecureStorage();
+    const FlutterSecureStorage storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     String? userId = await storage.read(key: userIdKey);
     String? machineId = await storage.read(key: machineIdKey);
     String? token = await storage.read(key: tokenKey);
@@ -79,7 +83,7 @@ class ApiClient {
     }
 
     if (token != null) {
-      final response = await http.get(buildFullUri("/users/$userId"), headers: {
+      final response = await http.patch(buildFullUri("/userSessions"), headers: {
         "Authorization": "neos $userId:$token"
       });
       if (response.statusCode == 200) {
@@ -99,15 +103,15 @@ class ApiClient {
     return AuthenticationData.unauthenticated();
   }
 
-  Future<void> logout(BuildContext context) async {
-    const FlutterSecureStorage storage = FlutterSecureStorage();
+  Future<void> logout() async {
+    const FlutterSecureStorage storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    );
     await storage.delete(key: userIdKey);
     await storage.delete(key: machineIdKey);
     await storage.delete(key: tokenKey);
     await storage.delete(key: passwordKey);
-    if (context.mounted) {
-      Phoenix.rebirth(context);
-    }
+    onLogout();
   }
 
   Future<void> extendSession() async {
@@ -117,22 +121,30 @@ class ApiClient {
     }
   }
 
-  static void checkResponse(http.Response response) {
-    final error = "(${response.statusCode}${kDebugMode ? "|${response.body}" : ""})";
-    if (response.statusCode == 429) {
-      throw "Sorry, you are being rate limited. $error";
-    }
+  void checkResponse(http.Response response) {
     if (response.statusCode == 403) {
-      tryCachedLogin();
-      // TODO: Show the login screen again if cached login was unsuccessful.
-      throw "You are not authorized to do that. $error";
+      tryCachedLogin().then((value) {
+        if (!value.isAuthenticated) {
+          onLogout();
+        }
+      });
     }
-    if (response.statusCode == 500) {
-      throw "Internal server error. $error";
-    }
-    if (response.statusCode >= 300) {
-      throw "Unknown Error. $error";
-    }
+    checkResponseCode(response);
+  }
+
+  static void checkResponseCode(http.Response response) {
+    if (response.statusCode < 300) return;
+
+    final error = "${switch (response.statusCode) {
+      429 => "You are being rate limited.",
+      403 => "You are not authorized to do that.",
+      404 => "Resource not found.",
+      500 => "Internal server error.",
+      _ => "Unknown Error."
+    }} (${response.statusCode}${kDebugMode ? "|${response.body}" : ""})";
+
+    FlutterError.reportError(FlutterErrorDetails(exception: error));
+    throw error;
   }
 
   Map<String, String> get authorizationHeader => _authenticationData.authorizationHeader;

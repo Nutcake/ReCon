@@ -49,7 +49,7 @@ class Message implements Comparable {
   final MessageState state;
 
   Message({required this.id, required this.recipientId, required this.senderId, required this.type,
-    required this.content, required DateTime sendTime, this.state=MessageState.local})
+    required this.content, required DateTime sendTime, required this.state})
       : formattedContent = FormatNode.fromText(content), sendTime = sendTime.toUtc();
 
   factory Message.fromMap(Map map, {MessageState? withState}) {
@@ -65,7 +65,7 @@ class Message implements Comparable {
       type: type,
       content: map["content"],
       sendTime: DateTime.parse(map["sendTime"]),
-      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.local)
+      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.sent)
     );
   }
 
@@ -125,7 +125,7 @@ class MessageCache {
   bool addMessage(Message message) {
     final existingIdx = _messages.indexWhere((element) => element.id == message.id);
     if (existingIdx == -1) {
-      _messages.add(message);
+      _messages.insert(0, message);
       _ensureIntegrity();
     } else {
       _messages[existingIdx] = message;
@@ -175,7 +175,7 @@ class AudioClipContent {
   final String id;
   final String assetUri;
 
-  AudioClipContent({required this.id, required this.assetUri});
+  const AudioClipContent({required this.id, required this.assetUri});
 
   factory AudioClipContent.fromMap(Map map) {
     return AudioClipContent(
@@ -190,7 +190,7 @@ class MarkReadBatch {
   final List<String> ids;
   final DateTime readTime;
 
-  MarkReadBatch({required this.senderId, required this.ids, required this.readTime});
+  const MarkReadBatch({required this.senderId, required this.ids, required this.readTime});
 
   Map toMap() {
     return {

@@ -4,7 +4,6 @@ import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/friend.dart';
-import 'package:contacts_plus_plus/models/personal_profile.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/friends/expanding_input_fab.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_list_tile.dart';
@@ -42,7 +41,6 @@ class _FriendsListState extends State<FriendsList> {
     final clientHolder = ClientHolder.of(context);
     if (_clientHolder != clientHolder) {
       _clientHolder = clientHolder;
-      final apiClient = _clientHolder!.apiClient;
       _refreshUserStatus();
     }
   }
@@ -79,7 +77,7 @@ class _FriendsListState extends State<FriendsList> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(right: 8.0),
-                            child: Icon(Icons.circle, size: 16, color: userStatus.onlineStatus.color,),
+                            child: Icon(Icons.circle, size: 16, color: userStatus.onlineStatus.color(context),),
                           ),
                           Text(toBeginningOfSentenceCase(userStatus.onlineStatus.name) ?? "Unknown"),
                         ],
@@ -114,7 +112,7 @@ class _FriendsListState extends State<FriendsList> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Icon(Icons.circle, size: 16, color: item.color,),
+                                    Icon(Icons.circle, size: 16, color: item.color(context),),
                                     const SizedBox(width: 8,),
                                     Text(toBeginningOfSentenceCase(item.name)!),
                                   ],
@@ -254,6 +252,7 @@ class _FriendsListState extends State<FriendsList> {
                     friends.sort((a, b) => a.username.length.compareTo(b.username.length));
                   }
                   return ListView.builder(
+                    physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
                     itemCount: friends.length,
                     itemBuilder: (context, index) {
                       final friend = friends[index];

@@ -13,7 +13,7 @@ class MessageApi {
         "${userId.isEmpty ? "" : "&user=$userId"}"
         "&unread=$unreadOnly"
     );
-    ApiClient.checkResponse(response);
+    client.checkResponse(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Message.fromMap(e)).toList();
   }

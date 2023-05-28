@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:contacts_plus_plus/models/friend.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
+import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class SettingsEntry<T> {
   final T? value;
@@ -36,22 +38,29 @@ class Settings {
   final SettingsEntry<bool> notificationsDenied;
   final SettingsEntry<int> lastOnlineStatus;
   final SettingsEntry<String> lastDismissedVersion;
+  final SettingsEntry<String> machineId;
+  final SettingsEntry<int> themeMode;
 
   Settings({
     SettingsEntry<bool>? notificationsDenied,
     SettingsEntry<int>? lastOnlineStatus,
-    SettingsEntry<String>? lastDismissedVersion
+    SettingsEntry<int>? themeMode,
+    SettingsEntry<String>? lastDismissedVersion,
+    SettingsEntry<String>? machineId
   })
       : notificationsDenied = notificationsDenied ?? const SettingsEntry<bool>(deflt: false),
         lastOnlineStatus = lastOnlineStatus ?? SettingsEntry<int>(deflt: OnlineStatus.online.index),
-        lastDismissedVersion = lastDismissedVersion ?? SettingsEntry<String>(deflt: SemVer.zero().toString())
-  ;
+        themeMode = themeMode ?? SettingsEntry<int>(deflt: ThemeMode.dark.index),
+        lastDismissedVersion = lastDismissedVersion ?? SettingsEntry<String>(deflt: SemVer.zero().toString()),
+        machineId = machineId ?? SettingsEntry<String>(deflt: const Uuid().v4());
 
   factory Settings.fromMap(Map map) {
     return Settings(
       notificationsDenied: retrieveEntryOrNull<bool>(map["notificationsDenied"]),
       lastOnlineStatus: retrieveEntryOrNull<int>(map["lastOnlineStatus"]),
-      lastDismissedVersion: retrieveEntryOrNull<String>(map["lastDismissedVersion"])
+      themeMode: retrieveEntryOrNull<int>(map["themeMode"]),
+      lastDismissedVersion: retrieveEntryOrNull<String>(map["lastDismissedVersion"]),
+      machineId: retrieveEntryOrNull<String>(map["machineId"]),
     );
   }
 
@@ -68,7 +77,9 @@ class Settings {
     return {
       "notificationsDenied": notificationsDenied.toMap(),
       "lastOnlineStatus": lastOnlineStatus.toMap(),
+      "themeMode": themeMode.toMap(),
       "lastDismissedVersion": lastDismissedVersion.toMap(),
+      "machineId": machineId.toMap(),
     };
   }
 
@@ -76,14 +87,17 @@ class Settings {
 
   Settings copyWith({
     bool? notificationsDenied,
-    int? unreadCheckIntervalMinutes,
     int? lastOnlineStatus,
+    int? themeMode,
     String? lastDismissedVersion,
+    String? machineId,
   }) {
     return Settings(
       notificationsDenied: this.notificationsDenied.passThrough(notificationsDenied),
       lastOnlineStatus: this.lastOnlineStatus.passThrough(lastOnlineStatus),
+      themeMode: this.themeMode.passThrough(themeMode),
       lastDismissedVersion: this.lastDismissedVersion.passThrough(lastDismissedVersion),
+      machineId: this.machineId.passThrough(machineId),
     );
   }
 }

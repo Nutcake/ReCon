@@ -56,7 +56,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(profile.username, style: tt.titleLarge),
-                          Text(profile.email, style: tt.labelMedium?.copyWith(color: Colors.white54),)
+                          Text(profile.email, style: tt.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),)
                         ],
                       ),
                       GenericAvatar(imageUri: Aux.neosDbToHttp(profile.userProfile.iconUrl), radius: 24,)
