@@ -22,17 +22,27 @@ class FriendListTile extends StatelessWidget {
     final imageUri = Aux.neosDbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
     return ListTile(
-      leading: GenericAvatar(imageUri: imageUri,),
+      leading: GenericAvatar(
+        imageUri: imageUri,
+      ),
       trailing: unreads != 0
-          ? Text("+$unreads", style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),)
+          ? Text(
+              "+$unreads",
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+            )
           : null,
       title: Row(
         children: [
           Text(friend.username),
-          if (friend.isHeadless) Padding(
-            padding: const EdgeInsets.only(left: 8),
-            child: Icon(Icons.dns, size: 12, color: theme.colorScheme.onSecondaryContainer.withAlpha(150),),
-          ),
+          if (friend.isHeadless)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: Icon(
+                Icons.dns,
+                size: 12,
+                color: theme.colorScheme.onSecondaryContainer.withAlpha(150),
+              ),
+            ),
         ],
       ),
       subtitle: Row(
@@ -40,13 +50,19 @@ class FriendListTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           FriendOnlineStatusIndicator(userStatus: friend.userStatus),
-          const SizedBox(width: 4,),
+          const SizedBox(
+            width: 4,
+          ),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (!friend.userStatus.currentSession.isNone)
-            ...[
-              const Text(" in "),
-              Expanded(child: FormattedText(friend.userStatus.currentSession.formattedName, overflow: TextOverflow.ellipsis, maxLines: 1,))
-            ]
+          if (!friend.userStatus.currentSession.isNone) ...[
+            const Text(" in "),
+            Expanded(
+                child: FormattedText(
+              friend.userStatus.currentSession.formattedName,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ))
+          ]
         ],
       ),
       onTap: () async {
@@ -65,8 +81,7 @@ class FriendListTile extends StatelessWidget {
         mClient.selectedFriend = friend;
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) =>
-            ChangeNotifierProvider<MessagingClient>.value(
+            builder: (context) => ChangeNotifierProvider<MessagingClient>.value(
               value: mClient,
               child: MessagesList(friend: friend),
             ),
