@@ -83,7 +83,7 @@ class FriendListTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => ChangeNotifierProvider<MessagingClient>.value(
               value: mClient,
-              child: MessagesList(friend: friend),
+              child: MessagesList(),
             ),
           ),
         );

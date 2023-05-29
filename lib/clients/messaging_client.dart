@@ -249,6 +249,9 @@ class MessagingClient extends ChangeNotifier {
     } else {
       _sortedFriendsCache[sIndex] = friend;
     }
+    if (friend.id == selectedFriend?.id) {
+      selectedFriend = friend;
+    }
     _sortFriendsCache();
   }
 

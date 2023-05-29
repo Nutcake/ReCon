@@ -1,8 +1,10 @@
+import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/user_profile.dart';
 import 'package:flutter/material.dart';
 
 class Friend implements Comparable {
+  static const _emptyId = "-1";
   static const _neosBotId = "U-Neos";
   final String id;
   final String username;
@@ -12,7 +14,7 @@ class Friend implements Comparable {
   final FriendStatus friendStatus;
   final DateTime latestMessageTime;
 
-  Friend({required this.id, required this.username, required this.ownerId, required this.userStatus, required this.userProfile,
+  const Friend({required this.id, required this.username, required this.ownerId, required this.userStatus, required this.userProfile,
     required this.friendStatus, required this.latestMessageTime,
   });
 
@@ -37,6 +39,20 @@ class Friend implements Comparable {
     if (map == null) return null;
     return Friend.fromMap(map);
   }
+
+  factory Friend.empty() {
+    return Friend(
+        id: _emptyId,
+        username: "",
+        ownerId: "",
+        userStatus: UserStatus.empty(),
+        userProfile: UserProfile.empty(),
+        friendStatus: FriendStatus.none,
+        latestMessageTime: DateTimeX.epoch
+    );
+  }
+
+  bool get isEmpty => id == _emptyId;
 
   Friend copyWith({
     String? id, String? username, String? ownerId, UserStatus? userStatus, UserProfile? userProfile,

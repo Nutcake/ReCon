@@ -11,9 +11,7 @@ import 'package:provider/provider.dart';
 import 'message_bubble.dart';
 
 class MessagesList extends StatefulWidget {
-  const MessagesList({required this.friend, super.key});
-
-  final Friend friend;
+  const MessagesList({super.key});
 
   @override
   State<StatefulWidget> createState() => _MessagesListState();
@@ -54,21 +52,23 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final sessions = widget.friend.userStatus.activeSessions;
     final appBarColor = Theme.of(context).colorScheme.surfaceVariant;
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
-      final cache = mClient.getUserMessageCache(widget.friend.id);
+      final friend = mClient.selectedFriend ?? Friend.empty();
+      final cache = mClient.getUserMessageCache(friend.id);
+      final sessions = friend.userStatus.activeSessions;
+
       return Scaffold(
         appBar: AppBar(
           title: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              FriendOnlineStatusIndicator(userStatus: widget.friend.userStatus),
+              FriendOnlineStatusIndicator(userStatus: friend.userStatus),
               const SizedBox(
                 width: 8,
               ),
-              Text(widget.friend.username),
-              if (widget.friend.isHeadless)
+              Text(friend.username),
+              if (friend.isHeadless)
                 Padding(
                   padding: const EdgeInsets.only(left: 12),
                   child: Icon(
@@ -179,9 +179,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           message: cache.error.toString(),
                           onRetry: () {
                             setState(() {
-                              mClient.deleteUserMessageCache(widget.friend.id);
+                              mClient.deleteUserMessageCache(friend.id);
                             });
-                            mClient.loadUserMessageCache(widget.friend.id);
+                            mClient.loadUserMessageCache(friend.id);
                           },
                         );
                       }
@@ -231,7 +231,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
               ),
             ),
             MessageInputBar(
-              recipient: widget.friend,
+              recipient: friend,
               disabled: cache == null || cache.error != null,
               onMessageSent: () {
                 setState(() {});
