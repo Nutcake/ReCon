@@ -86,7 +86,7 @@ class ApiClient {
       final response = await http.patch(buildFullUri("/userSessions"), headers: {
         "Authorization": "neos $userId:$token"
       });
-      if (response.statusCode == 200) {
+      if (response.statusCode < 300) {
         return AuthenticationData(userId: userId, token: token, secretMachineId: machineId, isAuthenticated: true);
       }
     }
