@@ -1,6 +1,6 @@
 import 'package:contacts_plus_plus/clients/audio_cache_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_input_bar.dart';
@@ -21,7 +21,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   final ScrollController _sessionListScrollController = ScrollController();
 
   bool _showSessionListScrollChevron = false;
-  bool _sessionListOpen = false;
+  bool _sessionListOpen = true;
 
   double get _shevronOpacity => _showSessionListScrollChevron ? 1.0 : 0.0;
 

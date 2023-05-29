@@ -1,6 +1,6 @@
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
@@ -83,7 +83,7 @@ class FriendListTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => ChangeNotifierProvider<MessagingClient>.value(
               value: mClient,
-              child: MessagesList(),
+              child: const MessagesList(),
             ),
           ),
         );

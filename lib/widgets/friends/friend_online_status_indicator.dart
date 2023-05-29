@@ -1,4 +1,5 @@
-import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/users/online_status.dart';
+import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:flutter/material.dart';
 
 class FriendOnlineStatusIndicator extends StatelessWidget {

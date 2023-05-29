@@ -7,6 +7,7 @@ import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
+import 'package:contacts_plus_plus/widgets/session_view.dart';
 import 'package:flutter/material.dart';
 
 class MessageSessionInvite extends StatelessWidget {
@@ -22,7 +23,7 @@ class MessageSessionInvite extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 300),
       child: TextButton(
         onPressed: () {
-          showDialog(context: context, builder: (context) => SessionPopup(session: sessionInfo));
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => SessionView(session: sessionInfo)));
         },
         style: TextButton.styleFrom(padding: EdgeInsets.zero),
         child: Container(
@@ -44,7 +45,7 @@ class MessageSessionInvite extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GenericAvatar(
-                          imageUri: Aux.neosDbToHttp(Aux.neosDbToHttp(sessionInfo.thumbnail)),
+                          imageUri: Aux.neosDbToHttp(sessionInfo.thumbnail),
                           placeholderIcon: Icons.no_photography,
                           foregroundColor: foregroundColor,
                         ),

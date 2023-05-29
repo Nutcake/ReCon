@@ -23,60 +23,62 @@ class SettingsPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          const ListSectionHeader(name: "Notifications"),
+          const ListSectionHeader(leadingText: "Notifications"),
           BooleanSettingsTile(
             title: "Enable Notifications",
             initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
-            onChanged: (value) async => await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
+            onChanged: (value) async =>
+                await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
           ),
-          const ListSectionHeader(name: "Appearance"),
+          const ListSectionHeader(leadingText: "Appearance"),
           ListTile(
-            trailing: StatefulBuilder(
-                builder: (context, setState) {
-                  return DropdownButton<ThemeMode>(
-                    items: ThemeMode.values.map((mode) => DropdownMenuItem<ThemeMode>(
-                      value: mode,
-                      child: Text("${toBeginningOfSentenceCase(mode.name)}",),
-                    )).toList(),
-                    value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
-                    onChanged: (ThemeMode? value) async {
-                      final currentSetting = sClient.currentSettings.themeMode.value;
-                      if (currentSetting != value?.index) {
-                        await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
-                        if (context.mounted) {
-                          Phoenix.rebirth(context);
-                        }
-                      }
-                      setState(() {});
-                    },
-                  );
-                }
-            ),
+            trailing: StatefulBuilder(builder: (context, setState) {
+              return DropdownButton<ThemeMode>(
+                items: ThemeMode.values
+                    .map((mode) => DropdownMenuItem<ThemeMode>(
+                          value: mode,
+                          child: Text(
+                            "${toBeginningOfSentenceCase(mode.name)}",
+                          ),
+                        ))
+                    .toList(),
+                value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
+                onChanged: (ThemeMode? value) async {
+                  final currentSetting = sClient.currentSettings.themeMode.value;
+                  if (currentSetting != value?.index) {
+                    await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
+                    if (context.mounted) {
+                      Phoenix.rebirth(context);
+                    }
+                  }
+                  setState(() {});
+                },
+              );
+            }),
             title: const Text("Theme Mode"),
           ),
-          const ListSectionHeader(name: "Other"),
+          const ListSectionHeader(leadingText: "Other"),
           ListTile(
             trailing: const Icon(Icons.logout),
             title: const Text("Sign out"),
             onTap: () {
               showDialog(
                 context: context,
-                builder: (context) =>
-                    AlertDialog(
-                      title: Text("Are you sure you want to sign out?", style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleLarge,),
-                      actions: [
-                        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
-                        TextButton(
-                          onPressed: () async {
-                            await ClientHolder.of(context).apiClient.logout();
-                          },
-                          child: const Text("Yes"),
-                        ),
-                      ],
+                builder: (context) => AlertDialog(
+                  title: Text(
+                    "Are you sure you want to sign out?",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
+                    TextButton(
+                      onPressed: () async {
+                        await ClientHolder.of(context).apiClient.logout();
+                      },
+                      child: const Text("Yes"),
                     ),
+                  ],
+                ),
               );
             },
           ),
@@ -89,9 +91,11 @@ class SettingsPage extends StatelessWidget {
                 applicationVersion: (await PackageInfo.fromPlatform()).version,
                 applicationIcon: InkWell(
                   onTap: () async {
-                    if (!await launchUrl(Uri.parse("https://github.com/Nutcake/contacts-plus-plus"), mode: LaunchMode.externalApplication)) {
+                    if (!await launchUrl(Uri.parse("https://github.com/Nutcake/contacts-plus-plus"),
+                        mode: LaunchMode.externalApplication)) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to open link.")));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(content: Text("Failed to open link.")));
                       }
                     }
                   },
@@ -112,26 +116,35 @@ class SettingsPage extends StatelessWidget {
 }
 
 class ListSectionHeader extends StatelessWidget {
-  const ListSectionHeader({required this.name, super.key});
+  const ListSectionHeader({required this.leadingText, this.trailingText, this.showLine = true, super.key});
 
-  final String name;
+  final String leadingText;
+  final String? trailingText;
+  final bool showLine;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final textTheme = Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        );
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(name, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text(leadingText, style: textTheme),
           Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               color: Colors.white12,
-              height: 1,
+              height: showLine ? 1 : 0,
             ),
-          )
+          ),
+          if (trailingText != null)
+            Text(
+              trailingText!,
+              style: textTheme,
+            ),
         ],
       ),
     );
@@ -173,5 +186,4 @@ class _BooleanSettingsTileState extends State<BooleanSettingsTile> {
       },
     );
   }
-
 }

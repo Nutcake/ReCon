@@ -7,7 +7,7 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
 import 'package:contacts_plus_plus/widgets/messages/message_attachment_list.dart';
 import 'package:file_picker/file_picker.dart';

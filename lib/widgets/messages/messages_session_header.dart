@@ -3,6 +3,7 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
+import 'package:contacts_plus_plus/widgets/session_view.dart';
 import 'package:flutter/material.dart';
 
 class SessionPopup extends StatelessWidget {
@@ -39,7 +40,7 @@ class SessionPopup extends StatelessWidget {
                           style: Theme.of(context).textTheme.labelMedium,
                           softWrap: true,
                         ),
-                        Text("Access: ${session.accessLevel.toReadableString()}"),
+                        Text("Access: ${session.accessLevel.toReadableString()}", style: Theme.of(context).textTheme.labelMedium),
                         Text("Users: ${session.sessionUsers.length}", style: Theme.of(context).textTheme.labelMedium),
                         Text("Maximum users: ${session.maxUsers}", style: Theme.of(context).textTheme.labelMedium),
                         Text("Headless: ${session.headlessHost ? "Yes" : "No"}", style: Theme.of(context).textTheme.labelMedium),
@@ -119,7 +120,7 @@ class SessionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: () {
-        showDialog(context: context, builder: (context) => SessionPopup(session: session));
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SessionView(session: session)));
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

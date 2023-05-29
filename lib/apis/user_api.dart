@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/models/personal_profile.dart';
-import 'package:contacts_plus_plus/models/user.dart';
-import 'package:contacts_plus_plus/models/user_profile.dart';
+import 'package:contacts_plus_plus/models/users/user.dart';
+import 'package:contacts_plus_plus/models/users/user_profile.dart';
+import 'package:contacts_plus_plus/models/users/friend_status.dart';
+import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class UserApi {

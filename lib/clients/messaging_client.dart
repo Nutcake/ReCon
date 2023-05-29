@@ -11,7 +11,7 @@ import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
-import 'package:contacts_plus_plus/models/friend.dart';
+import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
