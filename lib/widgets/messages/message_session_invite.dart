@@ -50,7 +50,7 @@ class MessageSessionInvite extends StatelessWidget {
                           foregroundColor: foregroundColor,
                         ),
                         const SizedBox(height: 4,),
-                        Text("${sessionInfo.sessionUsers.length}/${sessionInfo.maxUsers}", style: Theme
+                        Text("${sessionInfo.sessionUsers.length.toString().padLeft(2, "0")}/${sessionInfo.maxUsers.toString().padLeft(2, "0")}", style: Theme
                             .of(context)
                             .textTheme
                             .bodyMedium
