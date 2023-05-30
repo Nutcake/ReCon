@@ -52,36 +52,38 @@ class SessionView extends StatelessWidget {
             ),
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.pin,
-              background: CachedNetworkImage(
-                imageUrl: Aux.neosDbToHttp(session.thumbnail),
-                imageBuilder: (context, image) {
-                  return InkWell(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PhotoView(
-                            minScale: PhotoViewComputedScale.contained,
-                            imageProvider: image,
-                            heroAttributes: PhotoViewHeroAttributes(tag: session.id),
-                          ),
+              background: Hero(
+                tag: session.id,
+                child: CachedNetworkImage(
+                  imageUrl: Aux.neosDbToHttp(session.thumbnail),
+                  imageBuilder: (context, image) {
+                    return Material(
+                      child: InkWell(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PhotoView(
+                                minScale: PhotoViewComputedScale.contained,
+                                imageProvider: image,
+                                heroAttributes: PhotoViewHeroAttributes(tag: session.id),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Image(
+                          image: image,
+                          fit: BoxFit.cover,
                         ),
-                      );
-                    },
-                    child: Hero(
-                      tag: session.id,
-                      child: Image(
-                        image: image,
-                        fit: BoxFit.cover,
                       ),
-                    ),
-                  );
-                },
-                errorWidget: (context, url, error) => const Icon(
-                  Icons.broken_image,
-                  size: 64,
+                    );
+                  },
+                  errorWidget: (context, url, error) => const Icon(
+                    Icons.broken_image,
+                    size: 64,
+                  ),
+                  placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
                 ),
-                placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
               ),
             ),
           ),
@@ -162,7 +164,7 @@ class SessionView extends StatelessWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
-                final user = session.sessionUsers[index % session.sessionUsers.length];
+                final user = session.sessionUsers[index];
                 return ListTile(
                   dense: true,
                   title: Text(
@@ -175,7 +177,7 @@ class SessionView extends StatelessWidget {
                   ),
                 );
               },
-              childCount: session.sessionUsers.length * 4,
+              childCount: session.sessionUsers.length,
             ),
           )
         ],

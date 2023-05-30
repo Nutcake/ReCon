@@ -10,4 +10,11 @@ class SessionApi {
     final body = jsonDecode(response.body);
     return Session.fromMap(body);
   }
+
+  static Future<List<Session>> getSessions(ApiClient client) async {
+    final response = await client.get("/sessions");
+    client.checkResponse(response);
+    final body = jsonDecode(response.body) as List;
+    return body.map((e) => Session.fromMap(e)).toList();
+  }
 }
