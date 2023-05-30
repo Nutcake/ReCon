@@ -175,7 +175,7 @@ class SessionView extends StatelessWidget {
                   ),
                 );
               },
-              childCount: session.sessionUsers.length * 4,
+              childCount: session.sessionUsers.length,
             ),
           )
         ],
