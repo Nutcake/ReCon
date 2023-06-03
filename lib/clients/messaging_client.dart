@@ -68,6 +68,7 @@ class MessagingClient extends ChangeNotifier {
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient, _notificationClient = notificationClient {
+    debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
       box.delete(_lastUpdateKey);
       await refreshFriendsListWithErrorHandler();
@@ -84,6 +85,7 @@ class MessagingClient extends ChangeNotifier {
 
   @override
   void dispose() {
+    debugPrint("mClient disposed: $hashCode");
     _autoRefresh?.cancel();
     _notifyOnlineTimer?.cancel();
     _unreadSafeguard?.cancel();
