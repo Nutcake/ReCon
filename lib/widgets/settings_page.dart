@@ -11,17 +11,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sClient = ClientHolder.of(context).settingsClient;
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: const Text("Settings"),
-      ),
-      body: ListView(
+    return ListView(
         children: [
           const ListSectionHeader(leadingText: "Notifications"),
           BooleanSettingsTile(
@@ -110,8 +100,7 @@ class SettingsPage extends StatelessWidget {
             },
           )
         ],
-      ),
-    );
+      );
   }
 }
 

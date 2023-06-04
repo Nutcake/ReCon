@@ -3,7 +3,7 @@ import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
-import 'package:contacts_plus_plus/widgets/session_view.dart';
+import 'package:contacts_plus_plus/widgets/sessions/session_view.dart';
 import 'package:flutter/material.dart';
 
 class SessionPopup extends StatelessWidget {

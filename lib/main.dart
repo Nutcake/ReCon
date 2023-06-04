@@ -4,10 +4,16 @@ import 'package:contacts_plus_plus/apis/github_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
+import 'package:contacts_plus_plus/clients/session_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
+import 'package:contacts_plus_plus/widgets/friends/friends_list_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
+import 'package:contacts_plus_plus/widgets/sessions/session_list.dart';
+import 'package:contacts_plus_plus/widgets/sessions/session_list_app_bar.dart';
+import 'package:contacts_plus_plus/widgets/settings_app_bar.dart';
+import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:contacts_plus_plus/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
@@ -22,12 +28,15 @@ import 'models/authentication_data.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  Provider.debugCheckInvalidValueType = null;
   await Hive.initFlutter();
   final dateFormat = DateFormat.Hms();
-  Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
+  Logger.root.onRecord.listen(
+      (event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
-  final newSettings = settingsClient.currentSettings.copyWith(machineId: settingsClient.currentSettings.machineId.valueOrDefault);
+  final newSettings =
+      settingsClient.currentSettings.copyWith(machineId: settingsClient.currentSettings.machineId.valueOrDefault);
   await settingsClient.changeSettings(newSettings); // Save generated machineId to disk
   AuthenticationData cachedAuth = AuthenticationData.unauthenticated();
   try {
@@ -47,15 +56,28 @@ class ContactsPlusPlus extends StatefulWidget {
 }
 
 class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
+  static const List<Widget> _appBars = [
+    FriendsListAppBar(
+      key: ValueKey("friends_list_app_bar"),
+    ),
+    SessionListAppBar(
+      key: ValueKey("session_list_app_bar"),
+    ),
+    SettingsAppBar(
+      key: ValueKey("settings_app_bar"),
+    )
+  ];
+
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
+  final PageController _pageController = PageController();
   late AuthenticationData _authData = widget.cachedAuthentication;
+
   bool _checkedForUpdate = false;
+  int _selectedPage = 0;
 
   void showUpdateDialogOnFirstBuild(BuildContext context) {
     final navigator = Navigator.of(context);
-    final settings = ClientHolder
-        .of(context)
-        .settingsClient;
+    final settings = ClientHolder.of(context).settingsClient;
     if (_checkedForUpdate) return;
     _checkedForUpdate = true;
     GithubApi.getLatestTagName().then((remoteVer) async {
@@ -103,61 +125,120 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
   @override
   Widget build(BuildContext context) {
     return Phoenix(
-      child: Builder(
-        builder: (context) {
-          return ClientHolder(
-            settingsClient: widget.settingsClient,
-            authenticationData: _authData,
-            onLogout: () {
-              setState(() {
-                _authData = AuthenticationData.unauthenticated();
-              });
-              Phoenix.rebirth(context);
-            },
-            child: DynamicColorBuilder(
-              builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
-                  debugShowCheckedModeBanner: false,
-                  title: 'Contacts++',
-                  theme: ThemeData(
-                    useMaterial3: true,
-                    textTheme: _typography.black,
-                    colorScheme: lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
-                  ),
-                  darkTheme: ThemeData(
-                    useMaterial3: true,
-                    textTheme: _typography.white,
-                    colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
-                  ),
-                  themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
-                  home: Builder( // Builder is necessary here since we need a context which has access to the ClientHolder
-                    builder: (context) {
-                      showUpdateDialogOnFirstBuild(context);
-                      final clientHolder = ClientHolder.of(context);
-                      return _authData.isAuthenticated ?
-                      ChangeNotifierProvider( // This doesn't need to be a proxy provider since the arguments should never change during it's lifetime.
-                        create: (context) =>
-                            MessagingClient(
-                              apiClient: clientHolder.apiClient,
-                              notificationClient: clientHolder.notificationClient,
+      child: Builder(builder: (context) {
+        return ClientHolder(
+          settingsClient: widget.settingsClient,
+          authenticationData: _authData,
+          onLogout: () {
+            setState(() {
+              _authData = AuthenticationData.unauthenticated();
+            });
+            Phoenix.rebirth(context);
+          },
+          child: DynamicColorBuilder(
+            builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'Contacts++',
+              theme: ThemeData(
+                useMaterial3: true,
+                textTheme: _typography.black,
+                colorScheme:
+                    lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
+              ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                textTheme: _typography.white,
+                colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+              ),
+              themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+              home: Builder(
+                // Builder is necessary here since we need a context which has access to the ClientHolder
+                builder: (context) {
+                  showUpdateDialogOnFirstBuild(context);
+                  final clientHolder = ClientHolder.of(context);
+                  return _authData.isAuthenticated
+                      ? MultiProvider(
+                          providers: [
+                            Provider(
+                              create: (context) => MessagingClient(
+                                apiClient: clientHolder.apiClient,
+                                notificationClient: clientHolder.notificationClient,
+                              ),
+                              dispose: (context, value) => value.dispose(),
                             ),
-                        child: const FriendsList(),
-                      ) :
-                      LoginScreen(
-                        onLoginSuccessful: (AuthenticationData authData) async {
-                          if (authData.isAuthenticated) {
-                            setState(() {
-                              _authData = authData;
-                            });
-                          }
-                        },
-                      );
-                    }
-                  )
+                            Provider(
+                              create: (context) => SessionClient(
+                                apiClient: clientHolder.apiClient,
+                              ),
+                            ),
+                          ],
+                          child: Scaffold(
+                            appBar: PreferredSize(
+                              preferredSize: const Size.fromHeight(kToolbarHeight),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 200),
+                                child: _appBars[_selectedPage],
+                              ),
+                            ),
+                            body: PageView(
+                              controller: _pageController,
+                              children: const [
+                                FriendsList(),
+                                SessionList(),
+                                SettingsPage(),
+                              ],
+                            ),
+                            bottomNavigationBar: Container(
+                              decoration: BoxDecoration(
+                                border: const Border(top: BorderSide(width: 1, color: Colors.black)),
+                                color: Theme.of(context).colorScheme.background,
+                              ),
+                              child: BottomNavigationBar(
+                                selectedItemColor: Theme.of(context).colorScheme.primary,
+                                currentIndex: _selectedPage,
+                                onTap: (index) {
+                                  _pageController.animateToPage(
+                                    index,
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.easeOut,
+                                  );
+                                  setState(() {
+                                    _selectedPage = index;
+                                  });
+                                },
+                                items: const [
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.message),
+                                    label: "Chat",
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.public),
+                                    label: "Sessions",
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.settings),
+                                    label: "Settings",
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      : LoginScreen(
+                          onLoginSuccessful: (AuthenticationData authData) async {
+                            if (authData.isAuthenticated) {
+                              setState(() {
+                                _authData = authData;
+                              });
+                            }
+                          },
+                        );
+                },
               ),
             ),
-          );
-        }
-      ),
+          ),
+        );
+      }),
     );
   }
 }

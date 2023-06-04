@@ -162,7 +162,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
                   child: TextField(
-                    autofocus: true,
                     controller: _usernameController,
                     onEditingComplete: () => _passwordFocusNode.requestFocus(),
                     decoration: InputDecoration(

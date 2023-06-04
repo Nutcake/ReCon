@@ -1,3 +1,4 @@
+import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/string_formatter.dart';
 
 class Session {
@@ -17,11 +18,22 @@ class Session {
   final String hostUsername;
   final SessionAccessLevel accessLevel;
 
-  Session({required this.id, required this.name, required this.sessionUsers, required this.thumbnail,
-    required this.maxUsers, required this.hasEnded, required this.isValid, required this.description,
-    required this.tags, required this.headlessHost, required this.hostUserId, required this.hostUsername,
+  Session({
+    required this.id,
+    required this.name,
+    required this.sessionUsers,
+    required this.thumbnail,
+    required this.maxUsers,
+    required this.hasEnded,
+    required this.isValid,
+    required this.description,
+    required this.tags,
+    required this.headlessHost,
+    required this.hostUserId,
+    required this.hostUsername,
     required this.accessLevel,
-  }) : formattedName = FormatNode.fromText(name), formattedDescription = FormatNode.fromText(description);
+  })  : formattedName = FormatNode.fromText(name),
+        formattedDescription = FormatNode.fromText(description);
 
   factory Session.none() {
     return Session(
@@ -37,8 +49,7 @@ class Session {
         headlessHost: false,
         hostUserId: "",
         hostUsername: "",
-        accessLevel: SessionAccessLevel.unknown
-    );
+        accessLevel: SessionAccessLevel.unknown);
   }
 
   bool get isNone => id.isEmpty && isValid == false;
@@ -62,7 +73,7 @@ class Session {
     );
   }
 
-  Map toMap({bool shallow=false}) {
+  Map toMap({bool shallow = false}) {
     return {
       "sessionId": id,
       "name": name,
@@ -79,8 +90,6 @@ class Session {
       "accessLevel": accessLevel.name, // This probably wont work, the API usually expects integers.
     };
   }
-
-
 
   bool get isLive => !hasEnded && isValid;
 }
@@ -101,7 +110,8 @@ enum SessionAccessLevel {
   };
 
   factory SessionAccessLevel.fromName(String? name) {
-    return SessionAccessLevel.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase(),
+    return SessionAccessLevel.values.firstWhere(
+      (element) => element.name.toLowerCase() == name?.toLowerCase(),
       orElse: () => SessionAccessLevel.unknown,
     );
   }
@@ -135,5 +145,57 @@ class SessionUser {
       "isPresent": isPresent,
       "outputDevice": outputDevice,
     };
+  }
+}
+
+class SessionFilterSettings {
+  final String name;
+  final bool includeEnded;
+  final bool includeIncompatible;
+  final String hostName;
+  final int minActiveUsers;
+  final bool includeEmptyHeadless;
+
+  const SessionFilterSettings({
+    required this.name,
+    required this.includeEnded,
+    required this.includeIncompatible,
+    required this.hostName,
+    required this.minActiveUsers,
+    required this.includeEmptyHeadless,
+  });
+
+  factory SessionFilterSettings.empty() => const SessionFilterSettings(
+        name: "",
+        includeEnded: false,
+        includeIncompatible: false,
+        hostName: "",
+        minActiveUsers: 0,
+        includeEmptyHeadless: true,
+      );
+
+  String buildRequestString() => "?includeEmptyHeadless=$includeEmptyHeadless"
+      "${"&includeEnded=$includeEnded"}"
+      "${name.isNotEmpty ? "&name=$name" : ""}"
+      "${!includeIncompatible ? "&compatibilityHash=${Uri.encodeComponent(Config.latestCompatHash)}" : ""}"
+      "${hostName.isNotEmpty ? "&hostName=$hostName" : ""}"
+      "${minActiveUsers > 0 ? "&minActiveUsers=$minActiveUsers" : ""}";
+
+  SessionFilterSettings copyWith({
+    String? name,
+    bool? includeEnded,
+    bool? includeIncompatible,
+    String? hostName,
+    int? minActiveUsers,
+    bool? includeEmptyHeadless,
+  }) {
+    return SessionFilterSettings(
+      name: name ?? this.name,
+      includeEnded: includeEnded ?? this.includeEnded,
+      includeIncompatible: includeIncompatible ?? this.includeIncompatible,
+      hostName: hostName ?? this.hostName,
+      minActiveUsers: minActiveUsers ?? this.minActiveUsers,
+      includeEmptyHeadless: includeEmptyHeadless ?? this.includeEmptyHeadless,
+    );
   }
 }
