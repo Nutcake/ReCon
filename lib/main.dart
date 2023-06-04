@@ -4,13 +4,14 @@ import 'package:contacts_plus_plus/apis/github_api.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
+import 'package:contacts_plus_plus/clients/session_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
-import 'package:contacts_plus_plus/widgets/session_list.dart';
-import 'package:contacts_plus_plus/widgets/session_list_app_bar.dart';
+import 'package:contacts_plus_plus/widgets/sessions/session_list.dart';
+import 'package:contacts_plus_plus/widgets/sessions/session_list_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/settings_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:contacts_plus_plus/widgets/update_notifier.dart';
@@ -136,32 +137,41 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
           },
           child: DynamicColorBuilder(
             builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
-                debugShowCheckedModeBanner: false,
-                title: 'Contacts++',
-                theme: ThemeData(
-                  useMaterial3: true,
-                  textTheme: _typography.black,
-                  colorScheme:
-                      lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
-                ),
-                darkTheme: ThemeData(
-                  useMaterial3: true,
-                  textTheme: _typography.white,
-                  colorScheme:
-                      darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
-                ),
-                themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
-                home: Builder(// Builder is necessary here since we need a context which has access to the ClientHolder
-                    builder: (context) {
+              debugShowCheckedModeBanner: false,
+              title: 'Contacts++',
+              theme: ThemeData(
+                useMaterial3: true,
+                textTheme: _typography.black,
+                colorScheme:
+                    lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
+              ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                textTheme: _typography.white,
+                colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+              ),
+              themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+              home: Builder(
+                // Builder is necessary here since we need a context which has access to the ClientHolder
+                builder: (context) {
                   showUpdateDialogOnFirstBuild(context);
                   final clientHolder = ClientHolder.of(context);
                   return _authData.isAuthenticated
-                      ? Provider(
-                          create: (context) => MessagingClient(
-                            apiClient: clientHolder.apiClient,
-                            notificationClient: clientHolder.notificationClient,
-                          ),
-                          dispose: (context, value) => value.dispose(),
+                      ? MultiProvider(
+                          providers: [
+                            Provider(
+                              create: (context) => MessagingClient(
+                                apiClient: clientHolder.apiClient,
+                                notificationClient: clientHolder.notificationClient,
+                              ),
+                              dispose: (context, value) => value.dispose(),
+                            ),
+                            Provider(
+                              create: (context) => SessionClient(
+                                apiClient: clientHolder.apiClient,
+                              ),
+                            ),
+                          ],
                           child: Scaffold(
                             appBar: PreferredSize(
                               preferredSize: const Size.fromHeight(kToolbarHeight),
@@ -178,33 +188,39 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                                 SettingsPage(),
                               ],
                             ),
-                            bottomNavigationBar: BottomNavigationBar(
-                              selectedItemColor: Theme.of(context).colorScheme.primary,
-                              currentIndex: _selectedPage,
-                              onTap: (index) {
-                                _pageController.animateToPage(
-                                  index,
-                                  duration: const Duration(milliseconds: 200),
-                                  curve: Curves.easeOut,
-                                );
-                                setState(() {
-                                  _selectedPage = index;
-                                });
-                              },
-                              items: const [
-                                BottomNavigationBarItem(
-                                  icon: Icon(Icons.message),
-                                  label: "Chat",
-                                ),
-                                BottomNavigationBarItem(
-                                  icon: Icon(Icons.public),
-                                  label: "Sessions",
-                                ),
-                                BottomNavigationBarItem(
-                                  icon: Icon(Icons.settings),
-                                  label: "Settings",
-                                ),
-                              ],
+                            bottomNavigationBar: Container(
+                              decoration: BoxDecoration(
+                                border: const Border(top: BorderSide(width: 1, color: Colors.black)),
+                                color: Theme.of(context).colorScheme.background,
+                              ),
+                              child: BottomNavigationBar(
+                                selectedItemColor: Theme.of(context).colorScheme.primary,
+                                currentIndex: _selectedPage,
+                                onTap: (index) {
+                                  _pageController.animateToPage(
+                                    index,
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.easeOut,
+                                  );
+                                  setState(() {
+                                    _selectedPage = index;
+                                  });
+                                },
+                                items: const [
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.message),
+                                    label: "Chat",
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.public),
+                                    label: "Sessions",
+                                  ),
+                                  BottomNavigationBarItem(
+                                    icon: Icon(Icons.settings),
+                                    label: "Settings",
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         )
@@ -217,7 +233,9 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                             }
                           },
                         );
-                })),
+                },
+              ),
+            ),
           ),
         );
       }),
