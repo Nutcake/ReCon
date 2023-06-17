@@ -82,7 +82,9 @@ class InventoryClient extends ChangeNotifier {
           childDir.children.addAll(records.map((record) => NeosDirectory.fromRecord(record: record, parent: childDir)));
           return childDir;
         },
-      );
+      ).onError((error, stackTrace) {
+        return dir;
+      });
     }
     notifyListeners();
   }
