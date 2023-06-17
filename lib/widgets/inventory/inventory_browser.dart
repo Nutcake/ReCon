@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/inventory_client.dart';
 import 'package:contacts_plus_plus/models/inventory/neos_path.dart';
@@ -38,9 +39,8 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
     super.build(context);
     return ChangeNotifierProvider.value(
       value: Provider.of<InventoryClient>(context),
-      child: Consumer<InventoryClient>(
-        builder: (BuildContext context, InventoryClient iClient, Widget? child) {
-          return FutureBuilder<NeosDirectory>(
+      child: Consumer<InventoryClient>(builder: (BuildContext context, InventoryClient iClient, Widget? child) {
+        return FutureBuilder<NeosDirectory>(
             future: iClient.directoryFuture,
             builder: (context, snapshot) {
               final currentDir = snapshot.data;
@@ -66,12 +66,12 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                   child: Builder(
                     builder: (context) {
                       if (snapshot.hasError) {
-                        FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+                        FlutterError.reportError(
+                            FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                         return DefaultErrorWidget(
                           message: snapshot.error.toString(),
-                          onRetry: () async {
+                          onRetry: () {
                             iClient.loadInventoryRoot();
-                            await iClient.directoryFuture;
                           },
                         );
                       }
@@ -80,36 +80,56 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
 
                       records.sort((a, b) => a.name.compareTo(b.name));
                       final paths = records
-                          .where((element) => element.recordType == RecordType.link || element.recordType == RecordType.directory)
+                          .where((element) =>
+                              element.recordType == RecordType.link || element.recordType == RecordType.directory)
                           .toList();
                       final objects = records
-                          .where((element) => element.recordType != RecordType.link && element.recordType != RecordType.directory)
+                          .where((element) =>
+                              element.recordType != RecordType.link && element.recordType != RecordType.directory)
                           .toList();
+                      final pathSegments = directory?.absolutePathSegments ?? [];
                       return Stack(
                         children: [
                           ListView(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                child: Text(
-                                  directory?.absolutePath ?? NeosDirectory.rootName,
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .labelLarge
-                                      ?.copyWith(color: Theme
-                                      .of(context)
-                                      .colorScheme
-                                      .primary),
-                                ),
-                              ),
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                  child: Wrap(
+                                    children: pathSegments
+                                        .mapIndexed(
+                                          (idx, segment) => Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (idx != 0) const Icon(Icons.chevron_right),
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                                child: TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    foregroundColor: idx == pathSegments.length - 1
+                                                        ? Theme.of(context).colorScheme.primary
+                                                        : Theme.of(context).colorScheme.onSurface,
+                                                  ),
+                                                  onPressed: () {
+                                                    iClient.navigateUp(times: pathSegments.length - 1 - idx);
+                                                  },
+                                                  child: Text(segment),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                        .toList(),
+                                  )),
                               GridView.builder(
                                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                                 physics: const NeverScrollableScrollPhysics(),
                                 shrinkWrap: true,
                                 itemCount: paths.length,
                                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                    maxCrossAxisExtent: 256, childAspectRatio: 4, crossAxisSpacing: 8, mainAxisSpacing: 8),
+                                    maxCrossAxisExtent: 256,
+                                    childAspectRatio: 4,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8),
                                 itemBuilder: (context, index) {
                                   final record = paths[index];
                                   return PathInventoryTile(
@@ -144,13 +164,12 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                         await Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) =>
-                                                PhotoView(
-                                                  minScale: PhotoViewComputedScale.contained,
-                                                  imageProvider: CachedNetworkImageProvider(
-                                                      Aux.neosDbToHttp(record.thumbnailUri)),
-                                                  heroAttributes: PhotoViewHeroAttributes(tag: record.id),
-                                                ),
+                                            builder: (context) => PhotoView(
+                                              minScale: PhotoViewComputedScale.contained,
+                                              imageProvider:
+                                                  CachedNetworkImageProvider(Aux.neosDbToHttp(record.thumbnailUri)),
+                                              heroAttributes: PhotoViewHeroAttributes(tag: record.id),
+                                            ),
                                           ),
                                         );
                                       },
@@ -169,26 +188,32 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                               ),
                             ],
                           ),
-                          if (snapshot.connectionState == ConnectionState.waiting)
-                            Align(
-                              alignment: Alignment.center,
-                              child: Container(
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              child: snapshot.connectionState == ConnectionState.waiting ? const LinearProgressIndicator() : null,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              child: snapshot.connectionState == ConnectionState.waiting ? Container(
                                 width: double.infinity,
                                 height: double.infinity,
                                 color: Colors.black38,
-                                child: const Center(child: CircularProgressIndicator()),
-                              ),
-                            )
+                              ) : null,
+                            ),
+                          )
                         ],
                       );
                     },
                   ),
                 ),
               );
-            }
-          );
-        }
-      ),
+            });
+      }),
     );
   }
 

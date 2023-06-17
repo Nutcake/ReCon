@@ -14,7 +14,10 @@ class InventoryClient extends ChangeNotifier {
   InventoryClient({required this.apiClient});
 
   Future<List<Record>> _getDirectory(Record record) async {
-    final dir = await _currentDirectory;
+    NeosDirectory? dir;
+    try {
+      dir = await _currentDirectory;
+    } catch(_) {}
     final List<Record> records;
     if (dir == null || record.isRoot) {
       records = await RecordApi.getUserRecordsAt(
@@ -84,8 +87,8 @@ class InventoryClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> navigateUp() async {
-    final dir = await _currentDirectory;
+  Future<void> navigateUp({int times = 1}) async {
+    var dir = await _currentDirectory;
     if (dir == null) {
       throw "Failed to navigate up: No directory loaded.";
     }
@@ -93,7 +96,11 @@ class InventoryClient extends ChangeNotifier {
       throw "Failed navigate up: Already at root";
     }
 
-    _currentDirectory = Future.value(dir.parent);
+    for (int i = 0; i < times; i++) {
+      dir = dir?.parent;
+    }
+
+    _currentDirectory = Future.value(dir);
     notifyListeners();
   }
 }
