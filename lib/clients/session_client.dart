@@ -11,9 +11,7 @@ class SessionClient extends ChangeNotifier {
 
   SessionFilterSettings _filterSettings = SessionFilterSettings.empty();
 
-  SessionClient({required this.apiClient}) {
-    reloadSessions();
-  }
+  SessionClient({required this.apiClient});
 
   SessionFilterSettings get filterSettings => _filterSettings;
 

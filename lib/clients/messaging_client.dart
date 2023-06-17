@@ -366,6 +366,8 @@ class MessagingClient extends ChangeNotifier {
         if (message.senderId != selectedFriend?.id) {
           addUnread(message);
           updateFriendStatus(message.senderId);
+        } else {
+          markMessagesRead(MarkReadBatch(senderId: message.senderId, ids: [message.id], readTime: DateTime.now()));
         }
         notifyListeners();
         break;

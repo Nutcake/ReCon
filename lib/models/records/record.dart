@@ -4,6 +4,7 @@ import 'package:contacts_plus_plus/models/records/asset_digest.dart';
 import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
 import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 enum RecordType {
@@ -15,7 +16,8 @@ enum RecordType {
   audio;
 
   factory RecordType.fromName(String? name) {
-    return RecordType.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase().trim(), orElse: () => RecordType.unknown);
+    return RecordType.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase().trim(),
+        orElse: () => RecordType.unknown);
   }
 }
 
@@ -24,7 +26,7 @@ class RecordId {
   final String? ownerId;
   final bool isValid;
 
-  const RecordId({required this.id, required this.ownerId, required this.isValid});
+  const RecordId({this.id, this.ownerId, required this.isValid});
 
   factory RecordId.fromMap(Map? map) {
     return RecordId(id: map?["id"], ownerId: map?["ownerId"], isValid: map?["isValid"] ?? false);
@@ -40,6 +42,38 @@ class RecordId {
 }
 
 class Record {
+  static final _rootRecord = Record(
+    id: "0",
+    combinedRecordId: const RecordId(isValid: false),
+    isSynced: true,
+    fetchedOn: DateTimeX.epoch,
+    path: "Inventory",
+    ownerId: "",
+    assetUri: "",
+    name: "Inventory",
+    description: "",
+    tags: [],
+    recordType: RecordType.directory,
+    thumbnailUri: "",
+    isPublic: false,
+    isListed: false,
+    isForPatreons: false,
+    lastModificationTime: DateTimeX.epoch,
+    neosDBManifest: [],
+    lastModifyingUserId: "",
+    lastModifyingMachineId: "",
+    creationTime: DateTimeX.epoch,
+    manifest: [],
+    url: "",
+    isValidOwnerId: true,
+    isValidRecordId: true,
+    globalVersion: 1,
+    localVersion: 1,
+    visits: 0,
+    rating: 0,
+    randomOrder: 0,
+  );
+
   final String id;
   final RecordId combinedRecordId;
   final String ownerId;
@@ -119,12 +153,8 @@ class Record {
       combinedRecordId: combinedRecordId,
       assetUri: assetUri,
       name: filename,
-      tags: ([
-        filename,
-        "message_item",
-        "message_id:${Message.generateId()}",
-        "contacts-plus-plus"
-      ] + (extraTags ?? [])).unique(),
+      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "contacts-plus-plus"] + (extraTags ?? []))
+          .unique(),
       recordType: recordType,
       thumbnailUri: thumbnailUri,
       isPublic: false,
@@ -154,36 +184,67 @@ class Record {
 
   factory Record.fromMap(Map map) {
     return Record(
-      id: map["id"] ?? "0",
-      combinedRecordId: RecordId.fromMap(map["combinedRecordId"]),
-      ownerId: map["ownerId"] ?? "",
-      assetUri: map["assetUri"] ?? "",
-      globalVersion: map["globalVersion"] ?? 0,
-      localVersion: map["localVersion"] ?? 0,
-      name: map["name"] ?? "",
-      description: map["description"] ?? "",
-      tags: (map["tags"] as List? ?? []).map((e) => e.toString()).toList(),
-      recordType: RecordType.fromName(map["recordType"]),
-      thumbnailUri: map["thumbnailUri"] ?? "",
-      isPublic: map["isPublic"] ?? false,
-      isForPatreons: map["isForPatreons"] ?? false,
-      isListed: map["isListed"] ?? false,
-      lastModificationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
-      neosDBManifest: (map["neosDBManifest"] as List? ?? []).map((e) => NeosDBAsset.fromMap(e)).toList(),
-      lastModifyingUserId: map["lastModifyingUserId"] ?? "",
-      lastModifyingMachineId: map["lastModifyingMachineId"] ?? "",
-      creationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
-      isSynced: map["isSynced"] ?? false,
-      fetchedOn: DateTime.tryParse(map["fetchedOn"]) ?? DateTimeX.epoch,
-      path: map["path"] ?? "",
-      manifest: (map["neosDBManifest"] as List? ?? []).map((e) => e.toString()).toList(),
-      url: map["url"] ?? "",
-      isValidOwnerId: map["isValidOwnerId"] ?? "",
-      isValidRecordId: map["isValidRecordId"] ?? "",
-      visits: map["visits"] ?? 0,
-      rating: map["rating"] ?? 0,
-      randomOrder: map["randomOrder"] ?? 0
-    );
+        id: map["id"] ?? "0",
+        combinedRecordId: RecordId.fromMap(map["combinedRecordId"]),
+        ownerId: map["ownerId"] ?? "",
+        assetUri: map["assetUri"] ?? "",
+        globalVersion: map["globalVersion"] ?? 0,
+        localVersion: map["localVersion"] ?? 0,
+        name: map["name"] ?? "",
+        description: map["description"] ?? "",
+        tags: (map["tags"] as List? ?? []).map((e) => e.toString()).toList(),
+        recordType: RecordType.fromName(map["recordType"]),
+        thumbnailUri: map["thumbnailUri"] ?? "",
+        isPublic: map["isPublic"] ?? false,
+        isForPatreons: map["isForPatreons"] ?? false,
+        isListed: map["isListed"] ?? false,
+        lastModificationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
+        neosDBManifest: (map["neosDBManifest"] as List? ?? []).map((e) => NeosDBAsset.fromMap(e)).toList(),
+        lastModifyingUserId: map["lastModifyingUserId"] ?? "",
+        lastModifyingMachineId: map["lastModifyingMachineId"] ?? "",
+        creationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
+        isSynced: map["isSynced"] ?? false,
+        fetchedOn: DateTime.tryParse(map["fetchedOn"] ?? "") ?? DateTimeX.epoch,
+        path: map["path"] ?? "",
+        manifest: (map["neosDBManifest"] as List? ?? []).map((e) => e.toString()).toList(),
+        url: map["url"] ?? "",
+        isValidOwnerId: map["isValidOwnerId"] == "true",
+        isValidRecordId: map["isValidRecordId"] == "true",
+        visits: map["visits"] ?? 0,
+        rating: map["rating"] ?? 0,
+        randomOrder: map["randomOrder"] ?? 0);
+  }
+
+  factory Record.inventoryRoot() => _rootRecord;
+
+  bool get isRoot => this == _rootRecord;
+
+  String get linkRecordId {
+    if (!assetUri.startsWith("neosrec")) {
+      throw "Record is not a link.";
+    }
+    
+    final lastSlashIdx = assetUri.lastIndexOf("/");
+    if (lastSlashIdx == -1) {
+      throw "Record has invalid assetUri";
+    }
+    
+    return assetUri.substring(lastSlashIdx+1);
+  }
+  
+  String get linkOwnerId {
+    if (!assetUri.startsWith("neosrec")) {
+      throw "Record is not a link.";
+    }
+    
+    String ownerId = assetUri.replaceFirst("neosrec:///", "");
+
+    final lastSlashIdx = ownerId.lastIndexOf("/");
+    if (lastSlashIdx == -1) {
+      throw "Record has invalid assetUri";
+    }
+
+    return ownerId.substring(0, lastSlashIdx);
   }
 
   Record copyWith({

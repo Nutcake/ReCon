@@ -17,8 +17,15 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
 
 class RecordApi {
-  static Future<List<Record>> getRecordsAt(ApiClient client, {required String path}) async {
-    final response = await client.get("/users/${client.userId}/records?path=$path");
+  static Future<Record> getUserRecord(ApiClient client, {required String recordId, String? user}) async {
+    final response = await client.get("/users/${user ?? client.userId}/records/$recordId");
+    client.checkResponse(response);
+    final body = jsonDecode(response.body) as Map;
+    return Record.fromMap(body);
+  }
+
+  static Future<List<Record>> getUserRecordsAt(ApiClient client, {required String path, String? user}) async {
+    final response = await client.get("/users/${user ?? client.userId}/records?path=$path");
     client.checkResponse(response);
     final body = jsonDecode(response.body) as List;
     return body.map((e) => Record.fromMap(e)).toList();

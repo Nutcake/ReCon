@@ -16,22 +16,27 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
 
-  ApiClient({required AuthenticationData authenticationData, required this.onLogout}) : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData, required this.onLogout})
+      : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
+
   // Saving the context here feels kinda cringe ngl
   final Function() onLogout;
+  final http.Client _client = http.Client();
 
   AuthenticationData get authenticationData => _authenticationData;
+
   String get userId => _authenticationData.userId;
+
   bool get isAuthenticated => _authenticationData.isAuthenticated;
 
   static Future<AuthenticationData> tryLogin({
     required String username,
     required String password,
-    bool rememberMe=true,
-    bool rememberPass=true,
+    bool rememberMe = true,
+    bool rememberPass = true,
     String? oneTimePad,
   }) async {
     final body = {
@@ -41,19 +46,19 @@ class ApiClient {
       "secretMachineId": const Uuid().v4(),
     };
     final response = await http.post(
-        buildFullUri("/UserSessions"),
-        headers: {
-          "Content-Type": "application/json",
-          if (oneTimePad != null) totpKey : oneTimePad,
-        },
-        body: jsonEncode(body),
+      buildFullUri("/UserSessions"),
+      headers: {
+        "Content-Type": "application/json",
+        if (oneTimePad != null) totpKey: oneTimePad,
+      },
+      body: jsonEncode(body),
     );
     if (response.statusCode == 403 && response.body == totpKey) {
       throw totpKey;
     }
     if (response.statusCode == 400) {
       throw "Invalid Credentials";
-    } 
+    }
     checkResponseCode(response);
 
     final authData = AuthenticationData.fromMap(jsonDecode(response.body));
@@ -83,9 +88,8 @@ class ApiClient {
     }
 
     if (token != null) {
-      final response = await http.patch(buildFullUri("/userSessions"), headers: {
-        "Authorization": "neos $userId:$token"
-      });
+      final response =
+          await http.patch(buildFullUri("/userSessions"), headers: {"Authorization": "neos $userId:$token"});
       if (response.statusCode < 300) {
         return AuthenticationData(userId: userId, token: token, secretMachineId: machineId, isAuthenticated: true);
       }
@@ -135,13 +139,14 @@ class ApiClient {
   static void checkResponseCode(http.Response response) {
     if (response.statusCode < 300) return;
 
-    final error = "${switch (response.statusCode) {
+    final error =
+        "${response.request?.method ?? "Unknown Method"}|${response.request?.url ?? "Unknown URL"}: ${switch (response.statusCode) {
       429 => "You are being rate limited.",
       403 => "You are not authorized to do that.",
       404 => "Resource not found.",
       500 => "Internal server error.",
       _ => "Unknown Error."
-    }} (${response.statusCode}${kDebugMode ? "|${response.body}" : ""})";
+    }} (${response.statusCode}${kDebugMode && response.body.isNotEmpty ? "|${response.body}" : ""})";
 
     FlutterError.reportError(FlutterErrorDetails(exception: error));
     throw error;
@@ -154,7 +159,7 @@ class ApiClient {
   Future<http.Response> get(String path, {Map<String, String>? headers}) async {
     headers ??= {};
     headers.addAll(authorizationHeader);
-    final response = await http.get(buildFullUri(path), headers: headers);
+    final response = await _client.get(buildFullUri(path), headers: headers);
     _logger.info("GET $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -163,7 +168,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    final response = await http.post(buildFullUri(path), headers: headers, body: body);
+    final response = await _client.post(buildFullUri(path), headers: headers, body: body);
     _logger.info("PST $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -172,7 +177,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    final response = await http.put(buildFullUri(path), headers: headers, body: body);
+    final response = await _client.put(buildFullUri(path), headers: headers, body: body);
     _logger.info("PUT $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -180,7 +185,7 @@ class ApiClient {
   Future<http.Response> delete(String path, {Map<String, String>? headers}) async {
     headers ??= {};
     headers.addAll(authorizationHeader);
-    final response = await http.delete(buildFullUri(path), headers: headers);
+    final response = await _client.delete(buildFullUri(path), headers: headers);
     _logger.info("DEL $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -189,7 +194,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    final response = await http.patch(buildFullUri(path), headers: headers, body: body);
+    final response = await _client.patch(buildFullUri(path), headers: headers, body: body);
     _logger.info("PAT $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
