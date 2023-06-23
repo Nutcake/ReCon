@@ -5,7 +5,6 @@ import 'package:contacts_plus_plus/models/users/online_status.dart';
 import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:contacts_plus_plus/widgets/friends/user_search.dart';
 import 'package:contacts_plus_plus/widgets/my_profile_dialog.dart';
-import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -156,13 +155,6 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                 await itemDef.onTap();
               },
               itemBuilder: (BuildContext context) => [
-                MenuItemDefinition(
-                  name: "Settings",
-                  icon: Icons.settings,
-                  onTap: () async {
-                    await Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SettingsPage()));
-                  },
-                ),
                 MenuItemDefinition(
                   name: "Find Users",
                   icon: Icons.person_add,

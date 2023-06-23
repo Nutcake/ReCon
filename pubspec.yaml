@@ -63,6 +63,7 @@ dependencies:
   crypto: ^3.0.3
   image_picker: ^0.8.7+5
   permission_handler: ^10.2.0
+  flutter_downloader: ^1.10.4
 
 dev_dependencies:
   flutter_test:

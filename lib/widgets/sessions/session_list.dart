@@ -17,6 +17,15 @@ class SessionList extends StatefulWidget {
 
 class _SessionListState extends State<SessionList> with AutomaticKeepAliveClientMixin {
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final sClient = Provider.of<SessionClient>(context, listen: false);
+    if (sClient.sessionsFuture == null) {
+      sClient.reloadSessions();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context);
     return ChangeNotifierProvider.value(
@@ -127,8 +136,10 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                                         maxLines: 1,
                                                         overflow: TextOverflow.ellipsis,
                                                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                              color:
-                                                                  Theme.of(context).colorScheme.onSurface.withOpacity(.5),
+                                                              color: Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface
+                                                                  .withOpacity(.5),
                                                             ),
                                                       ),
                                                     ),

@@ -57,6 +57,11 @@ class FormatNode {
     return spanTree;
   }
 
+  @override
+  String toString() {
+    return text + children.join();
+  }
+
   static FormatNode buildFromStyles(List<FormatData> styles, String text) {
     if (styles.isEmpty) return FormatNode(format: FormatData.unformatted(), children: [], text: text);
     final root = FormatNode(text: "", format: styles.first, children: []);

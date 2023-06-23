@@ -1,5 +1,5 @@
 class Config {
-  static const String apiBaseUrl = "https://cloudx.azurewebsites.net";
+  static const String apiBaseUrl = "https://api.neos.com";
   static const String legacyCloudUrl = "https://neoscloud.blob.core.windows.net/assets/";
   static const String blobStorageUrl = "https://cloudxstorage.blob.core.windows.net/assets/";
   static const String videoStorageUrl = "https://cloudx-video.azureedge.net/";
