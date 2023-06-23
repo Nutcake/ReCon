@@ -31,6 +31,11 @@ class RecordApi {
     return body.map((e) => Record.fromMap(e)).toList();
   }
 
+  static Future<void> deleteRecord(ApiClient client, {required String recordId}) async {
+    final response = await client.delete("/users/${client.userId}/records/$recordId");
+    client.checkResponse(response);
+  }
+
   static Future<PreprocessStatus> preprocessRecord(ApiClient client, {required Record record}) async {
     final body = jsonEncode(record.toMap());
     final response = await client.post(

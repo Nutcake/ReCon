@@ -12,25 +12,36 @@ class PathInventoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      style: TextButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
         side: BorderSide(
           color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
-          width: 1,
         ),
-        foregroundColor: Theme.of(context).colorScheme.onSecondaryContainer,
-        alignment: Alignment.centerLeft,
+        borderRadius: BorderRadius.circular(16),
       ),
-      onLongPress: onLongPress,
-      onPressed: onTap,
-      icon: record.recordType == RecordType.directory ? const Icon(Icons.folder) : const Icon(Icons.link),
-      label: FormattedText(
-        record.formattedName,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          child: Row(
+            children: [
+              record.recordType == RecordType.directory ? const Icon(Icons.folder) : const Icon(Icons.link),
+              const SizedBox(
+                width: 4,
+              ),
+              Expanded(
+                child: FormattedText(
+                  record.formattedName,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

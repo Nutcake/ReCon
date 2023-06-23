@@ -8,19 +8,17 @@ import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/session_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
-import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
 import 'package:contacts_plus_plus/widgets/friends/friends_list_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/homepage.dart';
-import 'package:contacts_plus_plus/widgets/inventory/inventory_browser.dart';
 import 'package:contacts_plus_plus/widgets/inventory/inventory_browser_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
-import 'package:contacts_plus_plus/widgets/sessions/session_list.dart';
 import 'package:contacts_plus_plus/widgets/sessions/session_list_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/settings_app_bar.dart';
-import 'package:contacts_plus_plus/widgets/settings_page.dart';
 import 'package:contacts_plus_plus/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -32,20 +30,29 @@ import 'models/authentication_data.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await FlutterDownloader.initialize(
+    debug: kDebugMode,
+  );
+
   Provider.debugCheckInvalidValueType = null;
+
   await Hive.initFlutter();
+
   final dateFormat = DateFormat.Hms();
   Logger.root.onRecord.listen(
       (event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
+
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   final newSettings =
       settingsClient.currentSettings.copyWith(machineId: settingsClient.currentSettings.machineId.valueOrDefault);
   await settingsClient.changeSettings(newSettings); // Save generated machineId to disk
+
   AuthenticationData cachedAuth = AuthenticationData.unauthenticated();
   try {
     cachedAuth = await ApiClient.tryCachedLogin();
   } catch (_) {}
+
   runApp(ContactsPlusPlus(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
 }
 
@@ -60,13 +67,6 @@ class ContactsPlusPlus extends StatefulWidget {
 }
 
 class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
-  static const List<Widget> _appBars = [
-    FriendsListAppBar(),
-    SessionListAppBar(),
-    InventoryBrowserAppBar(),
-    SettingsAppBar()
-  ];
-
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
   late AuthenticationData _authData = widget.cachedAuthentication;
   bool _checkedForUpdate = false;
