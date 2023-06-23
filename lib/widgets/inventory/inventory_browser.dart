@@ -148,9 +148,6 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                               }
                                             }
                                           },
-                                    onLongPress: () {
-                                      iClient.toggleRecordSelected(record);
-                                    },
                                   );
                                 },
                               ),
