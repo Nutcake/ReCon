@@ -48,20 +48,7 @@ class _SessionViewState extends State<SessionView> {
               maxLines: 1,
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      height: 1,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            scrolledUnderElevation: 0,
           ),
           body: RefreshIndicator(
             onRefresh: () async {

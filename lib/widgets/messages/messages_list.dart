@@ -52,7 +52,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final appBarColor = Theme.of(context).colorScheme.surfaceVariant;
+    final appBarColor = Theme.of(context).colorScheme.surface;
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
@@ -79,15 +79,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                 ),
             ],
           ),
-          bottom: sessions.isNotEmpty && _sessionListOpen
-              ? null
-              : PreferredSize(
-                  preferredSize: const Size.fromHeight(1),
-                  child: Container(
-                    height: 1,
-                    color: Colors.black,
-                  ),
-                ),
           actions: [
             if (sessions.isNotEmpty)
               AnimatedRotation(
@@ -107,9 +98,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
             )
           ],
           scrolledUnderElevation: 0.0,
-          backgroundColor: appBarColor,
-          surfaceTintColor: Colors.transparent,
-          shadowColor: Colors.transparent,
         ),
         body: Column(
           children: [
@@ -122,11 +110,11 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                     ? null
                     : Container(
                         constraints: const BoxConstraints(maxHeight: 64),
-                        decoration: BoxDecoration(
-                            color: appBarColor,
-                            border: const Border(
-                              bottom: BorderSide(width: 1, color: Colors.black),
-                            )),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(width: 1, color: Colors.black),
+                          ),
+                        ),
                         child: Stack(
                           children: [
                             ListView.builder(

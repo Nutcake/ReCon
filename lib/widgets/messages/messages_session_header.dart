@@ -35,57 +35,73 @@ class SessionPopup extends StatelessWidget {
                         FormattedText(session.formattedName, style: Theme.of(context).textTheme.titleMedium),
                         session.formattedDescription.isEmpty
                             ? const Text("No description")
-                            : FormattedText(session.formattedDescription, style: Theme.of(context).textTheme.labelMedium),
-                        Text("Tags: ${session.tags.isEmpty ? "None" : session.tags.join(", ")}",
+                            : FormattedText(session.formattedDescription,
+                                style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          "Tags: ${session.tags.isEmpty ? "None" : session.tags.join(", ")}",
                           style: Theme.of(context).textTheme.labelMedium,
                           softWrap: true,
                         ),
-                        Text("Access: ${session.accessLevel.toReadableString()}", style: Theme.of(context).textTheme.labelMedium),
+                        Text("Access: ${session.accessLevel.toReadableString()}",
+                            style: Theme.of(context).textTheme.labelMedium),
                         Text("Users: ${session.sessionUsers.length}", style: Theme.of(context).textTheme.labelMedium),
                         Text("Maximum users: ${session.maxUsers}", style: Theme.of(context).textTheme.labelMedium),
-                        Text("Headless: ${session.headlessHost ? "Yes" : "No"}", style: Theme.of(context).textTheme.labelMedium),
+                        Text("Headless: ${session.headlessHost ? "Yes" : "No"}",
+                            style: Theme.of(context).textTheme.labelMedium),
                       ],
                     ),
                   ),
-                  if (session.sessionUsers.isNotEmpty) Expanded(
-                    child: Scrollbar(
-                      trackVisibility: true,
-                      controller: userListScrollController,
-                      thumbVisibility: true,
-                      child: ListView.builder(
+                  if (session.sessionUsers.isNotEmpty)
+                    Expanded(
+                      child: Scrollbar(
+                        trackVisibility: true,
                         controller: userListScrollController,
-                        shrinkWrap: true,
-                        itemCount: session.sessionUsers.length,
-                        itemBuilder: (context, index) {
-                          final user = session.sessionUsers[index];
-                          return ListTile(
-                            dense: true,
-                            title: Text(user.username, textAlign: TextAlign.end,),
-                            subtitle: Text(user.isPresent ? "Active" : "Inactive", textAlign: TextAlign.end,),
-                          );
-                        },
+                        thumbVisibility: true,
+                        child: ListView.builder(
+                          controller: userListScrollController,
+                          shrinkWrap: true,
+                          itemCount: session.sessionUsers.length,
+                          itemBuilder: (context, index) {
+                            final user = session.sessionUsers[index];
+                            return ListTile(
+                              dense: true,
+                              title: Text(
+                                user.username,
+                                textAlign: TextAlign.end,
+                              ),
+                              subtitle: Text(
+                                user.isPresent ? "Active" : "Inactive",
+                                textAlign: TextAlign.end,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    )
+                  else
+                    const Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person_remove_alt_1_rounded),
+                            Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                "No one is currently playing.",
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ),
-                  ) else const Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.person_remove_alt_1_rounded),
-                          Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text("No one is currently playing.", textAlign: TextAlign.center,),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             Expanded(
               child: Center(
-                child:  CachedNetworkImage(
+                child: CachedNetworkImage(
                   imageUrl: thumbnailUri,
                   placeholder: (context, url) {
                     return const CircularProgressIndicator();
@@ -114,11 +130,15 @@ class SessionPopup extends StatelessWidget {
 
 class SessionTile extends StatelessWidget {
   const SessionTile({required this.session, super.key});
+
   final Session session;
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
+      style: TextButton.styleFrom(
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+      ),
       onPressed: () {
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => SessionView(session: session)));
       },
@@ -133,7 +153,10 @@ class SessionTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FormattedText(session.formattedName),
-                Text("${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} active users")
+                Text(
+                  "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} active users",
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(.6)),
+                )
               ],
             ),
           )

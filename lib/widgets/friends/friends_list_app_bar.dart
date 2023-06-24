@@ -51,7 +51,6 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
       value: Provider.of<MessagingClient>(context, listen: false),
       child: AppBar(
         title: const Text("Contacts++"),
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
         actions: [
           FutureBuilder(
             future: _userStatusFuture,
@@ -199,13 +198,6 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
             ),
           )
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: Colors.black,
-          ),
-        ),
       ),
     );
   }

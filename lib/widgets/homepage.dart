@@ -52,6 +52,7 @@ class _HomeState extends State<Home> {
           color: Theme.of(context).colorScheme.background,
         ),
         child: BottomNavigationBar(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           type: BottomNavigationBarType.fixed,
           unselectedItemColor: Theme.of(context).colorScheme.onBackground,
           selectedItemColor: Theme.of(context).colorScheme.primary,
