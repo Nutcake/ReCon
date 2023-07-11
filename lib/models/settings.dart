@@ -40,31 +40,47 @@ class Settings {
   final SettingsEntry<String> lastDismissedVersion;
   final SettingsEntry<String> machineId;
   final SettingsEntry<int> themeMode;
+  final SettingsEntry<int> sessionViewLastMinimumUsers;
+  final SettingsEntry<bool> sessionViewLastIncludeEnded;
+  final SettingsEntry<bool> sessionViewLastIncludeEmpty;
+  final SettingsEntry<bool> sessionViewLastIncludeIncompatible;
 
   Settings({
     SettingsEntry<bool>? notificationsDenied,
     SettingsEntry<int>? lastOnlineStatus,
     SettingsEntry<int>? themeMode,
     SettingsEntry<String>? lastDismissedVersion,
-    SettingsEntry<String>? machineId
-  })
-      : notificationsDenied = notificationsDenied ?? const SettingsEntry<bool>(deflt: false),
+    SettingsEntry<String>? machineId,
+    SettingsEntry<int>? sessionViewLastMinimumUsers,
+    SettingsEntry<bool>? sessionViewLastIncludeEnded,
+    SettingsEntry<bool>? sessionViewLastIncludeEmpty,
+    SettingsEntry<bool>? sessionViewLastIncludeIncompatible,
+  })  : notificationsDenied = notificationsDenied ?? const SettingsEntry<bool>(deflt: false),
         lastOnlineStatus = lastOnlineStatus ?? SettingsEntry<int>(deflt: OnlineStatus.online.index),
         themeMode = themeMode ?? SettingsEntry<int>(deflt: ThemeMode.dark.index),
         lastDismissedVersion = lastDismissedVersion ?? SettingsEntry<String>(deflt: SemVer.zero().toString()),
-        machineId = machineId ?? SettingsEntry<String>(deflt: const Uuid().v4());
+        machineId = machineId ?? SettingsEntry<String>(deflt: const Uuid().v4()),
+        sessionViewLastMinimumUsers = sessionViewLastMinimumUsers ?? const SettingsEntry<int>(deflt: 0),
+        sessionViewLastIncludeEnded = sessionViewLastIncludeEnded ?? const SettingsEntry<bool>(deflt: false),
+        sessionViewLastIncludeEmpty = sessionViewLastIncludeEmpty ?? const SettingsEntry<bool>(deflt: true),
+        sessionViewLastIncludeIncompatible =
+            sessionViewLastIncludeIncompatible ?? const SettingsEntry<bool>(deflt: false);
 
   factory Settings.fromMap(Map map) {
     return Settings(
-      notificationsDenied: retrieveEntryOrNull<bool>(map["notificationsDenied"]),
-      lastOnlineStatus: retrieveEntryOrNull<int>(map["lastOnlineStatus"]),
-      themeMode: retrieveEntryOrNull<int>(map["themeMode"]),
-      lastDismissedVersion: retrieveEntryOrNull<String>(map["lastDismissedVersion"]),
-      machineId: retrieveEntryOrNull<String>(map["machineId"]),
+      notificationsDenied: getEntryOrNull<bool>(map["notificationsDenied"]),
+      lastOnlineStatus: getEntryOrNull<int>(map["lastOnlineStatus"]),
+      themeMode: getEntryOrNull<int>(map["themeMode"]),
+      lastDismissedVersion: getEntryOrNull<String>(map["lastDismissedVersion"]),
+      machineId: getEntryOrNull<String>(map["machineId"]),
+      sessionViewLastMinimumUsers: getEntryOrNull<int>(map["sessionViewLastMinimumUsers"]),
+      sessionViewLastIncludeEnded: getEntryOrNull<bool>(map["sessionViewLastIncludeEnded"]),
+      sessionViewLastIncludeEmpty: getEntryOrNull<bool>(map["sessionViewLastIncludeEmpty"]),
+      sessionViewLastIncludeIncompatible: getEntryOrNull<bool>(map["sessionViewLastIncludeIncompatible"]),
     );
   }
 
-  static SettingsEntry<T>? retrieveEntryOrNull<T>(Map? map) {
+  static SettingsEntry<T>? getEntryOrNull<T>(Map? map) {
     if (map == null) return null;
     try {
       return SettingsEntry<T>.fromMap(map);
@@ -80,6 +96,10 @@ class Settings {
       "themeMode": themeMode.toMap(),
       "lastDismissedVersion": lastDismissedVersion.toMap(),
       "machineId": machineId.toMap(),
+      "sessionViewLastMinimumUsers": sessionViewLastMinimumUsers.toMap(),
+      "sessionViewLastIncludeEnded": sessionViewLastIncludeEnded.toMap(),
+      "sessionViewLastIncludeEmpty": sessionViewLastIncludeEmpty.toMap(),
+      "sessionViewLastIncludeIncompatible": sessionViewLastIncludeIncompatible.toMap(),
     };
   }
 
@@ -91,6 +111,10 @@ class Settings {
     int? themeMode,
     String? lastDismissedVersion,
     String? machineId,
+    int? sessionViewLastMinimumUsers,
+    bool? sessionViewLastIncludeEnded,
+    bool? sessionViewLastIncludeEmpty,
+    bool? sessionViewLastIncludeIncompatible,
   }) {
     return Settings(
       notificationsDenied: this.notificationsDenied.passThrough(notificationsDenied),
@@ -98,6 +122,11 @@ class Settings {
       themeMode: this.themeMode.passThrough(themeMode),
       lastDismissedVersion: this.lastDismissedVersion.passThrough(lastDismissedVersion),
       machineId: this.machineId.passThrough(machineId),
+      sessionViewLastMinimumUsers: this.sessionViewLastMinimumUsers.passThrough(sessionViewLastMinimumUsers),
+      sessionViewLastIncludeEnded: this.sessionViewLastIncludeEnded.passThrough(sessionViewLastIncludeEnded),
+      sessionViewLastIncludeEmpty: this.sessionViewLastIncludeEmpty.passThrough(sessionViewLastIncludeEmpty),
+      sessionViewLastIncludeIncompatible:
+          this.sessionViewLastIncludeIncompatible.passThrough(sessionViewLastIncludeIncompatible),
     );
   }
 }

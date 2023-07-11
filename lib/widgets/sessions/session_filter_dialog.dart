@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/session_client.dart';
+import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -44,9 +46,20 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
     super.dispose();
   }
 
+  Future<void> _updateSettings() async {
+    final settingsClient = ClientHolder.of(context).settingsClient;
+    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(
+      sessionViewLastMinimumUsers: _currentFilter.minActiveUsers,
+      sessionViewLastIncludeEnded: _currentFilter.includeEnded,
+      sessionViewLastIncludeEmpty: _currentFilter.includeEmptyHeadless,
+      sessionViewLastIncludeIncompatible: _currentFilter.includeIncompatible,
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      insetPadding: const EdgeInsets.all(24),
       title: const Text("Filter"),
       content: SizedBox(
         width: double.infinity,
@@ -109,7 +122,8 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        _currentFilter = _currentFilter.copyWith(minActiveUsers: _currentFilter.minActiveUsers + 1, includeEmptyHeadless: false);
+                        _currentFilter = _currentFilter.copyWith(
+                            minActiveUsers: _currentFilter.minActiveUsers + 1, includeEmptyHeadless: false);
                       });
                     },
                     icon: const Icon(Icons.add_circle_outline),
@@ -128,11 +142,13 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
               SessionFilterCheckbox(
                 label: "Include Empty Headless",
                 value: _currentFilter.includeEmptyHeadless && _currentFilter.minActiveUsers == 0,
-                onChanged: _currentFilter.minActiveUsers > 0 ? null : (value) {
-                  setState(() {
-                    _currentFilter = _currentFilter.copyWith(includeEmptyHeadless: value);
-                  });
-                },
+                onChanged: _currentFilter.minActiveUsers > 0
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _currentFilter = _currentFilter.copyWith(includeEmptyHeadless: value);
+                        });
+                      },
               ),
               SessionFilterCheckbox(
                 label: "Include Incompatible",
@@ -155,9 +171,10 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
           child: const Text("Cancel"),
         ),
         TextButton(
-          onPressed: () {
+          onPressed: () async {
             Provider.of<SessionClient>(context, listen: false).filterSettings = _currentFilter;
             Navigator.of(context).pop();
+            await _updateSettings();
           },
           child: const Text("Okay"),
         ),

@@ -8,17 +8,12 @@ import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/clients/session_client.dart';
 import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/models/sem_ver.dart';
-import 'package:contacts_plus_plus/widgets/friends/friends_list_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/homepage.dart';
-import 'package:contacts_plus_plus/widgets/inventory/inventory_browser_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/login_screen.dart';
-import 'package:contacts_plus_plus/widgets/sessions/session_list_app_bar.dart';
-import 'package:contacts_plus_plus/widgets/settings_app_bar.dart';
 import 'package:contacts_plus_plus/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -34,8 +29,6 @@ void main() async {
   await FlutterDownloader.initialize(
     debug: kDebugMode,
   );
-
-  Provider.debugCheckInvalidValueType = null;
 
   await Hive.initFlutter();
 
@@ -156,19 +149,19 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
                   return _authData.isAuthenticated
                       ? MultiProvider(
                           providers: [
-                            Provider(
+                            ChangeNotifierProvider(
                               create: (context) => MessagingClient(
                                 apiClient: clientHolder.apiClient,
                                 notificationClient: clientHolder.notificationClient,
                               ),
-                              dispose: (context, value) => value.dispose(),
                             ),
-                            Provider(
+                            ChangeNotifierProvider(
                               create: (context) => SessionClient(
                                 apiClient: clientHolder.apiClient,
+                                settingsClient: clientHolder.settingsClient,
                               ),
                             ),
-                            Provider(
+                            ChangeNotifierProvider(
                               create: (context) => InventoryClient(
                                 apiClient: clientHolder.apiClient,
                               ),

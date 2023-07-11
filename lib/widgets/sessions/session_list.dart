@@ -21,7 +21,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
     super.didChangeDependencies();
     final sClient = Provider.of<SessionClient>(context, listen: false);
     if (sClient.sessionsFuture == null) {
-      sClient.reloadSessions();
+      sClient.initSessions();
     }
   }
 

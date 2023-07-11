@@ -1,4 +1,6 @@
+import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/session_client.dart';
+import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/widgets/sessions/session_filter_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +25,7 @@ class _SessionListAppBarState extends State<SessionListAppBar> {
               final sessionClient = Provider.of<SessionClient>(context, listen: false);
               await showDialog(
                 context: context,
-                builder: (context) => Provider.value(
+                builder: (context) => ChangeNotifierProvider.value(
                   value: sessionClient,
                   child: SessionFilterDialog(
                     lastFilter: sessionClient.filterSettings,
