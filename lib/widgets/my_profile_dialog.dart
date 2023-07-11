@@ -88,6 +88,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         Text(dateFormat.format(profile.publicBanExpiration!))],
                     ),
                   StorageIndicator(usedBytes: profile.usedBytes, maxBytes: profile.quotaBytes,),
+                  const SizedBox(height: 12,),
                 ],
               ),
             );
