@@ -6,6 +6,7 @@ import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:contacts_plus_plus/widgets/friends/user_search.dart';
 import 'package:contacts_plus_plus/widgets/my_profile_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -49,6 +50,9 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
     super.build(context);
     return AppBar(
       title: const Text("Contacts++"),
+      systemOverlayStyle: SystemUiOverlayStyle(
+        systemNavigationBarColor: Theme.of(context).colorScheme.surfaceVariant,
+      ),
       actions: [
         FutureBuilder(
           future: _userStatusFuture,

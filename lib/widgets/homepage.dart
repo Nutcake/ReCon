@@ -29,6 +29,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: AnimatedSwitcher(
@@ -46,46 +47,40 @@ class _HomeState extends State<Home> {
           SettingsPage(),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: const Border(top: BorderSide(width: 1, color: Colors.black)),
-          color: Theme.of(context).colorScheme.background,
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          type: BottomNavigationBarType.fixed,
-          unselectedItemColor: Theme.of(context).colorScheme.onBackground,
-          selectedItemColor: Theme.of(context).colorScheme.primary,
-          currentIndex: _selectedPage,
-          onTap: (index) {
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            );
-            setState(() {
-              _selectedPage = index;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.message),
-              label: "Chat",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.public),
-              label: "Sessions",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.inventory),
-              label: "Inventory",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: "Settings",
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+        type: BottomNavigationBarType.fixed,
+        unselectedItemColor: Theme.of(context).colorScheme.onBackground,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        currentIndex: _selectedPage,
+        onTap: (index) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+          setState(() {
+            _selectedPage = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message),
+            label: "Chat",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.public),
+            label: "Sessions",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory),
+            label: "Inventory",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Settings",
+          ),
+        ],
       ),
     );
   }

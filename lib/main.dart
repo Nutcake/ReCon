@@ -14,6 +14,7 @@ import 'package:contacts_plus_plus/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -132,12 +133,14 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
               theme: ThemeData(
                 useMaterial3: true,
                 textTheme: _typography.black,
+                canvasColor: lightDynamic?.surfaceVariant,
                 colorScheme:
                     lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
                 textTheme: _typography.white,
+                canvasColor: darkDynamic?.surfaceVariant,
                 colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
               ),
               themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],

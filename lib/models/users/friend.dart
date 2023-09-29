@@ -20,7 +20,7 @@ class Friend implements Comparable {
     required this.contactStatus, required this.latestMessageTime,
   });
 
-  bool get isHeadless => userStatus.activeSessions.any((session) => session.headlessHost == true && session.hostUserId == id);
+  bool get isHeadless => userStatus.outputDevice == "Headless";
 
   factory Friend.fromMap(Map map) {
     var userStatus = map["userStatus"] == null ? UserStatus.empty() : UserStatus.fromMap(map["userStatus"]);
