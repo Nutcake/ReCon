@@ -1,6 +1,5 @@
 class Config {
   static const String apiBaseUrl = "https://api.resonite.com";
-  static const String durianAssetsUrl = "https://assets.everion.com";
   static const String skyfrostAssetsUrl = "https://assets.resonite.com";
   static const String resoniteHubUrl = "$apiBaseUrl/hub";
   static const String secretClientKey = "";

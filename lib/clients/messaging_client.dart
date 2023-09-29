@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
 import 'package:contacts_plus_plus/apis/friend_api.dart';
@@ -32,7 +31,8 @@ enum EventTarget {
   unknown,
   messageSent,
   receiveMessage,
-  messagesRead;
+  messagesRead,
+  receiveSessionUpdate;
 
   factory EventTarget.parse(String? text) {
     if (text == null) return EventTarget.unknown;
@@ -286,24 +286,7 @@ class MessagingClient extends ChangeNotifier {
   Future<WebSocket> _tryConnect() async {
     while (true) {
       try {
-        final http.Response response;
-        try {
-          response = await http.post(
-            Uri.parse("${Config.resoniteHubUrl}/negotiate"),
-            headers: _apiClient.authorizationHeader,
-          );
-          _apiClient.checkResponse(response);
-        } catch (e) {
-          throw "Failed to acquire connection info from Neos API: $e";
-        }
-        final body = jsonDecode(response.body);
-        final url = (body["url"] as String?)?.replaceFirst("https://", "wss://");
-        final wsToken = body["accessToken"];
-
-        if (url == null || wsToken == null) {
-          throw "Invalid response from server.";
-        }
-        final ws = await WebSocket.connect("$url&access_token=$wsToken");
+        final ws = await WebSocket.connect(Config.resoniteHubUrl.replaceFirst("https://", "wss://"), headers: _apiClient.authorizationHeader);
         _attempts = 0;
         return ws;
       } catch (e) {
@@ -382,6 +365,10 @@ class MessagingClient extends ChangeNotifier {
           cache.setMessageState(id, MessageState.read);
         }
         notifyListeners();
+        break;
+      case EventTarget.receiveSessionUpdate:
+        // TODO: Handle session updates
+        _logger.info("Received session update");
         break;
     }
   }

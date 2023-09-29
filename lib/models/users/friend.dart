@@ -22,15 +22,15 @@ class Friend implements Comparable {
   bool get isHeadless => userStatus.activeSessions.any((session) => session.headlessHost == true && session.hostUserId == id);
 
   factory Friend.fromMap(Map map) {
-    final userStatus = UserStatus.fromMap(map["userStatus"]);
+    final userStatus = map["userStatus"] == null ? UserStatus.empty() : UserStatus.fromMap(map["userStatus"]);
     return Friend(
       id: map["id"],
-      username: map["friendUsername"],
+      username: map["contactUsername"],
       ownerId: map["ownerId"] ?? map["id"],
       // Neos bot status is always offline but should be displayed as online
       userStatus:  map["id"] == _neosBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
-      friendStatus: FriendStatus.fromString(map["friendStatus"]),
+      friendStatus: FriendStatus.fromString(map["contactStatus"]),
       latestMessageTime: map["latestMessageTime"] == null
           ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
     );

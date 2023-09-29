@@ -8,7 +8,7 @@ class Aux {
     if (resdb == null || resdb.isEmpty) return "";
     if (resdb.startsWith("http")) return resdb;
     final filename = p.basenameWithoutExtension(resdb);
-    return "${Config.skyfrostAssetsUrl}$filename";
+    return "${Config.skyfrostAssetsUrl}/$filename";
   }
 }
 
