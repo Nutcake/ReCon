@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/apis/user_api.dart';
+import 'package:contacts_plus_plus/apis/friend_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/models/users/user.dart';
@@ -41,7 +41,7 @@ class _UserListTileState extends State<UserListTile> {
         ),
     );
     return ListTile(
-      leading: GenericAvatar(imageUri: Aux.neosDbToHttp(widget.user.userProfile?.iconUrl),),
+      leading: GenericAvatar(imageUri: Aux.resdbToHttp(widget.user.userProfile?.iconUrl),),
       title: Text(widget.user.username),
       subtitle: Text(_regDateFormat.format(widget.user.registrationDate)),
       trailing: IconButton(
@@ -55,11 +55,11 @@ class _UserListTileState extends State<UserListTile> {
           });
           try {
             if (_localAdded) {
-              await UserApi.removeUserAsFriend(ClientHolder
+              await FriendApi.removeUserAsFriend(ClientHolder
                   .of(context)
                   .apiClient, user: widget.user);
             } else {
-              await UserApi.addUserAsFriend(ClientHolder
+              await FriendApi.addUserAsFriend(ClientHolder
                   .of(context)
                   .apiClient, user: widget.user);
             }

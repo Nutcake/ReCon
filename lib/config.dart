@@ -1,11 +1,9 @@
 class Config {
-  static const String apiBaseUrl = "https://api.neos.com";
-  static const String legacyCloudUrl = "https://neoscloud.blob.core.windows.net/assets/";
-  static const String blobStorageUrl = "https://cloudxstorage.blob.core.windows.net/assets/";
-  static const String videoStorageUrl = "https://cloudx-video.azureedge.net/";
-  static const String neosCdnUrl = "https://cloudx.azureedge.net/assets/";
-  static const String neosAssetsUrl = "https://cloudxstorage.blob.core.windows.net/assets/";
-  static const String neosHubUrl = "$apiBaseUrl/hub";
+  static const String apiBaseUrl = "https://api.resonite.com";
+  static const String durianAssetsUrl = "https://assets.everion.com";
+  static const String skyfrostAssetsUrl = "https://assets.resonite.com";
+  static const String resoniteHubUrl = "$apiBaseUrl/hub";
+  static const String secretClientKey = "";
 
   static const int messageCacheValiditySeconds = 90;
 

@@ -100,7 +100,7 @@ class Record {
   final int rating;
   final int randomOrder;
   final List<String> manifest;
-  final List<NeosDBAsset> neosDBManifest;
+  final List<ResoniteDBAsset> neosDBManifest;
   final String url;
   final bool isValidOwnerId;
   final bool isValidRecordId;
@@ -199,7 +199,7 @@ class Record {
         isForPatreons: map["isForPatreons"] ?? false,
         isListed: map["isListed"] ?? false,
         lastModificationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
-        neosDBManifest: (map["neosDBManifest"] as List? ?? []).map((e) => NeosDBAsset.fromMap(e)).toList(),
+        neosDBManifest: (map["neosDBManifest"] as List? ?? []).map((e) => ResoniteDBAsset.fromMap(e)).toList(),
         lastModifyingUserId: map["lastModifyingUserId"] ?? "",
         lastModifyingMachineId: map["lastModifyingMachineId"] ?? "",
         creationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
@@ -265,7 +265,7 @@ class Record {
     bool? isListed,
     bool? isDeleted,
     DateTime? lastModificationTime,
-    List<NeosDBAsset>? neosDBManifest,
+    List<ResoniteDBAsset>? neosDBManifest,
     String? lastModifyingUserId,
     String? lastModifyingMachineId,
     DateTime? creationTime,

@@ -29,7 +29,7 @@ class MessageAsset extends StatelessWidget {
             height: 256,
             width: double.infinity,
             child: CachedNetworkImage(
-              imageUrl: Aux.neosDbToHttp(content["thumbnailUri"]),
+              imageUrl: Aux.resdbToHttp(content["thumbnailUri"]),
               imageBuilder: (context, image) {
                 return InkWell(
                   onTap: () async {
@@ -43,7 +43,7 @@ class MessageAsset extends StatelessWidget {
                           minScale: PhotoViewComputedScale.contained,
                           imageProvider: photoAsset == null
                               ? image
-                              : CachedNetworkImageProvider(Aux.neosDbToHttp(photoAsset.imageUri)),
+                              : CachedNetworkImageProvider(Aux.resdbToHttp(photoAsset.imageUri)),
                           heroAttributes: PhotoViewHeroAttributes(tag: message.id),
                         ),
                     ),);

@@ -15,7 +15,7 @@ class AudioCacheClient {
     final file = File("${directory.path}/${basename(clip.assetUri)}");
     if (!await file.exists()) {
       await file.create(recursive: true);
-      final response = await http.get(Uri.parse(Aux.neosDbToHttp(clip.assetUri)));
+      final response = await http.get(Uri.parse(Aux.resdbToHttp(clip.assetUri)));
       ApiClient.checkResponseCode(response);
       await file.writeAsBytes(response.bodyBytes);
     }

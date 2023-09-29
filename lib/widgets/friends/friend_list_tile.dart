@@ -19,7 +19,7 @@ class FriendListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUri = Aux.neosDbToHttp(friend.userProfile.iconUrl);
+    final imageUri = Aux.resdbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
     return ListTile(
       leading: GenericAvatar(

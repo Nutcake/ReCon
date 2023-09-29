@@ -179,7 +179,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                               builder: (context) => PhotoView(
                                                 minScale: PhotoViewComputedScale.contained,
                                                 imageProvider:
-                                                    CachedNetworkImageProvider(Aux.neosDbToHttp(record.thumbnailUri)),
+                                                    CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
                                                 heroAttributes: PhotoViewHeroAttributes(tag: record.id),
                                               ),
                                             ),

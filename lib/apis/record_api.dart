@@ -68,7 +68,7 @@ class RecordApi {
     return status;
   }
 
-  static Future<AssetUploadData> beginUploadAsset(ApiClient client, {required NeosDBAsset asset}) async {
+  static Future<AssetUploadData> beginUploadAsset(ApiClient client, {required ResoniteDBAsset asset}) async {
     final response = await client.post("/users/${client.userId}/assets/${asset.hash}/chunks");
     client.checkResponse(response);
     final body = jsonDecode(response.body);
@@ -84,7 +84,7 @@ class RecordApi {
   }
 
   static Future<void> uploadAsset(ApiClient client,
-      {required AssetUploadData uploadData, required String filename, required NeosDBAsset asset, required Uint8List data, void Function(double number)? progressCallback}) async {
+      {required AssetUploadData uploadData, required String filename, required ResoniteDBAsset asset, required Uint8List data, void Function(double number)? progressCallback}) async {
     for (int i = 0; i < uploadData.totalChunks; i++) {
       progressCallback?.call(i/uploadData.totalChunks);
       final offset = i * uploadData.chunkSize;
@@ -104,7 +104,7 @@ class RecordApi {
     }
   }
 
-  static Future<void> finishUpload(ApiClient client, {required NeosDBAsset asset}) async {
+  static Future<void> finishUpload(ApiClient client, {required ResoniteDBAsset asset}) async {
     final response = await client.patch("/users/${client.userId}/assets/${asset.hash}/chunks");
     client.checkResponse(response);
   }

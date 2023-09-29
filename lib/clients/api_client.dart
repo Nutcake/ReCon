@@ -41,14 +41,19 @@ class ApiClient {
   }) async {
     final body = {
       (username.contains("@") ? "email" : "username"): username.trim(),
-      "password": password,
+      "authentication": {
+        "\$type": "password",
+        "password": password,
+      },
       "rememberMe": rememberMe,
       "secretMachineId": const Uuid().v4(),
     };
     final response = await http.post(
-      buildFullUri("/UserSessions"),
+      buildFullUri("/userSessions"),
       headers: {
         "Content-Type": "application/json",
+        "SecretClientAccessKey": Config.secretClientKey,
+        "UID":"2cde2bd72c104d1785af28ae77c29fc2",
         if (oneTimePad != null) totpKey: oneTimePad,
       },
       body: jsonEncode(body),
@@ -67,7 +72,7 @@ class ApiClient {
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       );
       await storage.write(key: userIdKey, value: authData.userId);
-      await storage.write(key: machineIdKey, value: authData.secretMachineId);
+      await storage.write(key: machineIdKey, value: authData.secretMachineIdHash);
       await storage.write(key: tokenKey, value: authData.token);
       if (rememberPass) await storage.write(key: passwordKey, value: password);
     }
@@ -88,10 +93,13 @@ class ApiClient {
     }
 
     if (token != null) {
-      final response =
-          await http.patch(buildFullUri("/userSessions"), headers: {"Authorization": "neos $userId:$token"});
+      final response = await http.patch(buildFullUri("/userSessions"), headers: {
+        "Authorization": "res $userId:$token",
+        "UID":"2cde2bd72c104d1785af28ae77c29fc2",
+        "SecretClientAccessKey": Config.secretClientKey,
+      });
       if (response.statusCode < 300) {
-        return AuthenticationData(userId: userId, token: token, secretMachineId: machineId, isAuthenticated: true);
+        return AuthenticationData(userId: userId, token: token, secretMachineIdHash: machineId, isAuthenticated: true);
       }
     }
 
@@ -148,13 +156,16 @@ class ApiClient {
       _ => "Unknown Error."
     }} (${response.statusCode}${kDebugMode && response.body.isNotEmpty ? "|${response.body}" : ""})";
 
-    FlutterError.reportError(FlutterErrorDetails(exception: error));
+    FlutterError.reportError(FlutterErrorDetails(
+      exception: error,
+      stack: StackTrace.current,
+    ));
     throw error;
   }
 
   Map<String, String> get authorizationHeader => _authenticationData.authorizationHeader;
 
-  static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}/api$path");
+  static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}$path");
 
   Future<http.Response> get(String path, {Map<String, String>? headers}) async {
     headers ??= {};

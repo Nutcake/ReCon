@@ -25,6 +25,7 @@ class UserApi {
   }
 
   static Future<UserStatus> getUserStatus(ApiClient client, {required String userId}) async {
+    return UserStatus.empty();
     final response = await client.get("/users/$userId/status");
     client.checkResponse(response);
     final data = jsonDecode(response.body);
@@ -32,11 +33,12 @@ class UserApi {
   }
   
   static Future<void> notifyOnlineInstance(ApiClient client) async {
-    final response = await client.post("/stats/instanceOnline/${client.authenticationData.secretMachineId.hashCode}");
+    final response = await client.post("/stats/instanceOnline/${client.authenticationData.secretMachineIdHash}");
     client.checkResponse(response);
   }
 
   static Future<void> setStatus(ApiClient client, {required UserStatus status}) async {
+    return;
     final pkginfo = await PackageInfo.fromPlatform();
     status = status.copyWith(
       neosVersion: "${pkginfo.version} of ${pkginfo.appName}",
@@ -52,25 +54,5 @@ class UserApi {
     client.checkResponse(response);
     final data = jsonDecode(response.body);
     return PersonalProfile.fromMap(data);
-  }
-
-  static Future<void> addUserAsFriend(ApiClient client, {required User user}) async {
-    final friend = Friend(
-      id: user.id,
-      username: user.username,
-      ownerId: client.userId,
-      userStatus: UserStatus.empty(),
-      userProfile: UserProfile.empty(),
-      friendStatus: FriendStatus.accepted,
-      latestMessageTime: DateTime.now(),
-    );
-    final body = jsonEncode(friend.toMap(shallow: true));
-    final response = await client.put("/users/${client.userId}/friends/${user.id}", body: body);
-    client.checkResponse(response);
-  }
-
-  static Future<void> removeUserAsFriend(ApiClient client, {required User user}) async {
-    final response = await client.delete("/users/${client.userId}/friends/${user.id}");
-    client.checkResponse(response);
   }
 }

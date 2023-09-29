@@ -142,7 +142,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           for (var record in selectedRecords) {
                             final uri = selectedUris == thumbUris ? record.thumbnailUri : record.thumbnailUri;
                             await FlutterDownloader.enqueue(
-                              url: Aux.neosDbToHttp(uri),
+                              url: Aux.resdbToHttp(uri),
                               savedDir: directory,
                               showNotification: true,
                               openFileFromNotification: false,

@@ -1,35 +1,40 @@
+import 'package:contacts_plus_plus/config.dart';
+
 class AuthenticationData {
-  static const _unauthenticated = AuthenticationData(userId: "", token: "", secretMachineId: "", isAuthenticated: false);
+  static const _unauthenticated = AuthenticationData(userId: "", token: "", secretMachineIdHash: "", isAuthenticated: false);
   final String userId;
   final String token;
-  final String secretMachineId;
+  final String secretMachineIdHash;
   final bool isAuthenticated;
 
   const AuthenticationData({
-    required this.userId, required this.token, required this.secretMachineId, required this.isAuthenticated
+    required this.userId, required this.token, required this.secretMachineIdHash,  required this.isAuthenticated
   });
   
   factory AuthenticationData.fromMap(Map map) {
+    map = map["entity"];
     final userId = map["userId"];
     final token = map["token"];
-    final machineId = map["secretMachineId"];
+    final machineId = map["secretMachineIdHash"];
     if (userId == null || token == null || machineId == null) {
       return _unauthenticated;
     }
-    return AuthenticationData(userId: userId, token: token, secretMachineId: machineId, isAuthenticated: true);
+    return AuthenticationData(userId: userId, token: token, secretMachineIdHash: machineId, isAuthenticated: true);
   }
 
   factory AuthenticationData.unauthenticated() => _unauthenticated;
 
   Map<String, String> get authorizationHeader => {
-    "Authorization": "neos $userId:$token"
+    "Authorization": "res $userId:$token",
+    "SecretClientAccessKey": Config.secretClientKey,
+    "UID":"2cde2bd72c104d1785af28ae77c29fc2",
   };
 
   Map<String, dynamic> toMap() {
     return {
       "userId": userId,
       "token": token,
-      "secretMachineId": secretMachineId,
+      "secretMachineId": secretMachineIdHash,
     };
   }
 }

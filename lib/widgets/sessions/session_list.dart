@@ -92,7 +92,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                             child: Hero(
                                               tag: session.id,
                                               child: CachedNetworkImage(
-                                                imageUrl: Aux.neosDbToHttp(session.thumbnail),
+                                                imageUrl: Aux.resdbToHttp(session.thumbnail),
                                                 fit: BoxFit.cover,
                                                 errorWidget: (context, url, error) => const Center(
                                                   child: Icon(

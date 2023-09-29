@@ -61,7 +61,7 @@ class _SessionViewState extends State<SessionView> {
                     SizedBox(
                       height: 192,
                       child: CachedNetworkImage(
-                        imageUrl: Aux.neosDbToHttp(session.thumbnail),
+                        imageUrl: Aux.resdbToHttp(session.thumbnail),
                         imageBuilder: (context, image) {
                           return Material(
                             child: InkWell(

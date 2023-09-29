@@ -14,7 +14,7 @@ class SessionPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ScrollController userListScrollController = ScrollController();
-    final thumbnailUri = Aux.neosDbToHttp(session.thumbnail);
+    final thumbnailUri = Aux.resdbToHttp(session.thumbnail);
     return Dialog(
       insetPadding: const EdgeInsets.all(32),
       child: Container(
@@ -145,7 +145,7 @@ class SessionTile extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          GenericAvatar(imageUri: Aux.neosDbToHttp(session.thumbnail), placeholderIcon: Icons.no_photography),
+          GenericAvatar(imageUri: Aux.resdbToHttp(session.thumbnail), placeholderIcon: Icons.no_photography),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Column(

@@ -59,7 +59,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                           Text(profile.email, style: tt.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),)
                         ],
                       ),
-                      GenericAvatar(imageUri: Aux.neosDbToHttp(profile.userProfile.iconUrl), radius: 24,)
+                      GenericAvatar(imageUri: Aux.resdbToHttp(profile.userProfile.iconUrl), radius: 24,)
                     ],
                   ),
                   const SizedBox(height: 16,),

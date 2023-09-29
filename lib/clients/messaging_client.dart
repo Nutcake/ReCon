@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -288,7 +289,7 @@ class MessagingClient extends ChangeNotifier {
         final http.Response response;
         try {
           response = await http.post(
-            Uri.parse("${Config.neosHubUrl}/negotiate"),
+            Uri.parse("${Config.resoniteHubUrl}/negotiate"),
             headers: _apiClient.authorizationHeader,
           );
           _apiClient.checkResponse(response);

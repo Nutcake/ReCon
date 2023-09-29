@@ -42,7 +42,7 @@ class ObjectInventoryTile extends StatelessWidget {
                     child: CachedNetworkImage(
                       height: double.infinity,
                       width: double.infinity,
-                      imageUrl: Aux.neosDbToHttp(record.thumbnailUri),
+                      imageUrl: Aux.resdbToHttp(record.thumbnailUri),
                       fit: BoxFit.cover,
                       errorWidget: (context, url, error) => const Center(
                         child: Icon(
