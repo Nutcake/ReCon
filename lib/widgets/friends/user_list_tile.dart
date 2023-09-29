@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/apis/friend_api.dart';
+import 'package:contacts_plus_plus/apis/contact_api.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/models/users/user.dart';
@@ -55,11 +55,11 @@ class _UserListTileState extends State<UserListTile> {
           });
           try {
             if (_localAdded) {
-              await FriendApi.removeUserAsFriend(ClientHolder
+              await ContactApi.removeUserAsFriend(ClientHolder
                   .of(context)
                   .apiClient, user: widget.user);
             } else {
-              await FriendApi.addUserAsFriend(ClientHolder
+              await ContactApi.addUserAsFriend(ClientHolder
                   .of(context)
                   .apiClient, user: widget.user);
             }

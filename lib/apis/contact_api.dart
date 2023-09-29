@@ -7,7 +7,7 @@ import 'package:contacts_plus_plus/models/users/user.dart';
 import 'package:contacts_plus_plus/models/users/user_profile.dart';
 import 'package:contacts_plus_plus/models/users/user_status.dart';
 
-class FriendApi {
+class ContactApi {
   static Future<List<Friend>> getFriendsList(ApiClient client, {DateTime? lastStatusUpdate}) async {
     final response = await client.get("/users/${client.userId}/contacts${lastStatusUpdate != null ? "?lastStatusUpdate=${lastStatusUpdate.toUtc().toIso8601String()}" : ""}");
     client.checkResponse(response);

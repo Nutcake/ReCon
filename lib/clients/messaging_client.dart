@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 
-import 'package:contacts_plus_plus/apis/friend_api.dart';
+import 'package:contacts_plus_plus/apis/contact_api.dart';
 import 'package:contacts_plus_plus/apis/message_api.dart';
 import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
@@ -15,16 +15,17 @@ import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:uuid/uuid.dart';
 
 enum EventType {
-  unknown,
-  message,
-  unknown1,
-  unknown2,
-  unknown3,
-  unknown4,
-  keepAlive,
-  error;
+  undefined,
+  invocation,
+  streamItem,
+  completion,
+  streamInvocation,
+  cancelInvocation,
+  ping,
+  close;
 }
 
 enum EventTarget {
@@ -32,7 +33,9 @@ enum EventTarget {
   messageSent,
   receiveMessage,
   messagesRead,
-  receiveSessionUpdate;
+  receiveSessionUpdate,
+  removeSession,
+  receiveStatusUpdate;
 
   factory EventTarget.parse(String? text) {
     if (text == null) return EventTarget.unknown;
@@ -127,7 +130,7 @@ class MessagingClient extends ChangeNotifier {
     _autoRefresh?.cancel();
     _autoRefresh = Timer(_autoRefreshDuration, () => refreshFriendsList());
 
-    final friends = await FriendApi.getFriendsList(_apiClient, lastStatusUpdate: lastUpdateUtc);
+    final friends = await ContactApi.getFriendsList(_apiClient, lastStatusUpdate: lastUpdateUtc);
     for (final friend in friends) {
       await _updateFriend(friend);
     }
@@ -136,16 +139,9 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void sendMessage(Message message) async {
+  void sendMessage(Message message) {
     final msgBody = message.toMap();
-    final data = {
-      "type": EventType.message.index,
-      "target": "SendMessage",
-      "arguments": [
-        msgBody
-      ],
-    };
-    _sendData(data);
+    _send("SendMessage", body: msgBody);
     final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
     cache.addMessage(message);
     notifyListeners();
@@ -153,14 +149,7 @@ class MessagingClient extends ChangeNotifier {
 
   void markMessagesRead(MarkReadBatch batch) {
     final msgBody = batch.toMap();
-    final data = {
-      "type": EventType.message.index,
-      "target": "MarkMessagesRead",
-      "arguments": [
-        msgBody
-      ],
-    };
-    _sendData(data);
+    _send("MarkMessagesRead", body: msgBody);
     clearUnreadsForUser(batch.senderId);
   }
 
@@ -281,6 +270,7 @@ class MessagingClient extends ChangeNotifier {
     _wsChannel!.done.then((error) => _onDisconnected(error));
     _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
     _wsChannel!.add(_negotiationPacket);
+    _send("InitializeStatus");
   }
 
   Future<WebSocket> _tryConnect() async {
@@ -301,34 +291,38 @@ class MessagingClient extends ChangeNotifier {
 
   void _handleEvent(event) {
     final body = jsonDecode((event.toString().replaceAll(_eofChar, "")));
-    final int rawType = body["type"] ?? 0;
+    final int? rawType = body["type"];
+    if (rawType == null) {
+      _logger.warning("Received empty event, content was $event");
+      return;
+    }
     if (rawType > EventType.values.length) {
       _logger.info("Unhandled event type $rawType: $body");
       return;
     }
     switch (EventType.values[rawType]) {
-      case EventType.unknown1:
-      case EventType.unknown2:
-      case EventType.unknown3:
-      case EventType.unknown4:
-      case EventType.unknown:
-        _logger.info("Received unknown event: $rawType: $body");
+      case EventType.streamItem:
+      case EventType.completion:
+      case EventType.streamInvocation:
+      case EventType.cancelInvocation:
+      case EventType.undefined:
+        _logger.info("Received unhandled event: $rawType: $body");
         break;
-      case EventType.message:
-        _logger.info("Received message-event.");
-        _handleMessageEvent(body);
+      case EventType.invocation:
+        _logger.info("Received invocation-event.");
+        _handleInvocation(body);
         break;
-      case EventType.keepAlive:
+      case EventType.ping:
         _logger.info("Received keep-alive.");
         break;
-      case EventType.error:
-        _logger.severe("Received error-event: ${body["error"]}");
+      case EventType.close:
+        _logger.severe("Received close-event: ${body["error"]}");
         // Should we trigger a manual reconnect here or just let the remote service close the connection?
         break;
     }
   }
 
-  void _handleMessageEvent(body) async {
+  void _handleInvocation(body) async {
     final target = EventTarget.parse(body["target"]);
     final args = body["arguments"];
     switch (target) {
@@ -366,15 +360,31 @@ class MessagingClient extends ChangeNotifier {
         }
         notifyListeners();
         break;
+      case EventTarget.receiveStatusUpdate:
+
+        break;
+      case EventTarget.removeSession:
       case EventTarget.receiveSessionUpdate:
         // TODO: Handle session updates
-        _logger.info("Received session update");
+        _logger.info("Received unhandled invocation event.");
         break;
     }
   }
 
-  void _sendData(data) {
+  String _send(String target, {Map? body}) {
+    final invocationId = const Uuid().v4();
+    final data = {
+      "type": EventType.invocation.index,
+      "invocationId": invocationId,
+      "target": target,
+      "arguments": [
+        if (body != null)
+          body
+      ],
+    };
     if (_wsChannel == null) throw "Neos Hub is not connected";
     _wsChannel!.add(jsonEncode(data)+_eofChar);
+    return invocationId;
   }
+
 }
