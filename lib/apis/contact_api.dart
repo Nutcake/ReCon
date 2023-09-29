@@ -22,7 +22,7 @@ class ContactApi {
       ownerId: client.userId,
       userStatus: UserStatus.empty(),
       userProfile: UserProfile.empty(),
-      friendStatus: FriendStatus.accepted,
+      contactStatus: FriendStatus.accepted,
       latestMessageTime: DateTime.now(),
     );
     final body = jsonEncode(friend.toMap(shallow: true));

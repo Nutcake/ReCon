@@ -19,7 +19,7 @@ enum OnlineStatus {
 
   factory OnlineStatus.fromString(String? text) {
     return OnlineStatus.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
-      orElse: () => OnlineStatus.offline,
+      orElse: () => OnlineStatus.online,
     );
   }
 

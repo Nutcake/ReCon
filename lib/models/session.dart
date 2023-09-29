@@ -177,7 +177,6 @@ class SessionFilterSettings {
   String buildRequestString() => "?includeEmptyHeadless=$includeEmptyHeadless"
       "${"&includeEnded=$includeEnded"}"
       "${name.isNotEmpty ? "&name=$name" : ""}"
-      "${!includeIncompatible ? "&compatibilityHash=${Uri.encodeComponent(Config.latestCompatHash)}" : ""}"
       "${hostName.isNotEmpty ? "&hostName=$hostName" : ""}"
       "${minActiveUsers > 0 ? "&minActiveUsers=$minActiveUsers" : ""}";
 

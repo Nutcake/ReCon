@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
+import 'package:contacts_plus_plus/hub_manager.dart';
+import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -13,9 +12,7 @@ import 'package:contacts_plus_plus/apis/user_api.dart';
 import 'package:contacts_plus_plus/clients/notification_client.dart';
 import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/message.dart';
-import 'package:uuid/uuid.dart';
 
 enum EventType {
   undefined,
@@ -39,16 +36,14 @@ enum EventTarget {
 
   factory EventTarget.parse(String? text) {
     if (text == null) return EventTarget.unknown;
-    return EventTarget.values.firstWhere((element) => element.name.toLowerCase() == text.toLowerCase(),
+    return EventTarget.values.firstWhere(
+      (element) => element.name.toLowerCase() == text.toLowerCase(),
       orElse: () => EventTarget.unknown,
     );
   }
 }
 
 class MessagingClient extends ChangeNotifier {
-  static const String _eofChar = "";
-  static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$_eofChar";
-  static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
   static const Duration _autoRefreshDuration = Duration(seconds: 10);
   static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
   static const String _messageBoxKey = "message-box";
@@ -58,28 +53,24 @@ class MessagingClient extends ChangeNotifier {
   final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, List<Message>> _unreads = {};
-  final Logger _logger = Logger("NeosHub");
+  final Logger _logger = Logger("Messaging");
   final NotificationClient _notificationClient;
+  final HubManager _hubManager = HubManager();
 
   Friend? selectedFriend;
   Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
   Timer? _unreadSafeguard;
-  int _attempts = 0;
-  WebSocket? _wsChannel;
-  bool _isConnecting = false;
   String? _initStatus;
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
-      : _apiClient = apiClient, _notificationClient = notificationClient {
+      : _apiClient = apiClient,
+        _notificationClient = notificationClient {
     debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
       box.delete(_lastUpdateKey);
-      await refreshFriendsListWithErrorHandler();
-      await _refreshUnreads();
-      _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
     });
-    _startWebsocket();
+    _setupHub();
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
       // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
       // but I don't feel like implementing that right now.
@@ -93,13 +84,11 @@ class MessagingClient extends ChangeNotifier {
     _autoRefresh?.cancel();
     _notifyOnlineTimer?.cancel();
     _unreadSafeguard?.cancel();
-    _wsChannel?.close();
+    _hubManager.dispose();
     super.dispose();
   }
 
   String? get initStatus => _initStatus;
-
-  bool get websocketConnected => _wsChannel != null;
 
   List<Friend> get cachedFriends => _sortedFriendsCache;
 
@@ -107,7 +96,8 @@ class MessagingClient extends ChangeNotifier {
 
   bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.id);
 
-  bool messageIsUnread(Message message) => _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
+  bool messageIsUnread(Message message) =>
+      _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
 
   Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
 
@@ -115,8 +105,7 @@ class MessagingClient extends ChangeNotifier {
 
   MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
 
-
-  Future<void> refreshFriendsListWithErrorHandler () async {
+  Future<void> refreshFriendsListWithErrorHandler() async {
     try {
       await refreshFriendsList();
     } catch (e) {
@@ -132,7 +121,7 @@ class MessagingClient extends ChangeNotifier {
 
     final friends = await ContactApi.getFriendsList(_apiClient, lastStatusUpdate: lastUpdateUtc);
     for (final friend in friends) {
-      await _updateFriend(friend);
+      await _updateContact(friend);
     }
 
     _initStatus = "";
@@ -141,7 +130,7 @@ class MessagingClient extends ChangeNotifier {
 
   void sendMessage(Message message) {
     final msgBody = message.toMap();
-    _send("SendMessage", body: msgBody);
+    _hubManager.send("SendMessage", arguments: [msgBody]);
     final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
     cache.addMessage(message);
     notifyListeners();
@@ -149,7 +138,7 @@ class MessagingClient extends ChangeNotifier {
 
   void markMessagesRead(MarkReadBatch batch) {
     final msgBody = batch.toMap();
-    _send("MarkMessagesRead", body: msgBody);
+    _hubManager.send("MarkMessagesRead", arguments: [msgBody]);
     clearUnreadsForUser(batch.senderId);
   }
 
@@ -201,7 +190,7 @@ class MessagingClient extends ChangeNotifier {
     final friend = getAsFriend(userId);
     if (friend == null) return;
     final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
-    await _updateFriend(friend.copyWith(userStatus: newStatus));
+    await _updateContact(friend.copyWith(userStatus: newStatus));
     notifyListeners();
   }
 
@@ -228,7 +217,7 @@ class MessagingClient extends ChangeNotifier {
     });
   }
 
-  Future<void> _updateFriend(Friend friend) async {
+  Future<void> _updateContact(Friend friend) async {
     final box = Hive.box(_messageBoxKey);
     box.put(friend.id, friend.toMap());
     final lastStatusUpdate = box.get(_lastUpdateKey);
@@ -247,144 +236,79 @@ class MessagingClient extends ChangeNotifier {
     _sortFriendsCache();
   }
 
-  // ===== Websocket Stuff =====
-
-  void _onDisconnected(error) async {
-    _wsChannel = null;
-    _logger.warning("Neos Hub connection died with error '$error', reconnecting...");
-    await _startWebsocket();
-  }
-
-  Future<void> _startWebsocket() async {
+  Future<void> _setupHub() async {
     if (!_apiClient.isAuthenticated) {
       _logger.info("Tried to connect to Neos Hub without authentication, this is probably fine for now.");
       return;
     }
-    if (_isConnecting) {
-      return;
-    }
-    _isConnecting = true;
-    _wsChannel = await _tryConnect();
-    _isConnecting = false;
-    _logger.info("Connected to Neos Hub.");
-    _wsChannel!.done.then((error) => _onDisconnected(error));
-    _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
-    _wsChannel!.add(_negotiationPacket);
-    _send("InitializeStatus");
+    _hubManager.setHeaders(_apiClient.authorizationHeader);
+
+    _hubManager.setHandler(EventTarget.messageSent, _onMessageSent);
+    _hubManager.setHandler(EventTarget.receiveMessage, _onReceiveMessage);
+    _hubManager.setHandler(EventTarget.messagesRead, _onMessagesRead);
+    _hubManager.setHandler(EventTarget.receiveStatusUpdate, _onReceiveStatusUpdate);
+
+    await _hubManager.start();
+    _hubManager.send(
+      "InitializeStatus",
+      responseHandler: (Map data) async {
+        final rawContacts = data["contacts"] as List;
+        final contacts = rawContacts.map((e) => Friend.fromMap(e)).toList();
+        for (final contact in contacts) {
+          await _updateContact(contact);
+        }
+        _initStatus = "";
+        notifyListeners();
+        await _refreshUnreads();
+        _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
+        _hubManager.send("RequestStatus", arguments: [null, false]);
+      },
+    );
   }
 
-  Future<WebSocket> _tryConnect() async {
-    while (true) {
-      try {
-        final ws = await WebSocket.connect(Config.resoniteHubUrl.replaceFirst("https://", "wss://"), headers: _apiClient.authorizationHeader);
-        _attempts = 0;
-        return ws;
-      } catch (e) {
-        final timeout = _reconnectTimeoutsSeconds[_attempts.clamp(0, _reconnectTimeoutsSeconds.length - 1)];
-        _logger.severe(e);
-        _logger.severe("Retrying in $timeout seconds");
-        await Future.delayed(Duration(seconds: timeout));
-        _attempts++;
+  void _onMessageSent(List args) {
+    final msg = args[0];
+    final message = Message.fromMap(msg, withState: MessageState.sent);
+    final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
+    cache.addMessage(message);
+    notifyListeners();
+  }
+
+  void _onReceiveMessage(List args) {
+    final msg = args[0];
+    final message = Message.fromMap(msg);
+    final cache = getUserMessageCache(message.senderId) ?? _createUserMessageCache(message.senderId);
+    cache.addMessage(message);
+    if (message.senderId != selectedFriend?.id) {
+      addUnread(message);
+      updateFriendStatus(message.senderId);
+    } else {
+      markMessagesRead(MarkReadBatch(senderId: message.senderId, ids: [message.id], readTime: DateTime.now()));
+    }
+    notifyListeners();
+  }
+
+  void _onMessagesRead(List args) {
+    final messageIds = args[0]["ids"] as List;
+    final recipientId = args[0]["recipientId"];
+    if (recipientId == null) return;
+    final cache = getUserMessageCache(recipientId);
+    if (cache == null) return;
+    for (var id in messageIds) {
+      cache.setMessageState(id, MessageState.read);
+    }
+    notifyListeners();
+  }
+
+  void _onReceiveStatusUpdate(List args) {
+    for (final statusUpdate in args) {
+      final status = UserStatus.fromMap(statusUpdate);
+      var friend = getAsFriend(statusUpdate["userId"]);
+      friend = friend?.copyWith(userStatus: status);
+      if (friend != null) {
+        _updateContact(friend);
       }
     }
+    notifyListeners();
   }
-
-  void _handleEvent(event) {
-    final body = jsonDecode((event.toString().replaceAll(_eofChar, "")));
-    final int? rawType = body["type"];
-    if (rawType == null) {
-      _logger.warning("Received empty event, content was $event");
-      return;
-    }
-    if (rawType > EventType.values.length) {
-      _logger.info("Unhandled event type $rawType: $body");
-      return;
-    }
-    switch (EventType.values[rawType]) {
-      case EventType.streamItem:
-      case EventType.completion:
-      case EventType.streamInvocation:
-      case EventType.cancelInvocation:
-      case EventType.undefined:
-        _logger.info("Received unhandled event: $rawType: $body");
-        break;
-      case EventType.invocation:
-        _logger.info("Received invocation-event.");
-        _handleInvocation(body);
-        break;
-      case EventType.ping:
-        _logger.info("Received keep-alive.");
-        break;
-      case EventType.close:
-        _logger.severe("Received close-event: ${body["error"]}");
-        // Should we trigger a manual reconnect here or just let the remote service close the connection?
-        break;
-    }
-  }
-
-  void _handleInvocation(body) async {
-    final target = EventTarget.parse(body["target"]);
-    final args = body["arguments"];
-    switch (target) {
-      case EventTarget.unknown:
-        _logger.info("Unknown event-target in message: $body");
-        return;
-      case EventTarget.messageSent:
-        final msg = args[0];
-        final message = Message.fromMap(msg, withState: MessageState.sent);
-        final cache = getUserMessageCache(message.recipientId) ?? _createUserMessageCache(message.recipientId);
-        cache.addMessage(message);
-        notifyListeners();
-        break;
-      case EventTarget.receiveMessage:
-        final msg = args[0];
-        final message = Message.fromMap(msg);
-        final cache = getUserMessageCache(message.senderId) ?? _createUserMessageCache(message.senderId);
-        cache.addMessage(message);
-        if (message.senderId != selectedFriend?.id) {
-          addUnread(message);
-          updateFriendStatus(message.senderId);
-        } else {
-          markMessagesRead(MarkReadBatch(senderId: message.senderId, ids: [message.id], readTime: DateTime.now()));
-        }
-        notifyListeners();
-        break;
-      case EventTarget.messagesRead:
-        final messageIds = args[0]["ids"] as List;
-        final recipientId = args[0]["recipientId"];
-        if (recipientId == null) break;
-        final cache = getUserMessageCache(recipientId);
-        if (cache == null) break;
-        for (var id in messageIds) {
-          cache.setMessageState(id, MessageState.read);
-        }
-        notifyListeners();
-        break;
-      case EventTarget.receiveStatusUpdate:
-
-        break;
-      case EventTarget.removeSession:
-      case EventTarget.receiveSessionUpdate:
-        // TODO: Handle session updates
-        _logger.info("Received unhandled invocation event.");
-        break;
-    }
-  }
-
-  String _send(String target, {Map? body}) {
-    final invocationId = const Uuid().v4();
-    final data = {
-      "type": EventType.invocation.index,
-      "invocationId": invocationId,
-      "target": target,
-      "arguments": [
-        if (body != null)
-          body
-      ],
-    };
-    if (_wsChannel == null) throw "Neos Hub is not connected";
-    _wsChannel!.add(jsonEncode(data)+_eofChar);
-    return invocationId;
-  }
-
 }

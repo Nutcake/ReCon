@@ -9,7 +9,7 @@ class FriendOnlineStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return userStatus.neosVersion.contains("Contacts++") && userStatus.onlineStatus != OnlineStatus.offline
+    return userStatus.appVersion.contains("Contacts++") && userStatus.onlineStatus != OnlineStatus.offline
         ? SizedBox.square(
             dimension: 10,
             child: Image.asset(

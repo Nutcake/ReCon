@@ -1,3 +1,4 @@
+import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/users/online_status.dart';
 
@@ -9,20 +10,26 @@ class UserStatus {
   final bool currentHosting;
   final Session currentSession;
   final List<Session> activeSessions;
-  final String neosVersion;
+  final String appVersion;
   final String outputDevice;
   final bool isMobile;
   final String compatibilityHash;
 
-  const UserStatus(
-      {required this.onlineStatus, required this.lastStatusChange, required this.currentSession,
-        required this.currentSessionAccessLevel, required this.currentSessionHidden, required this.currentHosting,
-        required this.activeSessions, required this.neosVersion, required this.outputDevice, required this.isMobile,
-        required this.compatibilityHash,
-      });
+  const UserStatus({
+    required this.onlineStatus,
+    required this.lastStatusChange,
+    required this.currentSession,
+    required this.currentSessionAccessLevel,
+    required this.currentSessionHidden,
+    required this.currentHosting,
+    required this.activeSessions,
+    required this.appVersion,
+    required this.outputDevice,
+    required this.isMobile,
+    required this.compatibilityHash,
+  });
 
-  factory UserStatus.empty() =>
-      UserStatus(
+  factory UserStatus.empty() => UserStatus(
         onlineStatus: OnlineStatus.offline,
         lastStatusChange: DateTime.now(),
         currentSessionAccessLevel: 0,
@@ -30,14 +37,14 @@ class UserStatus {
         currentHosting: false,
         currentSession: Session.none(),
         activeSessions: [],
-        neosVersion: "",
+        appVersion: "",
         outputDevice: "Unknown",
         isMobile: false,
         compatibilityHash: "",
       );
 
   factory UserStatus.fromMap(Map map) {
-    final statusString = map["onlineStatus"] as String?;
+    final statusString = map["onlineStatus"].toString();
     final status = OnlineStatus.fromString(statusString);
     return UserStatus(
         onlineStatus: status,
@@ -47,11 +54,10 @@ class UserStatus {
         currentHosting: map["currentHosting"] ?? false,
         currentSession: Session.fromMap(map["currentSession"]),
         activeSessions: (map["activeSessions"] as List? ?? []).map((e) => Session.fromMap(e)).toList(),
-        neosVersion: map["neosVersion"] ?? "",
+        appVersion: map["appVersion"] ?? "",
         outputDevice: map["outputDevice"] ?? "Unknown",
         isMobile: map["isMobile"] ?? false,
-        compatibilityHash: map["compatabilityHash"] ?? ""
-    );
+        compatibilityHash: map["compatabilityHash"] ?? "");
   }
 
   Map toMap({bool shallow = false}) {
@@ -62,8 +68,14 @@ class UserStatus {
       "currentSessionHidden": currentSessionHidden,
       "currentHosting": currentHosting,
       "currentSession": currentSession.isNone || shallow ? null : currentSession.toMap(),
-      "activeSessions": shallow ? [] : activeSessions.map((e) => e.toMap(),).toList(),
-      "neosVersion": neosVersion,
+      "activeSessions": shallow
+          ? []
+          : activeSessions
+              .map(
+                (e) => e.toMap(),
+              )
+              .toList(),
+      "neosVersion": appVersion,
       "outputDevice": outputDevice,
       "isMobile": isMobile,
       "compatibilityHash": compatibilityHash,
@@ -91,7 +103,7 @@ class UserStatus {
         currentHosting: currentHosting ?? this.currentHosting,
         currentSession: currentSession ?? this.currentSession,
         activeSessions: activeSessions ?? this.activeSessions,
-        neosVersion: neosVersion ?? this.neosVersion,
+        appVersion: neosVersion ?? this.appVersion,
         outputDevice: outputDevice ?? this.outputDevice,
         isMobile: isMobile ?? this.isMobile,
         compatibilityHash: compatibilityHash ?? this.compatibilityHash,
