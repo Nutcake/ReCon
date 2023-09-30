@@ -1,6 +1,4 @@
-import 'package:contacts_plus_plus/client_holder.dart';
 import 'package:contacts_plus_plus/clients/session_client.dart';
-import 'package:contacts_plus_plus/clients/settings_client.dart';
 import 'package:contacts_plus_plus/widgets/sessions/session_filter_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

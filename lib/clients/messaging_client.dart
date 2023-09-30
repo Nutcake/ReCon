@@ -13,6 +13,7 @@ import 'package:contacts_plus_plus/clients/notification_client.dart';
 import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 enum EventType {
   undefined,
@@ -74,7 +75,7 @@ class MessagingClient extends ChangeNotifier {
     _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
       // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
       // but I don't feel like implementing that right now.
-      UserApi.setStatus(apiClient, status: await UserApi.getUserStatus(apiClient, userId: apiClient.userId));
+      setUserStatus(await UserApi.getUserStatus(apiClient, userId: apiClient.userId));
     });
   }
 
@@ -140,6 +141,23 @@ class MessagingClient extends ChangeNotifier {
     final msgBody = batch.toMap();
     _hubManager.send("MarkMessagesRead", arguments: [msgBody]);
     clearUnreadsForUser(batch.senderId);
+  }
+
+  Future<void> setUserStatus(UserStatus status) async {
+    final pkginfo = await PackageInfo.fromPlatform();
+
+    status = status.copyWith(
+      appVersion: "${pkginfo.version} of ${pkginfo.appName}",
+      isMobile: true,
+    );
+
+    _hubManager.send("BroadcastStatus", arguments: [
+      status.toMap(),
+      {
+        "group": 0,
+        "targetIds": [],
+      }
+    ]);
   }
 
   void addUnread(Message message) {

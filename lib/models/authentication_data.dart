@@ -1,6 +1,3 @@
-import 'package:contacts_plus_plus/config.dart';
-import 'package:uuid/uuid.dart';
-
 class AuthenticationData {
   static const _unauthenticated = AuthenticationData(
     userId: "",

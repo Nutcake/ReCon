@@ -3,7 +3,6 @@ import 'package:contacts_plus_plus/models/users/user_profile.dart';
 import 'package:contacts_plus_plus/models/users/friend_status.dart';
 import 'package:contacts_plus_plus/models/users/online_status.dart';
 import 'package:contacts_plus_plus/models/users/user_status.dart';
-import 'package:flutter/foundation.dart';
 
 class Friend implements Comparable {
   static const _emptyId = "-1";
@@ -58,14 +57,14 @@ class Friend implements Comparable {
 
   Friend copyWith({
     String? id, String? username, String? ownerId, UserStatus? userStatus, UserProfile? userProfile,
-    FriendStatus? friendStatus, DateTime? latestMessageTime}) {
+    FriendStatus? contactStatus, DateTime? latestMessageTime}) {
     return Friend(
       id: id ?? this.id,
       username: username ?? this.username,
       ownerId: ownerId ?? this.ownerId,
       userStatus: userStatus ?? this.userStatus,
       userProfile: userProfile ?? this.userProfile,
-      contactStatus: friendStatus ?? this.contactStatus,
+      contactStatus: contactStatus ?? this.contactStatus,
       latestMessageTime: latestMessageTime ?? this.latestMessageTime,
     );
   }

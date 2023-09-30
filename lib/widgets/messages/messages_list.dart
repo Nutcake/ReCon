@@ -58,12 +58,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
       final sessions = friend.userStatus.activeSessions;
-
       return Scaffold(
         appBar: AppBar(
-          systemOverlayStyle: SystemUiOverlayStyle(
-            systemNavigationBarColor: Theme.of(context).colorScheme.background,
-          ),
           title: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [

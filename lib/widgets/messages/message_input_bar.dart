@@ -216,7 +216,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
           color: Theme
               .of(context)
               .colorScheme
-              .background,
+              .surfaceVariant,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(

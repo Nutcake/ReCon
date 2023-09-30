@@ -4,7 +4,6 @@ import 'package:contacts_plus_plus/models/records/asset_digest.dart';
 import 'package:contacts_plus_plus/models/records/resonite_db_asset.dart';
 import 'package:contacts_plus_plus/string_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 enum RecordType {

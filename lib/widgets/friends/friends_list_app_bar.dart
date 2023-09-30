@@ -33,12 +33,13 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
 
   void _refreshUserStatus() {
     final apiClient = _clientHolder!.apiClient;
+    final messagingClient = Provider.of<MessagingClient>(context, listen: false);
     _userStatusFuture ??= UserApi.getUserStatus(apiClient, userId: apiClient.userId).then((value) async {
       if (value.onlineStatus == OnlineStatus.offline) {
         final newStatus = value.copyWith(
             onlineStatus:
             OnlineStatus.values[_clientHolder!.settingsClient.currentSettings.lastOnlineStatus.valueOrDefault]);
-        await UserApi.setStatus(apiClient, status: newStatus);
+        await messagingClient.setUserStatus(newStatus);
         return newStatus;
       }
       return value;
@@ -75,18 +76,21 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                   ),
                   onSelected: (OnlineStatus onlineStatus) async {
                     try {
+                      final messagingClient = Provider.of<MessagingClient>(context, listen: false);
                       final newStatus = userStatus.copyWith(onlineStatus: onlineStatus);
                       setState(() {
                         _userStatusFuture = Future.value(newStatus.copyWith(lastStatusChange: DateTime.now()));
                       });
                       final settingsClient = _clientHolder!.settingsClient;
-                      await UserApi.setStatus(_clientHolder!.apiClient, status: newStatus);
+                      await messagingClient.setUserStatus(newStatus);
                       await settingsClient.changeSettings(
                           settingsClient.currentSettings.copyWith(lastOnlineStatus: onlineStatus.index));
                     } catch (e, s) {
                       FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
-                      ScaffoldMessenger.of(context)
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context)
                           .showSnackBar(const SnackBar(content: Text("Failed to set online-status.")));
+                      }
                       setState(() {
                         _userStatusFuture = Future.value(userStatus);
                       });

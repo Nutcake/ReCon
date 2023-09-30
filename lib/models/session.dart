@@ -1,4 +1,3 @@
-import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/string_formatter.dart';
 
 class Session {
