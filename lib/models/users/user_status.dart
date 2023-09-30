@@ -1,4 +1,3 @@
-import 'package:contacts_plus_plus/config.dart';
 import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/users/online_status.dart';
 
@@ -75,7 +74,7 @@ class UserStatus {
                 (e) => e.toMap(),
               )
               .toList(),
-      "neosVersion": appVersion,
+      "appVersion": appVersion,
       "outputDevice": outputDevice,
       "isMobile": isMobile,
       "compatibilityHash": compatibilityHash,

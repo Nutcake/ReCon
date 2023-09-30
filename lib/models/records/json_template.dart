@@ -2,7 +2,7 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
 class JsonTemplate {
-  static const String thumbUrl = "neosdb:///8ed80703e48c3d1556093927b67298f3d5e10315e9f782ec56fc49d6366f09b7.webp";
+  static const String thumbUrl = "resdb:///8ed80703e48c3d1556093927b67298f3d5e10315e9f782ec56fc49d6366f09b7.webp";
   final Map data;
 
   JsonTemplate({required this.data});
@@ -2371,7 +2371,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///3738bf6fc560f7d08d872ce12b06f4d9337ac5da415b6de6008a49ca128658ec"
+              "Data": "@resdb:///3738bf6fc560f7d08d872ce12b06f4d9337ac5da415b6de6008a49ca128658ec"
             },
             "Readable": {
               "ID": const Uuid().v4(),
@@ -2444,7 +2444,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///c801b8d2522fb554678f17f4597158b1af3f9be3abd6ce35d5a3112a81e2bf39"
+              "Data": "@resdb:///c801b8d2522fb554678f17f4597158b1af3f9be3abd6ce35d5a3112a81e2bf39"
             },
             "Padding": {
               "ID": const Uuid().v4(),
@@ -2478,7 +2478,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///4cac521169034ddd416c6deffe2eb16234863761837df677a910697ec5babd25"
+              "Data": "@resdb:///4cac521169034ddd416c6deffe2eb16234863761837df677a910697ec5babd25"
             },
             "Padding": {
               "ID": const Uuid().v4(),
@@ -2512,7 +2512,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///23e7ad7cb0a5a4cf75e07c9e0848b1eb06bba15e8fa9b8cb0579fc823c532927"
+              "Data": "@resdb:///23e7ad7cb0a5a4cf75e07c9e0848b1eb06bba15e8fa9b8cb0579fc823c532927"
             },
             "Padding": {
               "ID": const Uuid().v4(),
@@ -2546,7 +2546,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///415dc6290378574135b64c808dc640c1df7531973290c4970c51fdeb849cb0c5"
+              "Data": "@resdb:///415dc6290378574135b64c808dc640c1df7531973290c4970c51fdeb849cb0c5"
             },
             "Padding": {
               "ID": const Uuid().v4(),
@@ -2580,7 +2580,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///bcda0bcc22bab28ea4fedae800bfbf9ec76d71cc3b9f851779a35b7e438a839d"
+              "Data": "@resdb:///bcda0bcc22bab28ea4fedae800bfbf9ec76d71cc3b9f851779a35b7e438a839d"
             },
             "Padding": {
               "ID": const Uuid().v4(),
@@ -2720,7 +2720,7 @@ class JsonTemplate {
             },
             "URL": {
               "ID": const Uuid().v4(),
-              "Data": "@neosdb:///274f0d4ea4bce93abc224c9ae9f9a97a9a396b382c5338f71c738d1591dd5c35.webp"
+              "Data": "@resdb:///274f0d4ea4bce93abc224c9ae9f9a97a9a396b382c5338f71c738d1591dd5c35.webp"
             },
             "FilterMode": {
               "ID": const Uuid().v4(),

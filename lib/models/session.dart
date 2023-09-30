@@ -6,7 +6,7 @@ class Session {
   final String name;
   final FormatNode formattedName;
   final List<SessionUser> sessionUsers;
-  final String thumbnail;
+  final String thumbnailUrl;
   final int maxUsers;
   final bool hasEnded;
   final bool isValid;
@@ -22,7 +22,7 @@ class Session {
     required this.id,
     required this.name,
     required this.sessionUsers,
-    required this.thumbnail,
+    required this.thumbnailUrl,
     required this.maxUsers,
     required this.hasEnded,
     required this.isValid,
@@ -40,7 +40,7 @@ class Session {
         id: "",
         name: "",
         sessionUsers: const [],
-        thumbnail: "",
+        thumbnailUrl: "",
         maxUsers: 0,
         hasEnded: true,
         isValid: false,
@@ -60,7 +60,7 @@ class Session {
       id: map["sessionId"],
       name: map["name"],
       sessionUsers: (map["sessionUsers"] as List? ?? []).map((entry) => SessionUser.fromMap(entry)).toList(),
-      thumbnail: map["thumbnailUrl"] ?? "",
+      thumbnailUrl: map["thumbnailUrl"] ?? "",
       maxUsers: map["maxUsers"] ?? 0,
       hasEnded: map["hasEnded"] ?? false,
       isValid: map["isValid"] ?? true,
@@ -78,7 +78,7 @@ class Session {
       "sessionId": id,
       "name": name,
       "sessionUsers": shallow ? [] : sessionUsers.map((e) => e.toMap()).toList(),
-      "thumbnail": thumbnail,
+      "thumbnail": thumbnailUrl,
       "maxUsers": maxUsers,
       "hasEnded": hasEnded,
       "isValid": isValid,

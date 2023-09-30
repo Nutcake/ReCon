@@ -238,7 +238,7 @@ class MessagingClient extends ChangeNotifier {
 
   Future<void> _setupHub() async {
     if (!_apiClient.isAuthenticated) {
-      _logger.info("Tried to connect to Neos Hub without authentication, this is probably fine for now.");
+      _logger.info("Tried to connect to Resonite Hub without authentication, this is probably fine for now.");
       return;
     }
     _hubManager.setHeaders(_apiClient.authorizationHeader);
@@ -247,6 +247,7 @@ class MessagingClient extends ChangeNotifier {
     _hubManager.setHandler(EventTarget.receiveMessage, _onReceiveMessage);
     _hubManager.setHandler(EventTarget.messagesRead, _onMessagesRead);
     _hubManager.setHandler(EventTarget.receiveStatusUpdate, _onReceiveStatusUpdate);
+    _hubManager.setHandler(EventTarget.receiveSessionUpdate, _onReceiveSessionUpdate);
 
     await _hubManager.start();
     _hubManager.send(
@@ -311,4 +312,6 @@ class MessagingClient extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void _onReceiveSessionUpdate(List args) {}
 }

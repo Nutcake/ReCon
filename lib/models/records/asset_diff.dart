@@ -1,5 +1,5 @@
 
-import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
+import 'package:contacts_plus_plus/models/records/resonite_db_asset.dart';
 
 class AssetDiff extends ResoniteDBAsset{
   final Diff state;

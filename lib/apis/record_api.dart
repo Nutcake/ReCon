@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 
 import 'package:contacts_plus_plus/clients/api_client.dart';
 import 'package:contacts_plus_plus/models/records/asset_upload_data.dart';
-import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
+import 'package:contacts_plus_plus/models/records/resonite_db_asset.dart';
 import 'package:contacts_plus_plus/models/records/preprocess_status.dart';
 import 'package:contacts_plus_plus/models/records/record.dart';
 import 'package:http_parser/http_parser.dart';

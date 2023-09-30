@@ -30,7 +30,7 @@ class HubManager {
 
   void _onDisconnected(error) async {
     _wsChannel = null;
-    _logger.warning("Neos Hub connection died with error '$error', reconnecting...");
+    _logger.warning("Hub connection died with error '$error', reconnecting...");
     await start();
   }
 
@@ -41,7 +41,7 @@ class HubManager {
     _isConnecting = true;
     _wsChannel = await _tryConnect();
     _isConnecting = false;
-    _logger.info("Connected to Neos Hub.");
+    _logger.info("Connected to Resonite Hub.");
     _wsChannel!.done.then((error) => _onDisconnected(error));
     _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
     _wsChannel!.add(_negotiationPacket);
@@ -124,7 +124,7 @@ class HubManager {
     if (responseHandler != null) {
       _responseHandlers[invocationId] = responseHandler;
     }
-    if (_wsChannel == null) throw "Neos Hub is not connected";
+    if (_wsChannel == null) throw "Resonite Hub is not connected";
     _wsChannel!.add(jsonEncode(data) + _eofChar);
   }
 

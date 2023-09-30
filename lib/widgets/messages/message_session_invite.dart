@@ -44,7 +44,7 @@ class MessageSessionInvite extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GenericAvatar(
-                          imageUri: Aux.resdbToHttp(sessionInfo.thumbnail),
+                          imageUri: Aux.resdbToHttp(sessionInfo.thumbnailUrl),
                           placeholderIcon: Icons.no_photography,
                           foregroundColor: foregroundColor,
                         ),

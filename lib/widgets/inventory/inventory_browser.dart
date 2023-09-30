@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/inventory_client.dart';
-import 'package:contacts_plus_plus/models/inventory/neos_path.dart';
+import 'package:contacts_plus_plus/models/inventory/resonite_directory.dart';
 import 'package:contacts_plus_plus/models/records/record.dart';
 import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
 import 'package:contacts_plus_plus/widgets/inventory/object_inventory_tile.dart';
@@ -37,7 +37,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
   Widget build(BuildContext context) {
     super.build(context);
     return Consumer<InventoryClient>(builder: (BuildContext context, InventoryClient iClient, Widget? child) {
-      return FutureBuilder<NeosDirectory>(
+      return FutureBuilder<ResoniteDirectory>(
           future: iClient.directoryFuture,
           builder: (context, snapshot) {
             final currentDir = snapshot.data;
@@ -57,7 +57,9 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                     await iClient.reloadCurrentDirectory();
                     _refreshLimiter = Timer(_refreshLimit, () {});
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Refresh failed: $e")));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Refresh failed: $e")));
+                    }
                   }
                 },
                 child: Builder(

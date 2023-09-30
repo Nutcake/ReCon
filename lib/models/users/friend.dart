@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 
 class Friend implements Comparable {
   static const _emptyId = "-1";
-  static const _neosBotId = "U-Resonite";
+  static const _resoniteBotId = "U-Resonite";
   final String id;
   final String username;
   final String ownerId;
@@ -29,7 +29,7 @@ class Friend implements Comparable {
       username: map["contactUsername"],
       ownerId: map["ownerId"] ?? map["id"],
       // Neos bot status is always offline but should be displayed as online
-      userStatus:  map["id"] == _neosBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
+      userStatus:  map["id"] == _resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
       contactStatus: FriendStatus.fromString(map["contactStatus"]),
       latestMessageTime: map["latestMessageTime"] == null
