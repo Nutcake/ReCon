@@ -60,7 +60,7 @@ class Session {
       id: map["sessionId"],
       name: map["name"],
       sessionUsers: (map["sessionUsers"] as List? ?? []).map((entry) => SessionUser.fromMap(entry)).toList(),
-      thumbnail: map["thumbnail"] ?? "",
+      thumbnail: map["thumbnailUrl"] ?? "",
       maxUsers: map["maxUsers"] ?? 0,
       hasEnded: map["hasEnded"] ?? false,
       isValid: map["isValid"] ?? true,

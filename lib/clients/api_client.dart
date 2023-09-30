@@ -15,6 +15,7 @@ class ApiClient {
   static const String machineIdKey = "machineId";
   static const String tokenKey = "token";
   static const String passwordKey = "password";
+  static const String uidKey = "uid";
 
   ApiClient({required AuthenticationData authenticationData, required this.onLogout})
       : _authenticationData = authenticationData;
@@ -48,12 +49,12 @@ class ApiClient {
       "rememberMe": rememberMe,
       "secretMachineId": const Uuid().v4(),
     };
+    final uid = const Uuid().v4().replaceAll("-", "");
     final response = await http.post(
       buildFullUri("/userSessions"),
       headers: {
         "Content-Type": "application/json",
-        "SecretClientAccessKey": Config.secretClientKey,
-        "UID":"2cde2bd72c104d1785af28ae77c29fc2",
+        "UID": uid,
         if (oneTimePad != null) totpKey: oneTimePad,
       },
       body: jsonEncode(body),
@@ -65,8 +66,9 @@ class ApiClient {
       throw "Invalid Credentials";
     }
     checkResponseCode(response);
-
-    final authData = AuthenticationData.fromMap(jsonDecode(response.body));
+    final data = jsonDecode(response.body);
+    data["entity"]["uid"] = uid;
+    final authData = AuthenticationData.fromMap(data);
     if (authData.isAuthenticated) {
       const FlutterSecureStorage storage = FlutterSecureStorage(
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -74,6 +76,7 @@ class ApiClient {
       await storage.write(key: userIdKey, value: authData.userId);
       await storage.write(key: machineIdKey, value: authData.secretMachineIdHash);
       await storage.write(key: tokenKey, value: authData.token);
+      await storage.write(key: uidKey, value: authData.uid);
       if (rememberPass) await storage.write(key: passwordKey, value: password);
     }
     return authData;
@@ -87,19 +90,25 @@ class ApiClient {
     String? machineId = await storage.read(key: machineIdKey);
     String? token = await storage.read(key: tokenKey);
     String? password = await storage.read(key: passwordKey);
+    String? uid = await storage.read(key: uidKey);
 
-    if (userId == null || machineId == null) {
+    if (userId == null || machineId == null || uid == null) {
       return AuthenticationData.unauthenticated();
     }
 
     if (token != null) {
       final response = await http.patch(buildFullUri("/userSessions"), headers: {
         "Authorization": "res $userId:$token",
-        "UID":"2cde2bd72c104d1785af28ae77c29fc2",
-        "SecretClientAccessKey": Config.secretClientKey,
+        "UID": uid,
       });
       if (response.statusCode < 300) {
-        return AuthenticationData(userId: userId, token: token, secretMachineIdHash: machineId, isAuthenticated: true);
+        return AuthenticationData(
+          userId: userId,
+          token: token,
+          secretMachineIdHash: machineId,
+          isAuthenticated: true,
+          uid: uid,
+        );
       }
     }
 

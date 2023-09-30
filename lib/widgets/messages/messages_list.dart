@@ -6,6 +6,7 @@ import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicato
 import 'package:contacts_plus_plus/widgets/messages/message_input_bar.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'message_bubble.dart';
@@ -60,6 +61,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
 
       return Scaffold(
         appBar: AppBar(
+          systemOverlayStyle: SystemUiOverlayStyle(
+            systemNavigationBarColor: Theme.of(context).colorScheme.background,
+          ),
           title: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
