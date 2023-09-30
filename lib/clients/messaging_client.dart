@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:contacts_plus_plus/hub_manager.dart';
+import 'package:contacts_plus_plus/models/users/online_status.dart';
 import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -57,12 +58,15 @@ class MessagingClient extends ChangeNotifier {
   final Logger _logger = Logger("Messaging");
   final NotificationClient _notificationClient;
   final HubManager _hubManager = HubManager();
-
   Friend? selectedFriend;
+
   Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
   Timer? _unreadSafeguard;
   String? _initStatus;
+  UserStatus _userStatus = UserStatus.empty().copyWith(onlineStatus: OnlineStatus.online);
+
+  UserStatus get userStatus => _userStatus;
 
   MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
       : _apiClient = apiClient,
@@ -72,11 +76,6 @@ class MessagingClient extends ChangeNotifier {
       box.delete(_lastUpdateKey);
     });
     _setupHub();
-    _notifyOnlineTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
-      // We should probably let the MessagingClient handle the entire state of USerStatus instead of mirroring like this
-      // but I don't feel like implementing that right now.
-      setUserStatus(await UserApi.getUserStatus(apiClient, userId: apiClient.userId));
-    });
   }
 
   @override
@@ -146,18 +145,23 @@ class MessagingClient extends ChangeNotifier {
   Future<void> setUserStatus(UserStatus status) async {
     final pkginfo = await PackageInfo.fromPlatform();
 
-    status = status.copyWith(
+    _userStatus = status.copyWith(
       appVersion: "${pkginfo.version} of ${pkginfo.appName}",
       isMobile: true,
+      lastStatusChange: DateTime.now(),
     );
 
     _hubManager.send("BroadcastStatus", arguments: [
-      status.toMap(),
+      _userStatus.toMap(),
       {
         "group": 0,
         "targetIds": [],
       }
     ]);
+
+    final self = getAsFriend(_apiClient.userId);
+    await _updateContact(self!.copyWith(userStatus: _userStatus));
+    notifyListeners();
   }
 
   void addUnread(Message message) {

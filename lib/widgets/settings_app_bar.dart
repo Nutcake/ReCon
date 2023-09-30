@@ -9,7 +9,7 @@ class SettingsAppBar extends StatelessWidget {
     return AppBar(
       title: const Text("Settings"),
       systemOverlayStyle: SystemUiOverlayStyle(
-        systemNavigationBarColor: Theme.of(context).colorScheme.surfaceVariant,
+        systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
       ),
     );
   }

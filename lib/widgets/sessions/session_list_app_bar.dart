@@ -17,7 +17,7 @@ class _SessionListAppBarState extends State<SessionListAppBar> {
     return AppBar(
       title: const Text("Sessions"),
       systemOverlayStyle: SystemUiOverlayStyle(
-        systemNavigationBarColor: Theme.of(context).colorScheme.surfaceVariant,
+        systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
       ),
       actions: [
         Padding(

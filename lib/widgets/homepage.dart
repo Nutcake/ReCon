@@ -47,13 +47,9 @@ class _HomeState extends State<Home> {
           SettingsPage(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-        type: BottomNavigationBarType.fixed,
-        unselectedItemColor: Theme.of(context).colorScheme.onBackground,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        currentIndex: _selectedPage,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedPage,
+        onDestinationSelected: (index) {
           _pageController.animateToPage(
             index,
             duration: const Duration(milliseconds: 200),
@@ -63,20 +59,20 @@ class _HomeState extends State<Home> {
             _selectedPage = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.message),
             label: "Chat",
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.public),
             label: "Sessions",
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.inventory),
             label: "Inventory",
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.settings),
             label: "Settings",
           ),

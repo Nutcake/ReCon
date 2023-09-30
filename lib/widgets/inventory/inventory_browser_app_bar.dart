@@ -62,14 +62,14 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                   key: const ValueKey("default-appbar"),
                   title: const Text("Inventory"),
                   systemOverlayStyle: SystemUiOverlayStyle(
-                    systemNavigationBarColor: Theme.of(context).colorScheme.surfaceVariant,
+                    systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
                   ),
                 )
               : AppBar(
                   key: const ValueKey("selection-appbar"),
                   title: Text("${iClient.selectedRecordCount} Selected"),
                   systemOverlayStyle: SystemUiOverlayStyle(
-                    systemNavigationBarColor: Theme.of(context).colorScheme.surfaceVariant,
+                    systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
                   ),
                   leading: IconButton(
                     onPressed: () {
