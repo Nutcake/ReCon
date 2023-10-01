@@ -1,5 +1,9 @@
-import 'package:contacts_plus_plus/models/session.dart';
+import 'dart:convert';
+
+import 'package:contacts_plus_plus/crypto_helper.dart';
+import 'package:contacts_plus_plus/models/session_metadata.dart';
 import 'package:contacts_plus_plus/models/users/online_status.dart';
+import 'package:crypto/crypto.dart';
 
 class UserStatus {
   final OnlineStatus onlineStatus;
@@ -7,26 +11,34 @@ class UserStatus {
   final int currentSessionAccessLevel;
   final bool currentSessionHidden;
   final bool currentHosting;
-  final Session currentSession;
-  final List<Session> activeSessions;
+  final int currentSessionIndex;
+  final List<SessionMetadata> sessions;
   final String appVersion;
   final String outputDevice;
   final bool isMobile;
   final String compatibilityHash;
+  final String hashSalt;
 
   const UserStatus({
     required this.onlineStatus,
     required this.lastStatusChange,
-    required this.currentSession,
+    required this.currentSessionIndex,
     required this.currentSessionAccessLevel,
     required this.currentSessionHidden,
     required this.currentHosting,
-    required this.activeSessions,
+    required this.sessions,
     required this.appVersion,
     required this.outputDevice,
     required this.isMobile,
     required this.compatibilityHash,
+    required this.hashSalt,
   });
+
+  factory UserStatus.initial() => UserStatus.empty().copyWith(
+        onlineStatus: OnlineStatus.online,
+        hashSalt: CryptoHelper.cryptoToken(),
+        outputDevice: "Mobile",
+      );
 
   factory UserStatus.empty() => UserStatus(
         onlineStatus: OnlineStatus.offline,
@@ -34,29 +46,32 @@ class UserStatus {
         currentSessionAccessLevel: 0,
         currentSessionHidden: false,
         currentHosting: false,
-        currentSession: Session.none(),
-        activeSessions: [],
+        currentSessionIndex: -1,
+        sessions: [],
         appVersion: "",
         outputDevice: "Unknown",
         isMobile: false,
         compatibilityHash: "",
+        hashSalt: "",
       );
 
   factory UserStatus.fromMap(Map map) {
     final statusString = map["onlineStatus"].toString();
     final status = OnlineStatus.fromString(statusString);
     return UserStatus(
-        onlineStatus: status,
-        lastStatusChange: DateTime.parse(map["lastStatusChange"]),
-        currentSessionAccessLevel: map["currentSessionAccessLevel"] ?? 0,
-        currentSessionHidden: map["currentSessionHidden"] ?? false,
-        currentHosting: map["currentHosting"] ?? false,
-        currentSession: Session.fromMap(map["currentSession"]),
-        activeSessions: (map["activeSessions"] as List? ?? []).map((e) => Session.fromMap(e)).toList(),
-        appVersion: map["appVersion"] ?? "",
-        outputDevice: map["outputDevice"] ?? "Unknown",
-        isMobile: map["isMobile"] ?? false,
-        compatibilityHash: map["compatabilityHash"] ?? "");
+      onlineStatus: status,
+      lastStatusChange: DateTime.parse(map["lastStatusChange"]),
+      currentSessionAccessLevel: map["currentSessionAccessLevel"] ?? 0,
+      currentSessionHidden: map["currentSessionHidden"] ?? false,
+      currentHosting: map["currentHosting"] ?? false,
+      currentSessionIndex: map["currentSessionIndex"] ?? -1,
+      sessions: (map["sessions"] as List? ?? []).map((e) => SessionMetadata.fromMap(e)).toList(),
+      appVersion: map["appVersion"] ?? "",
+      outputDevice: map["outputDevice"] ?? "Unknown",
+      isMobile: map["isMobile"] ?? false,
+      compatibilityHash: map["compatabilityHash"] ?? "",
+      hashSalt: map["hashSalt"] ?? "",
+    );
   }
 
   Map toMap({bool shallow = false}) {
@@ -66,10 +81,10 @@ class UserStatus {
       "currentSessionAccessLevel": currentSessionAccessLevel,
       "currentSessionHidden": currentSessionHidden,
       "currentHosting": currentHosting,
-      "currentSession": currentSession.isNone || shallow ? null : currentSession.toMap(),
-      "activeSessions": shallow
+      "currentSessionIndex": currentSessionIndex,
+      "sessions": shallow
           ? []
-          : activeSessions
+          : sessions
               .map(
                 (e) => e.toMap(),
               )
@@ -87,12 +102,13 @@ class UserStatus {
     int? currentSessionAccessLevel,
     bool? currentSessionHidden,
     bool? currentHosting,
-    Session? currentSession,
-    List<Session>? activeSessions,
+    int? currentSessionIndex,
+    List<SessionMetadata>? sessions,
     String? appVersion,
     String? outputDevice,
     bool? isMobile,
     String? compatibilityHash,
+    String? hashSalt,
   }) =>
       UserStatus(
         onlineStatus: onlineStatus ?? this.onlineStatus,
@@ -100,11 +116,12 @@ class UserStatus {
         currentSessionAccessLevel: currentSessionAccessLevel ?? this.currentSessionAccessLevel,
         currentSessionHidden: currentSessionHidden ?? this.currentSessionHidden,
         currentHosting: currentHosting ?? this.currentHosting,
-        currentSession: currentSession ?? this.currentSession,
-        activeSessions: activeSessions ?? this.activeSessions,
+        currentSessionIndex: currentSessionIndex ?? this.currentSessionIndex,
+        sessions: sessions ?? this.sessions,
         appVersion: appVersion ?? this.appVersion,
         outputDevice: outputDevice ?? this.outputDevice,
         isMobile: isMobile ?? this.isMobile,
         compatibilityHash: compatibilityHash ?? this.compatibilityHash,
+        hashSalt: hashSalt ?? this.hashSalt,
       );
 }

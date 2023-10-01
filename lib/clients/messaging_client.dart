@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:contacts_plus_plus/apis/session_api.dart';
+import 'package:contacts_plus_plus/crypto_helper.dart';
 import 'package:contacts_plus_plus/hub_manager.dart';
-import 'package:contacts_plus_plus/models/users/online_status.dart';
+import 'package:contacts_plus_plus/models/session.dart';
 import 'package:contacts_plus_plus/models/users/user_status.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -58,13 +60,14 @@ class MessagingClient extends ChangeNotifier {
   final Logger _logger = Logger("Messaging");
   final NotificationClient _notificationClient;
   final HubManager _hubManager = HubManager();
+  final Map<String, Session> _sessionMap = {};
   Friend? selectedFriend;
 
   Timer? _notifyOnlineTimer;
   Timer? _autoRefresh;
   Timer? _unreadSafeguard;
   String? _initStatus;
-  UserStatus _userStatus = UserStatus.empty().copyWith(onlineStatus: OnlineStatus.online);
+  UserStatus _userStatus = UserStatus.initial();
 
   UserStatus get userStatus => _userStatus;
 
@@ -73,9 +76,14 @@ class MessagingClient extends ChangeNotifier {
         _notificationClient = notificationClient {
     debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
-      box.delete(_lastUpdateKey);
+      await box.delete(_lastUpdateKey);
+      final activeSessions = await SessionApi.getSessions(apiClient);
+      for (final session in activeSessions) {
+        final idHash = CryptoHelper.idHash(session.id + _userStatus.hashSalt);
+        _sessionMap[idHash] = session;
+      }
+      _setupHub();
     });
-    _setupHub();
   }
 
   @override
@@ -104,6 +112,8 @@ class MessagingClient extends ChangeNotifier {
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
   MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
+
+  Session? getSessionInfo(String idHash) => _sessionMap[idHash];
 
   Future<void> refreshFriendsListWithErrorHandler() async {
     try {
@@ -147,17 +157,19 @@ class MessagingClient extends ChangeNotifier {
 
     _userStatus = status.copyWith(
       appVersion: "${pkginfo.version} of ${pkginfo.appName}",
-      isMobile: true,
       lastStatusChange: DateTime.now(),
     );
 
-    _hubManager.send("BroadcastStatus", arguments: [
-      _userStatus.toMap(),
-      {
-        "group": 0,
-        "targetIds": [],
-      }
-    ]);
+    _hubManager.send(
+      "BroadcastStatus",
+      arguments: [
+        _userStatus.toMap(),
+        {
+          "group": 0,
+          "targetIds": [],
+        }
+      ],
+    );
 
     final self = getAsFriend(_apiClient.userId);
     await _updateContact(self!.copyWith(userStatus: _userStatus));
@@ -272,6 +284,7 @@ class MessagingClient extends ChangeNotifier {
     _hubManager.setHandler(EventTarget.receiveSessionUpdate, _onReceiveSessionUpdate);
 
     await _hubManager.start();
+    setUserStatus(userStatus);
     _hubManager.send(
       "InitializeStatus",
       responseHandler: (Map data) async {
@@ -335,5 +348,12 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _onReceiveSessionUpdate(List args) {}
+  void _onReceiveSessionUpdate(List args) {
+    for (final sessionUpdate in args) {
+      final session = Session.fromMap(sessionUpdate);
+      final idHash = CryptoHelper.idHash(session.id + _userStatus.hashSalt);
+      _sessionMap[idHash] = session;
+    }
+    notifyListeners();
+  }
 }

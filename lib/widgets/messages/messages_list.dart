@@ -6,7 +6,6 @@ import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicato
 import 'package:contacts_plus_plus/widgets/messages/message_input_bar.dart';
 import 'package:contacts_plus_plus/widgets/messages/messages_session_header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'message_bubble.dart';
@@ -57,7 +56,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
-      final sessions = friend.userStatus.activeSessions;
+      final sessions = friend.userStatus.sessions;
       return Scaffold(
         appBar: AppBar(
           title: Row(
@@ -121,7 +120,12 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               controller: _sessionListScrollController,
                               scrollDirection: Axis.horizontal,
                               itemCount: sessions.length,
-                              itemBuilder: (context, index) => SessionTile(session: sessions[index]),
+                              itemBuilder: (context, index) {
+                                final currentSessionMetadata = sessions[index];
+                                final currentSession = mClient.getSessionInfo(currentSessionMetadata.sessionHash);
+                                if (currentSession == null) return null;
+                                return SessionTile(session: currentSession);
+                              },
                             ),
                             AnimatedOpacity(
                               opacity: _shevronOpacity,

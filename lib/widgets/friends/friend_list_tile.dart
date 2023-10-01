@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/users/friend.dart';
@@ -21,6 +23,9 @@ class FriendListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUri = Aux.resdbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
+    final mClient = Provider.of<MessagingClient>(context, listen: false);
+    final currentSessionMetadata = friend.userStatus.sessions.elementAtOrNull(max(0, friend.userStatus.currentSessionIndex));
+    final currentSession = mClient.getSessionInfo(currentSessionMetadata?.sessionHash ?? "");
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -54,11 +59,11 @@ class FriendListTile extends StatelessWidget {
             width: 4,
           ),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (!friend.userStatus.currentSession.isNone) ...[
+          if (currentSession != null) ...[
             const Text(" in "),
             Expanded(
                 child: FormattedText(
-              friend.userStatus.currentSession.formattedName,
+              currentSession.formattedName,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ))
@@ -67,7 +72,6 @@ class FriendListTile extends StatelessWidget {
       ),
       onTap: () async {
         onTap?.call();
-        final mClient = Provider.of<MessagingClient>(context, listen: false);
         mClient.loadUserMessageCache(friend.id);
         final unreads = mClient.getUnreadsForFriend(friend);
         if (unreads.isNotEmpty) {

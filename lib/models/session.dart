@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:contacts_plus_plus/string_formatter.dart';
+import 'package:crypto/crypto.dart';
 
 class Session {
   final String id;
@@ -96,15 +99,15 @@ class Session {
 enum SessionAccessLevel {
   unknown,
   private,
-  friends,
-  friendsOfFriends,
+  contacts,
+  contactsPlus,
   anyone;
 
   static const _readableNamesMap = {
     SessionAccessLevel.unknown: "Unknown",
     SessionAccessLevel.private: "Private",
-    SessionAccessLevel.friends: "Contacts",
-    SessionAccessLevel.friendsOfFriends: "Contacts+",
+    SessionAccessLevel.contacts: "Contacts",
+    SessionAccessLevel.contactsPlus: "Contacts+",
     SessionAccessLevel.anyone: "Anyone",
   };
 
