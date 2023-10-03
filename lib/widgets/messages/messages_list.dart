@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:contacts_plus_plus/clients/audio_cache_client.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/models/users/friend.dart';
@@ -56,7 +57,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
-      final sessions = friend.userStatus.sessions;
+      final sessions = friend.userStatus.decodedSessions.whereNot((element) => element.isNone).toList();
       return Scaffold(
         appBar: AppBar(
           title: Row(
@@ -121,9 +122,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               scrollDirection: Axis.horizontal,
                               itemCount: sessions.length,
                               itemBuilder: (context, index) {
-                                final currentSessionMetadata = sessions[index];
-                                final currentSession = mClient.getSessionInfo(currentSessionMetadata.sessionHash);
-                                if (currentSession == null) return null;
+                                final currentSession = sessions[index];
                                 return SessionTile(session: currentSession);
                               },
                             ),

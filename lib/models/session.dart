@@ -101,6 +101,7 @@ enum SessionAccessLevel {
   private,
   contacts,
   contactsPlus,
+  registeredUsers,
   anyone;
 
   static const _readableNamesMap = {
@@ -108,6 +109,7 @@ enum SessionAccessLevel {
     SessionAccessLevel.private: "Private",
     SessionAccessLevel.contacts: "Contacts",
     SessionAccessLevel.contactsPlus: "Contacts+",
+    SessionAccessLevel.registeredUsers: "Registered users",
     SessionAccessLevel.anyone: "Anyone",
   };
 
@@ -119,7 +121,7 @@ enum SessionAccessLevel {
   }
 
   String toReadableString() {
-    return SessionAccessLevel._readableNamesMap[this] ?? "Unknown";
+    return SessionAccessLevel._readableNamesMap[this] ?? SessionAccessLevel.unknown.toReadableString();
   }
 }
 

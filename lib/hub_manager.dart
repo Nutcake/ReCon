@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:contacts_plus_plus/clients/messaging_client.dart';
 import 'package:contacts_plus_plus/config.dart';
+import 'package:contacts_plus_plus/models/hub_events.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
@@ -81,6 +81,7 @@ class HubManager {
         case EventType.completion:
           final handler = _responseHandlers[body["invocationId"]];
           handler?.call(body["result"] ?? {});
+          _logger.info("Received completion event: $rawType: $body");
           break;
         case EventType.cancelInvocation:
         case EventType.undefined:

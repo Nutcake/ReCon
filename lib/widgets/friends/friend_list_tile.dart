@@ -1,9 +1,7 @@
-import 'dart:math';
-
 import 'package:contacts_plus_plus/auxiliary.dart';
 import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/models/message.dart';
+import 'package:contacts_plus_plus/models/users/friend.dart';
 import 'package:contacts_plus_plus/widgets/formatted_text.dart';
 import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
 import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
@@ -24,8 +22,9 @@ class FriendListTile extends StatelessWidget {
     final imageUri = Aux.resdbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
     final mClient = Provider.of<MessagingClient>(context, listen: false);
-    final currentSessionMetadata = friend.userStatus.sessions.elementAtOrNull(max(0, friend.userStatus.currentSessionIndex));
-    final currentSession = mClient.getSessionInfo(currentSessionMetadata?.sessionHash ?? "");
+    final currentSession = friend.userStatus.currentSessionIndex == -1
+        ? null
+        : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -59,7 +58,7 @@ class FriendListTile extends StatelessWidget {
             width: 4,
           ),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (currentSession != null) ...[
+          if (currentSession != null && !currentSession.isNone) ...[
             const Text(" in "),
             Expanded(
                 child: FormattedText(
