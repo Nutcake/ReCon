@@ -1,7 +1,7 @@
-import 'package:contacts_plus_plus/crypto_helper.dart';
-import 'package:contacts_plus_plus/models/session.dart';
-import 'package:contacts_plus_plus/models/session_metadata.dart';
-import 'package:contacts_plus_plus/models/users/online_status.dart';
+import 'package:recon/crypto_helper.dart';
+import 'package:recon/models/session.dart';
+import 'package:recon/models/session_metadata.dart';
+import 'package:recon/models/users/online_status.dart';
 import 'package:uuid/uuid.dart';
 
 enum UserSessionType

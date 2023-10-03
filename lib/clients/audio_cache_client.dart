@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/api_client.dart';
 import 'package:http/http.dart' as http;
-import 'package:contacts_plus_plus/models/message.dart';
+import 'package:recon/models/message.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 

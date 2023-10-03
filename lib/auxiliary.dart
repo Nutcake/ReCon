@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/config.dart';
+import 'package:recon/config.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' as htmlparser;

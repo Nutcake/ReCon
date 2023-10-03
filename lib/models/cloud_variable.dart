@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
+import 'package:recon/auxiliary.dart';
 
 class CloudVariable {
   final String ownerId;

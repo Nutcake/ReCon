@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
 
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/audio_cache_client.dart';
-import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/audio_cache_client.dart';
+import 'package:recon/models/message.dart';
+import 'package:recon/widgets/messages/message_state_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';

@@ -1,8 +1,8 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/inventory_client.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/inventory_client.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

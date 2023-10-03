@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:contacts_plus_plus/apis/session_api.dart';
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/models/session.dart';
-import 'package:contacts_plus_plus/widgets/formatted_text.dart';
-import 'package:contacts_plus_plus/widgets/panorama.dart';
-import 'package:contacts_plus_plus/widgets/settings_page.dart';
+import 'package:recon/apis/session_api.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/models/session.dart';
+import 'package:recon/widgets/formatted_text.dart';
+import 'package:recon/widgets/panorama.dart';
+import 'package:recon/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 
 class SessionView extends StatefulWidget {

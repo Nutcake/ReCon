@@ -1,8 +1,8 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/models/users/user_profile.dart';
-import 'package:contacts_plus_plus/models/users/friend_status.dart';
-import 'package:contacts_plus_plus/models/users/online_status.dart';
-import 'package:contacts_plus_plus/models/users/user_status.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/users/user_profile.dart';
+import 'package:recon/models/users/friend_status.dart';
+import 'package:recon/models/users/online_status.dart';
+import 'package:recon/models/users/user_status.dart';
 
 class Friend implements Comparable {
   static const _emptyId = "-1";

@@ -1,9 +1,9 @@
-import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/models/authentication_data.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/authentication_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
+import 'package:recon/client_holder.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({this.onLoginSuccessful, this.cachedUsername, super.key});
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Contacts++"),
+        title: const Text("ReCon"),
       ),
       body: Builder(builder: (context) {
         return ListView(

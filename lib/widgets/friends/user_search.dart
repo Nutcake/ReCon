@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:contacts_plus_plus/apis/user_api.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/users/user.dart';
-import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
-import 'package:contacts_plus_plus/widgets/friends/user_list_tile.dart';
+import 'package:recon/apis/user_api.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/clients/messaging_client.dart';
+import 'package:recon/models/users/user.dart';
+import 'package:recon/widgets/default_error_widget.dart';
+import 'package:recon/widgets/friends/user_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

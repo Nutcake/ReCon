@@ -1,8 +1,8 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/models/records/asset_digest.dart';
-import 'package:contacts_plus_plus/models/records/resonite_db_asset.dart';
-import 'package:contacts_plus_plus/string_formatter.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/message.dart';
+import 'package:recon/models/records/asset_digest.dart';
+import 'package:recon/models/records/resonite_db_asset.dart';
+import 'package:recon/string_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -152,7 +152,7 @@ class Record {
       combinedRecordId: combinedRecordId,
       assetUri: assetUri,
       name: filename,
-      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "contacts-plus-plus"] + (extraTags ?? []))
+      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "recon"] + (extraTags ?? []))
           .unique(),
       recordType: recordType,
       thumbnailUri: thumbnailUri,

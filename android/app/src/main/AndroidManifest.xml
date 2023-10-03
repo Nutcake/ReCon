@@ -7,7 +7,7 @@
     <!-- Optional, you'll have to check this permission by yourself. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application
-        android:label="Contacts++"
+        android:label="ReCon"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

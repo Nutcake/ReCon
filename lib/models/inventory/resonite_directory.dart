@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:contacts_plus_plus/models/records/record.dart';
+import 'package:recon/models/records/record.dart';
 
 class ResoniteDirectory {
   static const rootName = "Inventory";

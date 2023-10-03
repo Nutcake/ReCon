@@ -1,10 +1,10 @@
 <img src="https://github.com/Nutcake/contacts-plus-plus/raw/main/assets/images/logo512.png" width="200"/>
 
-# Contacts++
+# ReCon
 
-Messenger App for Neos VR contacts.
+A Resonite Contacts App for Android
 
-[Get it here](https://github.com/Nutcake/contacts-plus-plus/releases/latest)
+[Get it here](https://github.com/Nutcake/ReCon/releases/latest)
 
 ## Building
 
@@ -17,4 +17,4 @@ For example, voice-messages and notifications are currently not supported on des
 
 ## Screenshots
 
-<img src="https://cdn.discordapp.com/attachments/897112742035615804/1122142234905686047/Screenshot_20230624-143102_Contacts.png" width=198/> <img src="https://cdn.discordapp.com/attachments/897112742035615804/1122142235169923202/Screenshot_20230624-143035_Contacts.png" width=198/> <img src="https://cdn.discordapp.com/attachments/897112742035615804/1122142233773219890/Screenshot_20230624-143109_Contacts.png" width=198/> <img src="https://cdn.discordapp.com/attachments/897112742035615804/1122142233114726410/Screenshot_20230624-143205_Contacts.png" width=198/> <img src="https://cdn.discordapp.com/attachments/897112742035615804/1122142233458651209/Screenshot_20230624-143124_Contacts.png" width=198/>
+<img src="" width=198/> <img src="" width=198/> <img src="" width=198/> <img src="" width=198/> <img src="" width=198/>

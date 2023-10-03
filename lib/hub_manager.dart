@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:contacts_plus_plus/config.dart';
-import 'package:contacts_plus_plus/models/hub_events.dart';
+import 'package:recon/config.dart';
+import 'package:recon/models/hub_events.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 

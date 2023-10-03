@@ -1,8 +1,8 @@
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/users/online_status.dart';
-import 'package:contacts_plus_plus/widgets/friends/user_search.dart';
-import 'package:contacts_plus_plus/widgets/my_profile_dialog.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/clients/messaging_client.dart';
+import 'package:recon/models/users/online_status.dart';
+import 'package:recon/widgets/friends/user_search.dart';
+import 'package:recon/widgets/my_profile_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +21,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
   Widget build(BuildContext context) {
     super.build(context);
     return AppBar(
-      title: const Text("Contacts++"),
+      title: const Text("ReCon"),
       systemOverlayStyle: SystemUiOverlayStyle(
         systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
       ),

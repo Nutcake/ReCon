@@ -1,9 +1,9 @@
-import 'package:contacts_plus_plus/apis/user_api.dart';
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/models/personal_profile.dart';
-import 'package:contacts_plus_plus/widgets/default_error_widget.dart';
-import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
+import 'package:recon/apis/user_api.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/models/personal_profile.dart';
+import 'package:recon/widgets/default_error_widget.dart';
+import 'package:recon/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

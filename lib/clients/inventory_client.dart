@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:contacts_plus_plus/apis/record_api.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/models/inventory/resonite_directory.dart';
-import 'package:contacts_plus_plus/models/records/record.dart';
+import 'package:recon/apis/record_api.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/inventory/resonite_directory.dart';
+import 'package:recon/models/records/record.dart';
 import 'package:flutter/material.dart';
 
 class InventoryClient extends ChangeNotifier {

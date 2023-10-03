@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/string_formatter.dart';
+import 'package:recon/string_formatter.dart';
 import 'package:crypto/crypto.dart';
 
 class Session {
