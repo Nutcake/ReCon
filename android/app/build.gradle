@@ -49,7 +49,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "me.voidspace.contacts_plus_plus"
+        applicationId "me.voidspace.recon"
         minSdkVersion 21
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()

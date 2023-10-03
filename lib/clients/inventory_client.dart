@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:contacts_plus_plus/apis/record_api.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/models/inventory/neos_path.dart';
-import 'package:contacts_plus_plus/models/records/record.dart';
+import 'package:recon/apis/record_api.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/inventory/resonite_directory.dart';
+import 'package:recon/models/records/record.dart';
 import 'package:flutter/material.dart';
 
 class InventoryClient extends ChangeNotifier {
   final ApiClient apiClient;
 
-  Future<NeosDirectory>? _currentDirectory;
+  Future<ResoniteDirectory>? _currentDirectory;
 
-  Future<NeosDirectory>? get directoryFuture => _currentDirectory;
+  Future<ResoniteDirectory>? get directoryFuture => _currentDirectory;
 
   InventoryClient({required this.apiClient});
 
@@ -51,7 +51,7 @@ class InventoryClient extends ChangeNotifier {
   }
 
   Future<List<Record>> _getDirectory(Record record) async {
-    NeosDirectory? dir;
+    ResoniteDirectory? dir;
     try {
       dir = await _currentDirectory;
     } catch (_) {}
@@ -59,7 +59,7 @@ class InventoryClient extends ChangeNotifier {
     if (dir == null || record.isRoot) {
       records = await RecordApi.getUserRecordsAt(
         apiClient,
-        path: NeosDirectory.rootName,
+        path: ResoniteDirectory.rootName,
       );
     } else {
       if (record.recordType == RecordType.link) {
@@ -79,12 +79,12 @@ class InventoryClient extends ChangeNotifier {
     final rootRecord = Record.inventoryRoot();
     final rootFuture = _getDirectory(rootRecord).then(
       (records) {
-        final rootDir = NeosDirectory(
+        final rootDir = ResoniteDirectory(
           record: rootRecord,
           children: [],
         );
         rootDir.children.addAll(
-          records.map((e) => NeosDirectory.fromRecord(record: e, parent: rootDir)).toList(),
+          records.map((e) => ResoniteDirectory.fromRecord(record: e, parent: rootDir)).toList(),
         );
         return rootDir;
       },
@@ -103,8 +103,8 @@ class InventoryClient extends ChangeNotifier {
 
     _currentDirectory = _getDirectory(dir.record).then(
       (records) {
-        final children = records.map((record) => NeosDirectory.fromRecord(record: record, parent: dir)).toList();
-        final newDir = NeosDirectory(record: dir.record, children: children, parent: dir.parent);
+        final children = records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: dir)).toList();
+        final newDir = ResoniteDirectory(record: dir.record, children: children, parent: dir.parent);
 
         final parentIdx = dir.parent?.children.indexOf(dir) ?? -1;
         if (parentIdx != -1) {
@@ -142,7 +142,7 @@ class InventoryClient extends ChangeNotifier {
       _currentDirectory = _getDirectory(record).then(
         (records) {
           childDir.children.clear();
-          childDir.children.addAll(records.map((record) => NeosDirectory.fromRecord(record: record, parent: childDir)));
+          childDir.children.addAll(records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: childDir)));
           return childDir;
         },
       ).onError((error, stackTrace) {

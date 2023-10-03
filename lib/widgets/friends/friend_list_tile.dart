@@ -1,11 +1,11 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/models/users/friend.dart';
-import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/widgets/formatted_text.dart';
-import 'package:contacts_plus_plus/widgets/friends/friend_online_status_indicator.dart';
-import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
-import 'package:contacts_plus_plus/widgets/messages/messages_list.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/messaging_client.dart';
+import 'package:recon/models/message.dart';
+import 'package:recon/models/users/friend.dart';
+import 'package:recon/widgets/formatted_text.dart';
+import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
+import 'package:recon/widgets/generic_avatar.dart';
+import 'package:recon/widgets/messages/messages_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -19,8 +19,12 @@ class FriendListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUri = Aux.neosDbToHttp(friend.userProfile.iconUrl);
+    final imageUri = Aux.resdbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
+    final mClient = Provider.of<MessagingClient>(context, listen: false);
+    final currentSession = friend.userStatus.currentSessionIndex == -1
+        ? null
+        : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -54,11 +58,11 @@ class FriendListTile extends StatelessWidget {
             width: 4,
           ),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (!friend.userStatus.currentSession.isNone) ...[
+          if (currentSession != null && !currentSession.isNone) ...[
             const Text(" in "),
             Expanded(
                 child: FormattedText(
-              friend.userStatus.currentSession.formattedName,
+              currentSession.formattedName,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ))
@@ -67,7 +71,6 @@ class FriendListTile extends StatelessWidget {
       ),
       onTap: () async {
         onTap?.call();
-        final mClient = Provider.of<MessagingClient>(context, listen: false);
         mClient.loadUserMessageCache(friend.id);
         final unreads = mClient.getUnreadsForFriend(friend);
         if (unreads.isNotEmpty) {

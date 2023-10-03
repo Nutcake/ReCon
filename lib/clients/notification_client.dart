@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/models/session.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/message.dart';
+import 'package:recon/models/session.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 import 'package:collection/collection.dart';
 

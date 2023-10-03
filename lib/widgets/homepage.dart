@@ -1,11 +1,11 @@
-import 'package:contacts_plus_plus/widgets/friends/friends_list.dart';
-import 'package:contacts_plus_plus/widgets/friends/friends_list_app_bar.dart';
-import 'package:contacts_plus_plus/widgets/inventory/inventory_browser.dart';
-import 'package:contacts_plus_plus/widgets/inventory/inventory_browser_app_bar.dart';
-import 'package:contacts_plus_plus/widgets/sessions/session_list.dart';
-import 'package:contacts_plus_plus/widgets/sessions/session_list_app_bar.dart';
-import 'package:contacts_plus_plus/widgets/settings_app_bar.dart';
-import 'package:contacts_plus_plus/widgets/settings_page.dart';
+import 'package:recon/widgets/friends/friends_list.dart';
+import 'package:recon/widgets/friends/friends_list_app_bar.dart';
+import 'package:recon/widgets/inventory/inventory_browser.dart';
+import 'package:recon/widgets/inventory/inventory_browser_app_bar.dart';
+import 'package:recon/widgets/sessions/session_list.dart';
+import 'package:recon/widgets/sessions/session_list_app_bar.dart';
+import 'package:recon/widgets/settings_app_bar.dart';
+import 'package:recon/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -29,6 +29,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: AnimatedSwitcher(
@@ -46,46 +47,36 @@ class _HomeState extends State<Home> {
           SettingsPage(),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: const Border(top: BorderSide(width: 1, color: Colors.black)),
-          color: Theme.of(context).colorScheme.background,
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          type: BottomNavigationBarType.fixed,
-          unselectedItemColor: Theme.of(context).colorScheme.onBackground,
-          selectedItemColor: Theme.of(context).colorScheme.primary,
-          currentIndex: _selectedPage,
-          onTap: (index) {
-            _pageController.animateToPage(
-              index,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            );
-            setState(() {
-              _selectedPage = index;
-            });
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.message),
-              label: "Chat",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.public),
-              label: "Sessions",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.inventory),
-              label: "Inventory",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: "Settings",
-            ),
-          ],
-        ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedPage,
+        onDestinationSelected: (index) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+          setState(() {
+            _selectedPage = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.message),
+            label: "Chat",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.public),
+            label: "Sessions",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.inventory),
+            label: "Inventory",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings),
+            label: "Settings",
+          ),
+        ],
       ),
     );
   }

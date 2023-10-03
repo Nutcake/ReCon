@@ -3,16 +3,16 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
-import 'package:contacts_plus_plus/models/records/asset_digest.dart';
-import 'package:contacts_plus_plus/models/records/json_template.dart';
+import 'package:recon/models/records/asset_digest.dart';
+import 'package:recon/models/records/json_template.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
-import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/models/records/asset_upload_data.dart';
-import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
-import 'package:contacts_plus_plus/models/records/preprocess_status.dart';
-import 'package:contacts_plus_plus/models/records/record.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/records/asset_upload_data.dart';
+import 'package:recon/models/records/resonite_db_asset.dart';
+import 'package:recon/models/records/preprocess_status.dart';
+import 'package:recon/models/records/record.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
 
@@ -68,7 +68,7 @@ class RecordApi {
     return status;
   }
 
-  static Future<AssetUploadData> beginUploadAsset(ApiClient client, {required NeosDBAsset asset}) async {
+  static Future<AssetUploadData> beginUploadAsset(ApiClient client, {required ResoniteDBAsset asset}) async {
     final response = await client.post("/users/${client.userId}/assets/${asset.hash}/chunks");
     client.checkResponse(response);
     final body = jsonDecode(response.body);
@@ -84,7 +84,7 @@ class RecordApi {
   }
 
   static Future<void> uploadAsset(ApiClient client,
-      {required AssetUploadData uploadData, required String filename, required NeosDBAsset asset, required Uint8List data, void Function(double number)? progressCallback}) async {
+      {required AssetUploadData uploadData, required String filename, required ResoniteDBAsset asset, required Uint8List data, void Function(double number)? progressCallback}) async {
     for (int i = 0; i < uploadData.totalChunks; i++) {
       progressCallback?.call(i/uploadData.totalChunks);
       final offset = i * uploadData.chunkSize;
@@ -104,7 +104,7 @@ class RecordApi {
     }
   }
 
-  static Future<void> finishUpload(ApiClient client, {required NeosDBAsset asset}) async {
+  static Future<void> finishUpload(ApiClient client, {required ResoniteDBAsset asset}) async {
     final response = await client.patch("/users/${client.userId}/assets/${asset.hash}/chunks");
     client.checkResponse(response);
   }

@@ -1,6 +1,6 @@
-import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/widgets/formatted_text.dart';
-import 'package:contacts_plus_plus/widgets/messages/message_state_indicator.dart';
+import 'package:recon/models/message.dart';
+import 'package:recon/widgets/formatted_text.dart';
+import 'package:recon/widgets/messages/message_state_indicator.dart';
 import 'package:flutter/material.dart';
 
 class MessageText extends StatelessWidget {

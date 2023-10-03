@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/api_client.dart';
 import 'package:http/http.dart' as http;
-import 'package:contacts_plus_plus/models/message.dart';
+import 'package:recon/models/message.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -15,7 +15,7 @@ class AudioCacheClient {
     final file = File("${directory.path}/${basename(clip.assetUri)}");
     if (!await file.exists()) {
       await file.create(recursive: true);
-      final response = await http.get(Uri.parse(Aux.neosDbToHttp(clip.assetUri)));
+      final response = await http.get(Uri.parse(Aux.resdbToHttp(clip.assetUri)));
       ApiClient.checkResponseCode(response);
       await file.writeAsBytes(response.bodyBytes);
     }

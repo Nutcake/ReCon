@@ -1,10 +1,11 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/clients/inventory_client.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/inventory_client.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
@@ -60,10 +61,16 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
               ? AppBar(
                   key: const ValueKey("default-appbar"),
                   title: const Text("Inventory"),
+                  systemOverlayStyle: SystemUiOverlayStyle(
+                    systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
+                  ),
                 )
               : AppBar(
                   key: const ValueKey("selection-appbar"),
                   title: Text("${iClient.selectedRecordCount} Selected"),
+                  systemOverlayStyle: SystemUiOverlayStyle(
+                    systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
+                  ),
                   leading: IconButton(
                     onPressed: () {
                       iClient.clearSelectedRecords();
@@ -142,7 +149,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           for (var record in selectedRecords) {
                             final uri = selectedUris == thumbUris ? record.thumbnailUri : record.thumbnailUri;
                             await FlutterDownloader.enqueue(
-                              url: Aux.neosDbToHttp(uri),
+                              url: Aux.resdbToHttp(uri),
                               savedDir: directory,
                               showNotification: true,
                               openFileFromNotification: false,

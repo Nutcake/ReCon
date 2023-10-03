@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:contacts_plus_plus/models/authentication_data.dart';
+import 'package:recon/models/authentication_data.dart';
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,6 +15,7 @@ class ApiClient {
   static const String machineIdKey = "machineId";
   static const String tokenKey = "token";
   static const String passwordKey = "password";
+  static const String uidKey = "uid";
 
   ApiClient({required AuthenticationData authenticationData, required this.onLogout})
       : _authenticationData = authenticationData;
@@ -41,14 +42,19 @@ class ApiClient {
   }) async {
     final body = {
       (username.contains("@") ? "email" : "username"): username.trim(),
-      "password": password,
+      "authentication": {
+        "\$type": "password",
+        "password": password,
+      },
       "rememberMe": rememberMe,
       "secretMachineId": const Uuid().v4(),
     };
+    final uid = const Uuid().v4().replaceAll("-", "");
     final response = await http.post(
-      buildFullUri("/UserSessions"),
+      buildFullUri("/userSessions"),
       headers: {
         "Content-Type": "application/json",
+        "UID": uid,
         if (oneTimePad != null) totpKey: oneTimePad,
       },
       body: jsonEncode(body),
@@ -60,15 +66,17 @@ class ApiClient {
       throw "Invalid Credentials";
     }
     checkResponseCode(response);
-
-    final authData = AuthenticationData.fromMap(jsonDecode(response.body));
+    final data = jsonDecode(response.body);
+    data["entity"]["uid"] = uid;
+    final authData = AuthenticationData.fromMap(data);
     if (authData.isAuthenticated) {
       const FlutterSecureStorage storage = FlutterSecureStorage(
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       );
       await storage.write(key: userIdKey, value: authData.userId);
-      await storage.write(key: machineIdKey, value: authData.secretMachineId);
+      await storage.write(key: machineIdKey, value: authData.secretMachineIdHash);
       await storage.write(key: tokenKey, value: authData.token);
+      await storage.write(key: uidKey, value: authData.uid);
       if (rememberPass) await storage.write(key: passwordKey, value: password);
     }
     return authData;
@@ -82,16 +90,25 @@ class ApiClient {
     String? machineId = await storage.read(key: machineIdKey);
     String? token = await storage.read(key: tokenKey);
     String? password = await storage.read(key: passwordKey);
+    String? uid = await storage.read(key: uidKey);
 
-    if (userId == null || machineId == null) {
+    if (userId == null || machineId == null || uid == null) {
       return AuthenticationData.unauthenticated();
     }
 
     if (token != null) {
-      final response =
-          await http.patch(buildFullUri("/userSessions"), headers: {"Authorization": "neos $userId:$token"});
+      final response = await http.patch(buildFullUri("/userSessions"), headers: {
+        "Authorization": "res $userId:$token",
+        "UID": uid,
+      });
       if (response.statusCode < 300) {
-        return AuthenticationData(userId: userId, token: token, secretMachineId: machineId, isAuthenticated: true);
+        return AuthenticationData(
+          userId: userId,
+          token: token,
+          secretMachineIdHash: machineId,
+          isAuthenticated: true,
+          uid: uid,
+        );
       }
     }
 
@@ -148,13 +165,16 @@ class ApiClient {
       _ => "Unknown Error."
     }} (${response.statusCode}${kDebugMode && response.body.isNotEmpty ? "|${response.body}" : ""})";
 
-    FlutterError.reportError(FlutterErrorDetails(exception: error));
+    FlutterError.reportError(FlutterErrorDetails(
+      exception: error,
+      stack: StackTrace.current,
+    ));
     throw error;
   }
 
   Map<String, String> get authorizationHeader => _authenticationData.authorizationHeader;
 
-  static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}/api$path");
+  static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}$path");
 
   Future<http.Response> get(String path, {Map<String, String>? headers}) async {
     headers ??= {};

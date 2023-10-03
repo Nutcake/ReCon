@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "de.voidspace" "\0"
-            VALUE "FileDescription", "contacts_plus_plus" "\0"
+            VALUE "FileDescription", "recon" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "contacts_plus_plus" "\0"
+            VALUE "InternalName", "recon" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2023 de.voidspace. All rights reserved." "\0"
-            VALUE "OriginalFilename", "contacts_plus_plus.exe" "\0"
-            VALUE "ProductName", "contacts_plus_plus" "\0"
+            VALUE "OriginalFilename", "recon.exe" "\0"
+            VALUE "ProductName", "recon" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

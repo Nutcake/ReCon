@@ -1,10 +1,9 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/models/message.dart';
-import 'package:contacts_plus_plus/models/records/asset_digest.dart';
-import 'package:contacts_plus_plus/models/records/neos_db_asset.dart';
-import 'package:contacts_plus_plus/string_formatter.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/message.dart';
+import 'package:recon/models/records/asset_digest.dart';
+import 'package:recon/models/records/resonite_db_asset.dart';
+import 'package:recon/string_formatter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
 enum RecordType {
@@ -59,7 +58,7 @@ class Record {
     isListed: false,
     isForPatreons: false,
     lastModificationTime: DateTimeX.epoch,
-    neosDBManifest: [],
+    resoniteDBManifest: [],
     lastModifyingUserId: "",
     lastModifyingMachineId: "",
     creationTime: DateTimeX.epoch,
@@ -100,7 +99,7 @@ class Record {
   final int rating;
   final int randomOrder;
   final List<String> manifest;
-  final List<NeosDBAsset> neosDBManifest;
+  final List<ResoniteDBAsset> resoniteDBManifest;
   final String url;
   final bool isValidOwnerId;
   final bool isValidRecordId;
@@ -122,7 +121,7 @@ class Record {
     required this.isListed,
     required this.isForPatreons,
     required this.lastModificationTime,
-    required this.neosDBManifest,
+    required this.resoniteDBManifest,
     required this.lastModifyingUserId,
     required this.lastModifyingMachineId,
     required this.creationTime,
@@ -153,14 +152,14 @@ class Record {
       combinedRecordId: combinedRecordId,
       assetUri: assetUri,
       name: filename,
-      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "contacts-plus-plus"] + (extraTags ?? []))
+      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "recon"] + (extraTags ?? []))
           .unique(),
       recordType: recordType,
       thumbnailUri: thumbnailUri,
       isPublic: false,
       isForPatreons: false,
       isListed: false,
-      neosDBManifest: digests.map((e) => e.asset).toList(),
+      resoniteDBManifest: digests.map((e) => e.asset).toList(),
       globalVersion: 0,
       localVersion: 1,
       lastModifyingUserId: userId,
@@ -173,7 +172,7 @@ class Record {
       path: '',
       description: '',
       manifest: digests.map((e) => e.dbUri).toList(),
-      url: "neosrec:///$userId/${combinedRecordId.id}",
+      url: "resrec:///$userId/${combinedRecordId.id}",
       isValidOwnerId: true,
       isValidRecordId: true,
       visits: 0,
@@ -199,14 +198,14 @@ class Record {
         isForPatreons: map["isForPatreons"] ?? false,
         isListed: map["isListed"] ?? false,
         lastModificationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
-        neosDBManifest: (map["neosDBManifest"] as List? ?? []).map((e) => NeosDBAsset.fromMap(e)).toList(),
+        resoniteDBManifest: (map["resoniteDBManifest"] as List? ?? []).map((e) => ResoniteDBAsset.fromMap(e)).toList(),
         lastModifyingUserId: map["lastModifyingUserId"] ?? "",
         lastModifyingMachineId: map["lastModifyingMachineId"] ?? "",
         creationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
         isSynced: map["isSynced"] ?? false,
         fetchedOn: DateTime.tryParse(map["fetchedOn"] ?? "") ?? DateTimeX.epoch,
         path: map["path"] ?? "",
-        manifest: (map["neosDBManifest"] as List? ?? []).map((e) => e.toString()).toList(),
+        manifest: (map["resoniteDBManifest"] as List? ?? []).map((e) => e.toString()).toList(),
         url: map["url"] ?? "",
         isValidOwnerId: map["isValidOwnerId"] == "true",
         isValidRecordId: map["isValidRecordId"] == "true",
@@ -220,7 +219,7 @@ class Record {
   bool get isRoot => this == _rootRecord;
 
   String get linkRecordId {
-    if (!assetUri.startsWith("neosrec")) {
+    if (!assetUri.startsWith("resrec")) {
       throw "Record is not a link.";
     }
     
@@ -233,11 +232,11 @@ class Record {
   }
   
   String get linkOwnerId {
-    if (!assetUri.startsWith("neosrec")) {
+    if (!assetUri.startsWith("resrec")) {
       throw "Record is not a link.";
     }
     
-    String ownerId = assetUri.replaceFirst("neosrec:///", "");
+    String ownerId = assetUri.replaceFirst("resrec:///", "");
 
     final lastSlashIdx = ownerId.lastIndexOf("/");
     if (lastSlashIdx == -1) {
@@ -265,7 +264,7 @@ class Record {
     bool? isListed,
     bool? isDeleted,
     DateTime? lastModificationTime,
-    List<NeosDBAsset>? neosDBManifest,
+    List<ResoniteDBAsset>? resoniteDBManifest,
     String? lastModifyingUserId,
     String? lastModifyingMachineId,
     DateTime? creationTime,
@@ -296,7 +295,7 @@ class Record {
       isForPatreons: isForPatreons ?? this.isForPatreons,
       isListed: isListed ?? this.isListed,
       lastModificationTime: lastModificationTime ?? this.lastModificationTime,
-      neosDBManifest: neosDBManifest ?? this.neosDBManifest,
+      resoniteDBManifest: resoniteDBManifest ?? this.resoniteDBManifest,
       lastModifyingUserId: lastModifyingUserId ?? this.lastModifyingUserId,
       lastModifyingMachineId: lastModifyingMachineId ?? this.lastModifyingMachineId,
       creationTime: creationTime ?? this.creationTime,
@@ -330,7 +329,7 @@ class Record {
       "isForPatreons": isForPatreons,
       "isListed": isListed,
       "lastModificationTime": lastModificationTime.toUtc().toIso8601String(),
-      "neosDBManifest": neosDBManifest.map((e) => e.toMap()).toList(),
+      "resoniteDBManifest": resoniteDBManifest.map((e) => e.toMap()).toList(),
       "lastModifyingUserId": lastModifyingUserId,
       "lastModifyingMachineId": lastModifyingMachineId,
       "creationTime": creationTime.toUtc().toIso8601String(),

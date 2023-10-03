@@ -1,5 +1,5 @@
-import 'package:contacts_plus_plus/models/users/online_status.dart';
-import 'package:contacts_plus_plus/models/users/user_status.dart';
+import 'package:recon/models/users/online_status.dart';
+import 'package:recon/models/users/user_status.dart';
 import 'package:flutter/material.dart';
 
 class FriendOnlineStatusIndicator extends StatelessWidget {
@@ -9,7 +9,7 @@ class FriendOnlineStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return userStatus.neosVersion.contains("Contacts++") && userStatus.onlineStatus != OnlineStatus.offline
+    return userStatus.appVersion.contains("ReCon") && userStatus.onlineStatus != OnlineStatus.offline
         ? SizedBox.square(
             dimension: 10,
             child: Image.asset(

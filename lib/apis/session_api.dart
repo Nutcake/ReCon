@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/models/session.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/session.dart';
 
 class SessionApi {
   static Future<Session> getSession(ApiClient client, {required String sessionId}) async {

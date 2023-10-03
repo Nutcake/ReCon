@@ -1,5 +1,5 @@
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/models/sem_ver.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/models/sem_ver.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -38,7 +38,7 @@ class UpdateNotifier extends StatelessWidget {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  launchUrl(Uri.parse("https://github.com/Nutcake/contacts-plus-plus/releases/latest"),
+                  launchUrl(Uri.parse("https://github.com/Nutcake/ReCon/releases/latest"),
                     mode: LaunchMode.externalApplication,
                   );
                 },

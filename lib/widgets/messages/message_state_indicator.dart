@@ -1,5 +1,5 @@
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/models/message.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/models/message.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

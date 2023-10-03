@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.voidspace.contacts_plus_plus">
+    package="de.voidspace.recon">
 
     <!-- Required to fetch data from the internet. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -7,7 +7,7 @@
     <!-- Optional, you'll have to check this permission by yourself. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application
-        android:label="Contacts++"
+        android:label="ReCon"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

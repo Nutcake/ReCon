@@ -1,4 +1,4 @@
-import 'package:contacts_plus_plus/client_holder.dart';
+import 'package:recon/client_holder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:intl/intl.dart';
@@ -74,14 +74,14 @@ class SettingsPage extends StatelessWidget {
           ),
           ListTile(
             trailing: const Icon(Icons.info_outline),
-            title: const Text("About Contacts++"),
+            title: const Text("About ReCon"),
             onTap: () async {
               showAboutDialog(
                 context: context,
                 applicationVersion: (await PackageInfo.fromPlatform()).version,
                 applicationIcon: InkWell(
                   onTap: () async {
-                    if (!await launchUrl(Uri.parse("https://github.com/Nutcake/contacts-plus-plus"),
+                    if (!await launchUrl(Uri.parse("https://github.com/Nutcake/ReCon"),
                         mode: LaunchMode.externalApplication)) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context)

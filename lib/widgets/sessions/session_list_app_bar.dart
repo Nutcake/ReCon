@@ -1,8 +1,7 @@
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/clients/session_client.dart';
-import 'package:contacts_plus_plus/clients/settings_client.dart';
-import 'package:contacts_plus_plus/widgets/sessions/session_filter_dialog.dart';
+import 'package:recon/clients/session_client.dart';
+import 'package:recon/widgets/sessions/session_filter_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class SessionListAppBar extends StatefulWidget {
@@ -17,6 +16,9 @@ class _SessionListAppBarState extends State<SessionListAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       title: const Text("Sessions"),
+      systemOverlayStyle: SystemUiOverlayStyle(
+        systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
+      ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),

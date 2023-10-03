@@ -1,12 +1,14 @@
-import 'package:contacts_plus_plus/config.dart';
-import 'package:contacts_plus_plus/string_formatter.dart';
+import 'dart:convert';
+
+import 'package:recon/string_formatter.dart';
+import 'package:crypto/crypto.dart';
 
 class Session {
   final String id;
   final String name;
   final FormatNode formattedName;
   final List<SessionUser> sessionUsers;
-  final String thumbnail;
+  final String thumbnailUrl;
   final int maxUsers;
   final bool hasEnded;
   final bool isValid;
@@ -22,7 +24,7 @@ class Session {
     required this.id,
     required this.name,
     required this.sessionUsers,
-    required this.thumbnail,
+    required this.thumbnailUrl,
     required this.maxUsers,
     required this.hasEnded,
     required this.isValid,
@@ -40,7 +42,7 @@ class Session {
         id: "",
         name: "",
         sessionUsers: const [],
-        thumbnail: "",
+        thumbnailUrl: "",
         maxUsers: 0,
         hasEnded: true,
         isValid: false,
@@ -60,7 +62,7 @@ class Session {
       id: map["sessionId"],
       name: map["name"],
       sessionUsers: (map["sessionUsers"] as List? ?? []).map((entry) => SessionUser.fromMap(entry)).toList(),
-      thumbnail: map["thumbnail"] ?? "",
+      thumbnailUrl: map["thumbnailUrl"] ?? "",
       maxUsers: map["maxUsers"] ?? 0,
       hasEnded: map["hasEnded"] ?? false,
       isValid: map["isValid"] ?? true,
@@ -78,7 +80,7 @@ class Session {
       "sessionId": id,
       "name": name,
       "sessionUsers": shallow ? [] : sessionUsers.map((e) => e.toMap()).toList(),
-      "thumbnail": thumbnail,
+      "thumbnail": thumbnailUrl,
       "maxUsers": maxUsers,
       "hasEnded": hasEnded,
       "isValid": isValid,
@@ -97,15 +99,17 @@ class Session {
 enum SessionAccessLevel {
   unknown,
   private,
-  friends,
-  friendsOfFriends,
+  contacts,
+  contactsPlus,
+  registeredUsers,
   anyone;
 
   static const _readableNamesMap = {
     SessionAccessLevel.unknown: "Unknown",
     SessionAccessLevel.private: "Private",
-    SessionAccessLevel.friends: "Contacts",
-    SessionAccessLevel.friendsOfFriends: "Contacts+",
+    SessionAccessLevel.contacts: "Contacts",
+    SessionAccessLevel.contactsPlus: "Contacts+",
+    SessionAccessLevel.registeredUsers: "Registered users",
     SessionAccessLevel.anyone: "Anyone",
   };
 
@@ -117,7 +121,7 @@ enum SessionAccessLevel {
   }
 
   String toReadableString() {
-    return SessionAccessLevel._readableNamesMap[this] ?? "Unknown";
+    return SessionAccessLevel._readableNamesMap[this] ?? SessionAccessLevel.unknown.toReadableString();
   }
 }
 
@@ -177,7 +181,6 @@ class SessionFilterSettings {
   String buildRequestString() => "?includeEmptyHeadless=$includeEmptyHeadless"
       "${"&includeEnded=$includeEnded"}"
       "${name.isNotEmpty ? "&name=$name" : ""}"
-      "${!includeIncompatible ? "&compatibilityHash=${Uri.encodeComponent(Config.latestCompatHash)}" : ""}"
       "${hostName.isNotEmpty ? "&hostName=$hostName" : ""}"
       "${minActiveUsers > 0 ? "&minActiveUsers=$minActiveUsers" : ""}";
 

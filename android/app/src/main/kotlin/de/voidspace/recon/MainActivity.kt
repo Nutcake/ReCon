@@ -1,4 +1,4 @@
-package de.voidspace.contacts_plus_plus
+package de.voidspace.recon
 
 import io.flutter.embedding.android.FlutterActivity
 

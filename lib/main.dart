@@ -1,19 +1,20 @@
 import 'dart:developer';
 
-import 'package:contacts_plus_plus/apis/github_api.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/clients/api_client.dart';
-import 'package:contacts_plus_plus/clients/inventory_client.dart';
-import 'package:contacts_plus_plus/clients/messaging_client.dart';
-import 'package:contacts_plus_plus/clients/session_client.dart';
-import 'package:contacts_plus_plus/clients/settings_client.dart';
-import 'package:contacts_plus_plus/models/sem_ver.dart';
-import 'package:contacts_plus_plus/widgets/homepage.dart';
-import 'package:contacts_plus_plus/widgets/login_screen.dart';
-import 'package:contacts_plus_plus/widgets/update_notifier.dart';
+import 'package:recon/apis/github_api.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/clients/inventory_client.dart';
+import 'package:recon/clients/messaging_client.dart';
+import 'package:recon/clients/session_client.dart';
+import 'package:recon/clients/settings_client.dart';
+import 'package:recon/models/sem_ver.dart';
+import 'package:recon/widgets/homepage.dart';
+import 'package:recon/widgets/login_screen.dart';
+import 'package:recon/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -47,20 +48,20 @@ void main() async {
     cachedAuth = await ApiClient.tryCachedLogin();
   } catch (_) {}
 
-  runApp(ContactsPlusPlus(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
+  runApp(ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
 }
 
-class ContactsPlusPlus extends StatefulWidget {
-  const ContactsPlusPlus({required this.settingsClient, required this.cachedAuthentication, super.key});
+class ReCon extends StatefulWidget {
+  const ReCon({required this.settingsClient, required this.cachedAuthentication, super.key});
 
   final SettingsClient settingsClient;
   final AuthenticationData cachedAuthentication;
 
   @override
-  State<ContactsPlusPlus> createState() => _ContactsPlusPlusState();
+  State<ReCon> createState() => _ReConState();
 }
 
-class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
+class _ReConState extends State<ReCon> {
   final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
   late AuthenticationData _authData = widget.cachedAuthentication;
   bool _checkedForUpdate = false;
@@ -128,7 +129,7 @@ class _ContactsPlusPlusState extends State<ContactsPlusPlus> {
           child: DynamicColorBuilder(
             builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
               debugShowCheckedModeBanner: false,
-              title: 'Contacts++',
+              title: 'ReCon',
               theme: ThemeData(
                 useMaterial3: true,
                 textTheme: _typography.black,

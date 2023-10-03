@@ -1,36 +1,36 @@
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/models/users/user_profile.dart';
-import 'package:contacts_plus_plus/models/users/friend_status.dart';
-import 'package:contacts_plus_plus/models/users/online_status.dart';
-import 'package:contacts_plus_plus/models/users/user_status.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/users/user_profile.dart';
+import 'package:recon/models/users/friend_status.dart';
+import 'package:recon/models/users/online_status.dart';
+import 'package:recon/models/users/user_status.dart';
 
 class Friend implements Comparable {
   static const _emptyId = "-1";
-  static const _neosBotId = "U-Neos";
+  static const _resoniteBotId = "U-Resonite";
   final String id;
   final String username;
   final String ownerId;
   final UserStatus userStatus;
   final UserProfile userProfile;
-  final FriendStatus friendStatus;
+  final FriendStatus contactStatus;
   final DateTime latestMessageTime;
 
   const Friend({required this.id, required this.username, required this.ownerId, required this.userStatus, required this.userProfile,
-    required this.friendStatus, required this.latestMessageTime,
+    required this.contactStatus, required this.latestMessageTime,
   });
 
-  bool get isHeadless => userStatus.activeSessions.any((session) => session.headlessHost == true && session.hostUserId == id);
+  bool get isHeadless => userStatus.outputDevice == "Headless";
 
   factory Friend.fromMap(Map map) {
-    final userStatus = UserStatus.fromMap(map["userStatus"]);
+    var userStatus = map["userStatus"] == null ? UserStatus.empty() : UserStatus.fromMap(map["userStatus"]);
     return Friend(
       id: map["id"],
-      username: map["friendUsername"],
+      username: map["contactUsername"],
       ownerId: map["ownerId"] ?? map["id"],
       // Neos bot status is always offline but should be displayed as online
-      userStatus:  map["id"] == _neosBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
+      userStatus:  map["id"] == _resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
-      friendStatus: FriendStatus.fromString(map["friendStatus"]),
+      contactStatus: FriendStatus.fromString(map["contactStatus"]),
       latestMessageTime: map["latestMessageTime"] == null
           ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
     );
@@ -48,7 +48,7 @@ class Friend implements Comparable {
         ownerId: "",
         userStatus: UserStatus.empty(),
         userProfile: UserProfile.empty(),
-        friendStatus: FriendStatus.none,
+        contactStatus: FriendStatus.none,
         latestMessageTime: DateTimeX.epoch
     );
   }
@@ -57,14 +57,14 @@ class Friend implements Comparable {
 
   Friend copyWith({
     String? id, String? username, String? ownerId, UserStatus? userStatus, UserProfile? userProfile,
-    FriendStatus? friendStatus, DateTime? latestMessageTime}) {
+    FriendStatus? contactStatus, DateTime? latestMessageTime}) {
     return Friend(
       id: id ?? this.id,
       username: username ?? this.username,
       ownerId: ownerId ?? this.ownerId,
       userStatus: userStatus ?? this.userStatus,
       userProfile: userProfile ?? this.userProfile,
-      friendStatus: friendStatus ?? this.friendStatus,
+      contactStatus: contactStatus ?? this.contactStatus,
       latestMessageTime: latestMessageTime ?? this.latestMessageTime,
     );
   }
@@ -72,11 +72,11 @@ class Friend implements Comparable {
   Map toMap({bool shallow=false}) {
     return {
       "id": id,
-      "username": username,
+      "contactUsername": username,
       "ownerId": ownerId,
       "userStatus": userStatus.toMap(shallow: shallow),
       "profile": userProfile.toMap(),
-      "friendStatus": friendStatus.name,
+      "contactStatus": contactStatus.name,
       "latestMessageTime": latestMessageTime.toIso8601String(),
     };
   }

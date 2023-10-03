@@ -1,8 +1,8 @@
-import 'package:contacts_plus_plus/apis/user_api.dart';
-import 'package:contacts_plus_plus/auxiliary.dart';
-import 'package:contacts_plus_plus/client_holder.dart';
-import 'package:contacts_plus_plus/models/users/user.dart';
-import 'package:contacts_plus_plus/widgets/generic_avatar.dart';
+import 'package:recon/apis/contact_api.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/models/users/user.dart';
+import 'package:recon/widgets/generic_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -41,7 +41,7 @@ class _UserListTileState extends State<UserListTile> {
         ),
     );
     return ListTile(
-      leading: GenericAvatar(imageUri: Aux.neosDbToHttp(widget.user.userProfile?.iconUrl),),
+      leading: GenericAvatar(imageUri: Aux.resdbToHttp(widget.user.userProfile?.iconUrl),),
       title: Text(widget.user.username),
       subtitle: Text(_regDateFormat.format(widget.user.registrationDate)),
       trailing: IconButton(
@@ -55,11 +55,11 @@ class _UserListTileState extends State<UserListTile> {
           });
           try {
             if (_localAdded) {
-              await UserApi.removeUserAsFriend(ClientHolder
+              await ContactApi.removeUserAsFriend(ClientHolder
                   .of(context)
                   .apiClient, user: widget.user);
             } else {
-              await UserApi.addUserAsFriend(ClientHolder
+              await ContactApi.addUserAsFriend(ClientHolder
                   .of(context)
                   .apiClient, user: widget.user);
             }
@@ -70,7 +70,8 @@ class _UserListTileState extends State<UserListTile> {
             widget.onChanged?.call();
           } catch (e, s) {
             FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
-            ScaffoldMessenger.of(context).showSnackBar(
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 duration: const Duration(seconds: 5),
                 content: Text(
@@ -80,6 +81,7 @@ class _UserListTileState extends State<UserListTile> {
                 ),
               ),
             );
+            }
             setState(() {
               _loading = false;
             });
