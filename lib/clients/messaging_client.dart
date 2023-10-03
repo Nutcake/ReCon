@@ -250,6 +250,7 @@ class MessagingClient extends ChangeNotifier {
     _hubManager.setHandler(EventTarget.messagesRead, _onMessagesRead);
     _hubManager.setHandler(EventTarget.receiveStatusUpdate, _onReceiveStatusUpdate);
     _hubManager.setHandler(EventTarget.receiveSessionUpdate, _onReceiveSessionUpdate);
+    _hubManager.setHandler(EventTarget.removeSession, _onRemoveSession);
 
     await _hubManager.start();
     await setUserStatus(userStatus);
@@ -309,24 +310,28 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _onReceiveStatusUpdate(List args) {
-    for (final statusUpdate in args) {
-      var status = UserStatus.fromMap(statusUpdate);
-      final sessionMap = createSessionMap(status.hashSalt);
-      status = status.copyWith(
-          sessionData: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none()).toList());
-      final friend = getAsFriend(statusUpdate["userId"])?.copyWith(userStatus: status);
-      if (friend != null) {
-        _updateContact(friend);
-      }
+    final statusUpdate = args[0];
+    var status = UserStatus.fromMap(statusUpdate);
+    final sessionMap = createSessionMap(status.hashSalt);
+    status = status.copyWith(
+        sessionData: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none()).toList());
+    final friend = getAsFriend(statusUpdate["userId"])?.copyWith(userStatus: status);
+    if (friend != null) {
+      _updateContact(friend);
     }
     notifyListeners();
   }
 
   void _onReceiveSessionUpdate(List args) {
-    for (final sessionUpdate in args) {
-      final session = Session.fromMap(sessionUpdate);
-      _sessionMap[session.id] = session;
-    }
+    final sessionUpdate = args[0];
+    final session = Session.fromMap(sessionUpdate);
+    _sessionMap[session.id] = session;
+    notifyListeners();
+  }
+
+  void _onRemoveSession(List args) {
+    final session = args[0];
+    _sessionMap.remove(session);
     notifyListeners();
   }
 }
