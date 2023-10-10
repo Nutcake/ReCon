@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:recon/config.dart';
 import 'package:recon/models/hub_events.dart';
 import 'package:logging/logging.dart';
@@ -106,6 +107,7 @@ class HubManager {
   void _handleInvocation(body) async {
     final target = EventTarget.parse(body["target"]);
     final args = body["arguments"] ?? [];
+    if (kDebugMode) _logger.info("Invocation target: ${target.name}, args:\n$args");
     final handler = _handlers[target];
     if (handler == null) {
       _logger.info("Unhandled event received");

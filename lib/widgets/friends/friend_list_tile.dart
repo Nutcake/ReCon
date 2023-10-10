@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/message.dart';
@@ -6,9 +9,6 @@ import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/generic_avatar.dart';
 import 'package:recon/widgets/messages/messages_list.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class FriendListTile extends StatelessWidget {
   const FriendListTile({required this.friend, required this.unreads, this.onTap, super.key});
@@ -58,14 +58,24 @@ class FriendListTile extends StatelessWidget {
             width: 4,
           ),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (currentSession != null && !currentSession.isNone) ...[
+          if (currentSession != null && currentSession.isVisible) ...[
             const Text(" in "),
-            Expanded(
+            if (currentSession.name.isNotEmpty)
+              Expanded(
                 child: FormattedText(
-              currentSession.formattedName,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ))
+                  currentSession.formattedName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              )
+            else
+              Expanded(
+                child: Text(
+                  "${currentSession.accessLevel.toReadableString()} session",
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              )
           ]
         ],
       ),

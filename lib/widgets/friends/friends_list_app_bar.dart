@@ -42,10 +42,9 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               ],
             ),
             onSelected: (OnlineStatus onlineStatus) async {
-              final newStatus = client.userStatus.copyWith(onlineStatus: onlineStatus);
               final settingsClient = ClientHolder.of(context).settingsClient;
               try {
-                await client.setUserStatus(newStatus);
+                await client.setOnlineStatus(onlineStatus);
                 await settingsClient
                     .changeSettings(settingsClient.currentSettings.copyWith(lastOnlineStatus: onlineStatus.index));
               } catch (e, s) {
