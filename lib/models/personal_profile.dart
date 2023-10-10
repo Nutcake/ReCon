@@ -1,3 +1,5 @@
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/users/entitlement.dart';
 import 'package:recon/models/users/user_profile.dart';
 
 class PersonalProfile {
@@ -6,18 +8,21 @@ class PersonalProfile {
   final String email;
   final DateTime? publicBanExpiration;
   final String? publicBanType;
-  final List<StorageQuotas> storageQuotas;
-  final Map<String, int> quotaBytesSource;
-  final int quotaBytes;
-  final int usedBytes;
   final bool twoFactor;
-  final bool isPatreonSupporter;
   final UserProfile userProfile;
+  final List<Entitlement> entitlements;
+  final List<SupporterMetadata> supporterMetadata;
 
   PersonalProfile({
-    required this.id, required this.username, required this.email, required this.publicBanExpiration,
-    required this.publicBanType, required this.storageQuotas, required this.quotaBytesSource, required this.quotaBytes,
-    required this.usedBytes, required this.twoFactor, required this.isPatreonSupporter, required this.userProfile,
+    required this.id,
+    required this.username,
+    required this.email,
+    required this.publicBanExpiration,
+    required this.publicBanType,
+    required this.twoFactor,
+    required this.userProfile,
+    required this.entitlements,
+    required this.supporterMetadata,
   });
 
   factory PersonalProfile.fromMap(Map map) {
@@ -27,34 +32,83 @@ class PersonalProfile {
       email: map["email"] ?? "",
       publicBanExpiration: DateTime.tryParse(map["publicBanExpiration"] ?? ""),
       publicBanType: map["publicBanType"],
-      storageQuotas: (map["storageQuotas"] as List? ?? []).map((e) => StorageQuotas.fromMap(e)).toList(),
-      quotaBytesSource: (map["quotaBytesSources"] as Map? ?? {}).map((key, value) => MapEntry(key, value as int)),
-      quotaBytes: map["quotaBytes"] ?? 0,
-      usedBytes: map["usedBytes"] ?? 0,
       twoFactor: map["2fa_login"] ?? false,
-      isPatreonSupporter: map["patreonData"]?["isPatreonSupporter"] ?? false,
       userProfile: UserProfile.fromMap(map["profile"]),
+      entitlements: ((map["entitlements"] ?? []) as List).map((e) => Entitlement.fromMap(e)).toList(),
+      supporterMetadata: ((map["supporterMetadata"] ?? []) as List).map((e) => SupporterMetadata.fromMap(e)).toList(),
+    );
+  }
+
+  bool get isPatreonSupporter =>
+      supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
+}
+
+class StorageQuota {
+  final String id;
+  final int usedBytes;
+  final int quotaBytes;
+  final int fullQuotaBytes;
+
+  StorageQuota({
+    required this.id,
+    required this.usedBytes,
+    required this.quotaBytes,
+    required this.fullQuotaBytes,
+  });
+
+  factory StorageQuota.fromMap(Map map) {
+    return StorageQuota(
+      id: map["id"] ?? "",
+      usedBytes: map["usedBytes"] ?? 0,
+      quotaBytes: map["quotaBytes"] ?? 0,
+      fullQuotaBytes: map["fullQuotaBytes"] ?? 0,
     );
   }
 }
 
-class StorageQuotas {
-  final String id;
-  final int bytes;
-  final DateTime addedOn;
-  final DateTime expiresOn;
-  final String giftedByUserId;
+class SupporterMetadata {
+  SupporterMetadata();
 
-  StorageQuotas({required this.id, required this.bytes, required this.addedOn, required this.expiresOn,
-    required this.giftedByUserId});
+  factory SupporterMetadata.fromMap(Map map) {
+    final type = map["\$type"];
+    return switch (type) {
+      "patreon" => PatreonSupporter.fromMap(map),
+      _ => SupporterMetadata(),
+    };
+  }
+}
 
-  factory StorageQuotas.fromMap(Map map) {
-    return StorageQuotas(
-      id: map["id"] ?? "",
-      bytes: map["bytes"] ?? 0,
-      addedOn: DateTime.tryParse(map["addedOn"]) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      expiresOn: DateTime.tryParse(map["expiresOn"]) ?? DateTime.fromMillisecondsSinceEpoch(0),
-      giftedByUserId: map["giftedByUserId"] ?? "",
+class PatreonSupporter extends SupporterMetadata {
+  final bool isActiveSupporter;
+  final int totalSupportMonths;
+  final int totalSupportCents;
+  final int lastTierCents;
+  final int highestTierCents;
+  final int lowestTierCents;
+  final DateTime firstSupportTimestamp;
+  final DateTime lastSupportTimestamp;
+
+  PatreonSupporter({
+    required this.isActiveSupporter,
+    required this.totalSupportMonths,
+    required this.totalSupportCents,
+    required this.lastTierCents,
+    required this.highestTierCents,
+    required this.lowestTierCents,
+    required this.firstSupportTimestamp,
+    required this.lastSupportTimestamp,
+  });
+
+  factory PatreonSupporter.fromMap(Map map) {
+    return PatreonSupporter(
+      isActiveSupporter: map["isActiveSupporter"],
+      totalSupportMonths: map["totalSupportMonths"],
+      totalSupportCents: map["totalSupportCents"],
+      lastTierCents: map["lastTierCents"],
+      highestTierCents: map["highestTierCents"],
+      lowestTierCents: map["lowestTierCents"],
+      firstSupportTimestamp: DateTime.tryParse(map["firstSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+      lastSupportTimestamp: DateTime.tryParse(map["lastSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
     );
   }
 }

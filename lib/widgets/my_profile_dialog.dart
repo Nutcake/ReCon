@@ -17,6 +17,7 @@ class MyProfileDialog extends StatefulWidget {
 class _MyProfileDialogState extends State<MyProfileDialog> {
   ClientHolder? _clientHolder;
   Future<PersonalProfile>? _personalProfileFuture;
+  Future<StorageQuota>? _storageQuotaFuture;
 
 
   @override
@@ -27,6 +28,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
       _clientHolder = clientHolder;
       final apiClient = _clientHolder!.apiClient;
       _personalProfileFuture = UserApi.getPersonalProfile(apiClient);
+      _storageQuotaFuture = UserApi.getStorageQuota(apiClient);
     }
   }
 
@@ -87,7 +89,13 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                       children: [Text("Ban Expiration: ", style: tt.labelLarge,),
                         Text(dateFormat.format(profile.publicBanExpiration!))],
                     ),
-                  StorageIndicator(usedBytes: profile.usedBytes, maxBytes: profile.quotaBytes,),
+                  FutureBuilder(
+                    future: _storageQuotaFuture,
+                    builder: (context, snapshot) {
+                      final storage = snapshot.data;
+                      return StorageIndicator(usedBytes: storage?.usedBytes ?? 0, maxBytes: storage?.fullQuotaBytes ?? 1,);
+                    }
+                  ),
                   const SizedBox(height: 12,),
                 ],
               ),

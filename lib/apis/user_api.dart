@@ -39,4 +39,11 @@ class UserApi {
     final data = jsonDecode(response.body);
     return PersonalProfile.fromMap(data);
   }
+
+  static Future<StorageQuota> getStorageQuota(ApiClient client) async {
+    final response = await client.get("/users/${client.userId}/storage");
+    client.checkResponse(response);
+    final data = jsonDecode(response.body);
+    return StorageQuota.fromMap(data);
+  }
 }
