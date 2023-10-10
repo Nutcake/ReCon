@@ -336,6 +336,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
                     (false, _) => IconButton(
                       key: const ValueKey("add-attachment-icon"),
                       onPressed: _isSending ? null : () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sorry, this feature is not yet available")));
+                        return;
                         setState(() {
                           _attachmentPickerOpen = true;
                         });
@@ -528,6 +530,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
                         _recordingCancelled = true;
                       },
                       onTapDown: widget.disabled ? null : (_) async {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sorry, this feature is not yet available")));
+                        return;
                         HapticFeedback.vibrate();
                         final hadToAsk = await Permission.microphone.isDenied;
                         final hasPermission = !await _recorder.hasPermission();

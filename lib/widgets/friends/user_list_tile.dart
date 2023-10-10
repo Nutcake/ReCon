@@ -50,6 +50,8 @@ class _UserListTileState extends State<UserListTile> {
         icon: _localAdded ? const Icon(Icons.person_remove) : const Icon(Icons.person_add),
         style: style,
         onPressed: _loading ? null : () async {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Sorry, this feature is not yet available")));
+          return;
           setState(() {
             _loading = true;
           });
