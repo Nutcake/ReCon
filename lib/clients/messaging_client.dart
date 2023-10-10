@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:recon/apis/contact_api.dart';
 import 'package:recon/apis/message_api.dart';
+import 'package:recon/apis/session_api.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/notification_client.dart';
@@ -11,6 +12,7 @@ import 'package:recon/models/hub_events.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/online_status.dart';
 import 'package:recon/models/users/user_status.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -33,6 +35,7 @@ class MessagingClient extends ChangeNotifier {
   final NotificationClient _notificationClient;
   final HubManager _hubManager = HubManager();
   final Map<String, Session> _sessionMap = {};
+  final Set<String> _knownSessionKeys = {};
   Friend? selectedFriend;
 
   Timer? _notifyOnlineTimer;
@@ -49,6 +52,8 @@ class MessagingClient extends ChangeNotifier {
     debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
+      final sessions = await SessionApi.getSessions(_apiClient);
+      _sessionMap.addEntries(sessions.map((e) => MapEntry(e.id, e)));
       _setupHub();
     });
   }
@@ -117,13 +122,13 @@ class MessagingClient extends ChangeNotifier {
     clearUnreadsForUser(batch.senderId);
   }
 
-  Future<void> setUserStatus(UserStatus status) async {
+  Future<void> setOnlineStatus(OnlineStatus status) async {
     final pkginfo = await PackageInfo.fromPlatform();
 
     _userStatus = _userStatus.copyWith(
       appVersion: "${pkginfo.version} of ${pkginfo.appName}",
       lastStatusChange: DateTime.now(),
-      onlineStatus: status.onlineStatus,
+      onlineStatus: status,
     );
 
     _hubManager.send(
@@ -253,7 +258,7 @@ class MessagingClient extends ChangeNotifier {
     _hubManager.setHandler(EventTarget.removeSession, _onRemoveSession);
 
     await _hubManager.start();
-    await setUserStatus(userStatus);
+    await setOnlineStatus(OnlineStatus.online);
     _hubManager.send(
       "InitializeStatus",
       responseHandler: (Map data) async {
@@ -314,10 +319,15 @@ class MessagingClient extends ChangeNotifier {
     var status = UserStatus.fromMap(statusUpdate);
     final sessionMap = createSessionMap(status.hashSalt);
     status = status.copyWith(
-        sessionData: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none()).toList());
+        decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
     final friend = getAsFriend(statusUpdate["userId"])?.copyWith(userStatus: status);
     if (friend != null) {
       _updateContact(friend);
+    }
+    for (var session in status.sessions) {
+      if (session.broadcastKey != null && _knownSessionKeys.add(session.broadcastKey ?? "")) {
+        _hubManager.send("ListenOnKey", arguments: [session.broadcastKey]);
+      }
     }
     notifyListeners();
   }

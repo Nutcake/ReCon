@@ -56,7 +56,7 @@ class UserStatus {
       UserStatus.empty().copyWith(
         onlineStatus: OnlineStatus.online,
         hashSalt: CryptoHelper.cryptoToken(),
-        outputDevice: "Mobile",
+        outputDevice: "Screen",
         userSessionId: const Uuid().v4().toString(),
         sessionType: UserSessionType.chatClient,
       );
@@ -134,7 +134,7 @@ class UserStatus {
     String? compatibilityHash,
     String? hashSalt,
     UserSessionType? sessionType,
-    List<Session>? sessionData,
+    List<Session>? decodedSessions,
   }) =>
       UserStatus(
         onlineStatus: onlineStatus ?? this.onlineStatus,
@@ -150,6 +150,6 @@ class UserStatus {
         compatibilityHash: compatibilityHash ?? this.compatibilityHash,
         hashSalt: hashSalt ?? this.hashSalt,
         sessionType: sessionType ?? this.sessionType,
-        decodedSessions: sessionData ?? this.decodedSessions,
+        decodedSessions: decodedSessions ?? this.decodedSessions,
       );
 }

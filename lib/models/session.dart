@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:recon/string_formatter.dart';
-import 'package:crypto/crypto.dart';
 
 class Session {
   final String id;
@@ -39,22 +36,23 @@ class Session {
 
   factory Session.none() {
     return Session(
-        id: "",
-        name: "",
-        sessionUsers: const [],
-        thumbnailUrl: "",
-        maxUsers: 0,
-        hasEnded: true,
-        isValid: false,
-        description: "",
-        tags: const [],
-        headlessHost: false,
-        hostUserId: "",
-        hostUsername: "",
-        accessLevel: SessionAccessLevel.unknown);
+      id: "",
+      name: "",
+      sessionUsers: const [],
+      thumbnailUrl: "",
+      maxUsers: 0,
+      hasEnded: true,
+      isValid: false,
+      description: "",
+      tags: const [],
+      headlessHost: false,
+      hostUserId: "",
+      hostUsername: "",
+      accessLevel: SessionAccessLevel.unknown,
+    );
   }
 
-  bool get isNone => id.isEmpty && isValid == false;
+  bool get isVisible => name.isNotEmpty && accessLevel != SessionAccessLevel.unknown;
 
   factory Session.fromMap(Map? map) {
     if (map == null) return Session.none();
@@ -93,6 +91,40 @@ class Session {
     };
   }
 
+  Session copyWith({
+    String? id,
+    String? name,
+    FormatNode? formattedName,
+    List<SessionUser>? sessionUsers,
+    String? thumbnailUrl,
+    int? maxUsers,
+    bool? hasEnded,
+    bool? isValid,
+    String? description,
+    FormatNode? formattedDescription,
+    List<String>? tags,
+    bool? headlessHost,
+    String? hostUserId,
+    String? hostUsername,
+    SessionAccessLevel? accessLevel,
+  }) {
+    return Session(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      sessionUsers: sessionUsers ?? this.sessionUsers,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      maxUsers: maxUsers ?? this.maxUsers,
+      hasEnded: hasEnded ?? this.hasEnded,
+      isValid: isValid ?? this.isValid,
+      description: description ?? this.description,
+      tags: tags ?? this.tags,
+      headlessHost: headlessHost ?? this.headlessHost,
+      hostUserId: hostUserId ?? this.hostUserId,
+      hostUsername: hostUsername ?? this.hostUsername,
+      accessLevel: accessLevel ?? this.accessLevel,
+    );
+  }
+
   bool get isLive => !hasEnded && isValid;
 }
 
@@ -107,10 +139,10 @@ enum SessionAccessLevel {
   static const _readableNamesMap = {
     SessionAccessLevel.unknown: "Unknown",
     SessionAccessLevel.private: "Private",
-    SessionAccessLevel.contacts: "Contacts",
+    SessionAccessLevel.contacts: "Contacts only",
     SessionAccessLevel.contactsPlus: "Contacts+",
     SessionAccessLevel.registeredUsers: "Registered users",
-    SessionAccessLevel.anyone: "Anyone",
+    SessionAccessLevel.anyone: "Public",
   };
 
   factory SessionAccessLevel.fromName(String? name) {
