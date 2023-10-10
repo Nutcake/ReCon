@@ -58,78 +58,81 @@ class _UserSearchState extends State<UserSearch> {
       appBar: AppBar(
         title: const Text("Find Users"),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FutureBuilder(
-              future: _usersFuture,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final users = snapshot.data as List<User>;
-                  return ListView.builder(
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      final user = users[index];
-                      return UserListTile(user: user, onChanged: () {
-                        mClient.refreshFriendsList();
-                      }, isFriend: mClient.getAsFriend(user.id) != null,);
-                    },
-                  );
-                } else if (snapshot.hasError) {
-                  final err = snapshot.error;
-                  if (err is SearchError) {
-                    return DefaultErrorWidget(
-                      title: err.message,
-                      iconOverride: err.icon,
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: FutureBuilder(
+                future: _usersFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final users = snapshot.data as List<User>;
+                    return ListView.builder(
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        final user = users[index];
+                        return UserListTile(user: user, onChanged: () {
+                          mClient.refreshFriendsList();
+                        }, isFriend: mClient.getAsFriend(user.id) != null,);
+                      },
                     );
+                  } else if (snapshot.hasError) {
+                    final err = snapshot.error;
+                    if (err is SearchError) {
+                      return DefaultErrorWidget(
+                        title: err.message,
+                        iconOverride: err.icon,
+                      );
+                    } else {
+                      FlutterError.reportError(
+                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+                      return DefaultErrorWidget(title: "${snapshot.error}",);
+                    }
                   } else {
-                    FlutterError.reportError(
-                        FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
-                    return DefaultErrorWidget(title: "${snapshot.error}",);
+                    return const Column(
+                      children: [
+                        LinearProgressIndicator(),
+                      ],
+                    );
                   }
-                } else {
-                  return const Column(
-                    children: [
-                      LinearProgressIndicator(),
-                    ],
-                  );
-                }
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: TextField(
-              decoration: InputDecoration(
-                  isDense: true,
-                  hintText: "Search for users...",
-                  contentPadding: const EdgeInsets.all(16),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24)
-                  )
+                },
               ),
-              autocorrect: false,
-              controller: _searchInputController,
-              onChanged: (String value) {
-                _searchDebouncer?.cancel();
-                if (value.isEmpty) {
-                  setState(() {
-                    _querySearch(context, value);
-                  });
-                  return;
-                }
-                setState(() {
-                  _usersFuture = Future(() => null);
-                });
-                _searchDebouncer = Timer(const Duration(milliseconds: 300), () {
-                  setState(() {
-                    _querySearch(context, value);
-                  });
-                });
-              },
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: TextField(
+                decoration: InputDecoration(
+                    isDense: true,
+                    hintText: "Search for users...",
+                    contentPadding: const EdgeInsets.all(16),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24)
+                    )
+                ),
+                autocorrect: false,
+                controller: _searchInputController,
+                onChanged: (String value) {
+                  _searchDebouncer?.cancel();
+                  if (value.isEmpty) {
+                    setState(() {
+                      _querySearch(context, value);
+                    });
+                    return;
+                  }
+                  setState(() {
+                    _usersFuture = Future(() => null);
+                  });
+                  _searchDebouncer = Timer(const Duration(milliseconds: 300), () {
+                    setState(() {
+                      _querySearch(context, value);
+                    });
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

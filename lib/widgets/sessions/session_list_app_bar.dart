@@ -16,9 +16,6 @@ class _SessionListAppBarState extends State<SessionListAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       title: const Text("Sessions"),
-      systemOverlayStyle: SystemUiOverlayStyle(
-        systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
-      ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),

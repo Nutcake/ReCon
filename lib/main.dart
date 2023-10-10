@@ -1,16 +1,5 @@
 import 'dart:developer';
 
-import 'package:recon/apis/github_api.dart';
-import 'package:recon/client_holder.dart';
-import 'package:recon/clients/api_client.dart';
-import 'package:recon/clients/inventory_client.dart';
-import 'package:recon/clients/messaging_client.dart';
-import 'package:recon/clients/session_client.dart';
-import 'package:recon/clients/settings_client.dart';
-import 'package:recon/models/sem_ver.dart';
-import 'package:recon/widgets/homepage.dart';
-import 'package:recon/widgets/login_screen.dart';
-import 'package:recon/widgets/update_notifier.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +11,18 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:recon/apis/github_api.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/clients/inventory_client.dart';
+import 'package:recon/clients/messaging_client.dart';
+import 'package:recon/clients/session_client.dart';
+import 'package:recon/clients/settings_client.dart';
+import 'package:recon/models/sem_ver.dart';
+import 'package:recon/widgets/homepage.dart';
+import 'package:recon/widgets/login_screen.dart';
+import 'package:recon/widgets/update_notifier.dart';
+
 import 'models/authentication_data.dart';
 
 void main() async {
@@ -30,6 +31,16 @@ void main() async {
   await FlutterDownloader.initialize(
     debug: kDebugMode,
   );
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemStatusBarContrastEnforced: true,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: [SystemUiOverlay.top]);
 
   await Hive.initFlutter();
 
@@ -168,7 +179,12 @@ class _ReConState extends State<ReCon> {
                               ),
                             )
                           ],
-                          child: const Home(),
+                          child: AnnotatedRegion<SystemUiOverlayStyle>(
+                            value: SystemUiOverlayStyle(
+                              statusBarColor: Theme.of(context).colorScheme.surfaceVariant,
+                            ),
+                            child: const Home(),
+                          ),
                         )
                       : LoginScreen(
                           onLoginSuccessful: (AuthenticationData authData) async {

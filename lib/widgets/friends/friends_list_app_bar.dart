@@ -4,7 +4,6 @@ import 'package:recon/models/users/online_status.dart';
 import 'package:recon/widgets/friends/user_search.dart';
 import 'package:recon/widgets/my_profile_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -22,9 +21,6 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
     super.build(context);
     return AppBar(
       title: const Text("ReCon"),
-      systemOverlayStyle: SystemUiOverlayStyle(
-        systemNavigationBarColor: Theme.of(context).navigationBarTheme.backgroundColor,
-      ),
       actions: [
         Consumer<MessagingClient>(builder: (context, client, _) {
           return PopupMenuButton<OnlineStatus>(
