@@ -36,7 +36,6 @@ class AuthenticationData {
 
   Map<String, String> get authorizationHeader => {
         "Authorization": "res $userId:$token",
-        "UID": uid,
       };
 
   Map<String, dynamic> toMap() {

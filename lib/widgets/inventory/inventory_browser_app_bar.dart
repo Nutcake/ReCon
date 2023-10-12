@@ -5,7 +5,6 @@ import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/inventory_client.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';

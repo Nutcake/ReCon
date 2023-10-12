@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/online_status.dart';
@@ -52,7 +53,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               }
             },
             itemBuilder: (BuildContext context) => OnlineStatus.values
-                .where((element) => element == OnlineStatus.online || element == OnlineStatus.invisible)
+                .where((element) => element == OnlineStatus.online || element == OnlineStatus.offline).sorted((a, b) => b.index.compareTo(a.index),)
                 .map(
                   (item) => PopupMenuItem<OnlineStatus>(
                     value: item,

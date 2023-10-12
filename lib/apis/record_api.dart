@@ -31,6 +31,13 @@ class RecordApi {
     return body.map((e) => Record.fromMap(e)).toList();
   }
 
+  static Future<List<Record>> getGroupRecordsAt(ApiClient client, {required String path, required String groupId}) async {
+    final response = await client.get("/users/$groupId/records?path=$path");
+    client.checkResponse(response);
+    final body = jsonDecode(response.body) as List;
+    return body.map((e) => Record.fromMap(e)).toList();
+  }
+
   static Future<void> deleteRecord(ApiClient client, {required String recordId}) async {
     final response = await client.delete("/users/${client.userId}/records/$recordId");
     client.checkResponse(response);

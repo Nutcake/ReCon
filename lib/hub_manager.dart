@@ -107,10 +107,10 @@ class HubManager {
   void _handleInvocation(body) async {
     final target = EventTarget.parse(body["target"]);
     final args = body["arguments"] ?? [];
-    if (kDebugMode) _logger.info("Invocation target: ${target.name}, args:\n$args");
     final handler = _handlers[target];
     if (handler == null) {
-      _logger.info("Unhandled event received");
+      _logger.warning("Unhandled event received");
+      if (kDebugMode) _logger.warning("Invocation target: ${target.name}, args:\n$args");
       return;
     }
     handler(args);

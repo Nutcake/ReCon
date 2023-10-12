@@ -24,6 +24,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 class MessagingClient extends ChangeNotifier {
   static const Duration _autoRefreshDuration = Duration(seconds: 10);
   static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
+  static const Duration _statusHeartbeatDuration = Duration(seconds: 150);
   static const String _messageBoxKey = "message-box";
   static const String _lastUpdateKey = "__last-update-time";
 
@@ -38,7 +39,7 @@ class MessagingClient extends ChangeNotifier {
   final Set<String> _knownSessionKeys = {};
   Friend? selectedFriend;
 
-  Timer? _notifyOnlineTimer;
+  Timer? _statusHeartbeat;
   Timer? _autoRefresh;
   Timer? _unreadSafeguard;
   String? _initStatus;
@@ -62,7 +63,7 @@ class MessagingClient extends ChangeNotifier {
   void dispose() {
     debugPrint("mClient disposed: $hashCode");
     _autoRefresh?.cancel();
-    _notifyOnlineTimer?.cancel();
+    _statusHeartbeat?.cancel();
     _unreadSafeguard?.cancel();
     _hubManager.dispose();
     super.dispose();
@@ -117,6 +118,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void markMessagesRead(MarkReadBatch batch) {
+    if (_userStatus.onlineStatus == OnlineStatus.invisible || _userStatus.onlineStatus == OnlineStatus.offline) return;
     final msgBody = batch.toMap();
     _hubManager.send("MarkMessagesRead", arguments: [msgBody]);
     clearUnreadsForUser(batch.senderId);
@@ -124,11 +126,14 @@ class MessagingClient extends ChangeNotifier {
 
   Future<void> setOnlineStatus(OnlineStatus status) async {
     final pkginfo = await PackageInfo.fromPlatform();
-
+    final now = DateTime.now();
     _userStatus = _userStatus.copyWith(
+      userId: _apiClient.userId,
       appVersion: "${pkginfo.version} of ${pkginfo.appName}",
-      lastStatusChange: DateTime.now(),
+      lastPresenceTimestamp: now,
+      lastStatusChange: now,
       onlineStatus: status,
+      isPresent: true,
     );
 
     _hubManager.send(
@@ -258,7 +263,6 @@ class MessagingClient extends ChangeNotifier {
     _hubManager.setHandler(EventTarget.removeSession, _onRemoveSession);
 
     await _hubManager.start();
-    await setOnlineStatus(OnlineStatus.online);
     _hubManager.send(
       "InitializeStatus",
       responseHandler: (Map data) async {
@@ -272,6 +276,10 @@ class MessagingClient extends ChangeNotifier {
         await _refreshUnreads();
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
         _hubManager.send("RequestStatus", arguments: [null, false]);
+        await setOnlineStatus(OnlineStatus.online);
+        _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
+          setOnlineStatus(_userStatus.onlineStatus);
+        });
       },
     );
   }

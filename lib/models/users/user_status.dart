@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:recon/config.dart';
 import 'package:recon/crypto_helper.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/models/session_metadata.dart';
@@ -10,7 +12,7 @@ enum UserSessionType
   graphicalClient,
   chatClient,
   headless,
-  not;
+  bot;
 
   factory UserSessionType.fromString(String? text) {
     return UserSessionType.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
@@ -20,6 +22,7 @@ enum UserSessionType
 }
 
 class UserStatus {
+  final String userId;
   final OnlineStatus onlineStatus;
   final DateTime lastStatusChange;
   final DateTime lastPresenceTimestamp;
@@ -36,6 +39,7 @@ class UserStatus {
   final List<Session> decodedSessions;
 
   const UserStatus({
+    required this.userId,
     required this.onlineStatus,
     required this.lastStatusChange,
     required this.lastPresenceTimestamp,
@@ -54,15 +58,18 @@ class UserStatus {
 
   factory UserStatus.initial() =>
       UserStatus.empty().copyWith(
+        compatibilityHash: Config.latestCompatHash,
         onlineStatus: OnlineStatus.online,
         hashSalt: CryptoHelper.cryptoToken(),
-        outputDevice: "Screen",
+        outputDevice: "Unknown",
         userSessionId: const Uuid().v4().toString(),
         sessionType: UserSessionType.chatClient,
+        isPresent: true,
       );
 
   factory UserStatus.empty() =>
       UserStatus(
+        userId: "",
         onlineStatus: OnlineStatus.offline,
         lastStatusChange: DateTime.now(),
         lastPresenceTimestamp: DateTime.now(),
@@ -82,6 +89,7 @@ class UserStatus {
     final statusString = map["onlineStatus"].toString();
     final status = OnlineStatus.fromString(statusString);
     return UserStatus(
+      userId: map["userId"] ?? "",
       onlineStatus: status,
       lastStatusChange: DateTime.tryParse(map["lastStatusChange"] ?? "") ?? DateTime.now(),
       lastPresenceTimestamp: DateTime.tryParse(map["lastPresenceTimestamp"] ?? "") ?? DateTime.now(),
@@ -92,7 +100,7 @@ class UserStatus {
       appVersion: map["appVersion"] ?? "",
       outputDevice: map["outputDevice"] ?? "Unknown",
       isMobile: map["isMobile"] ?? false,
-      compatibilityHash: map["compatabilityHash"] ?? "",
+      compatibilityHash: map["compatibilityHash"] ?? "",
       hashSalt: map["hashSalt"] ?? "",
       sessionType: UserSessionType.fromString(map["sessionType"])
     );
@@ -100,6 +108,7 @@ class UserStatus {
 
   Map toMap({bool shallow = false}) {
     return {
+      "userId": userId,
       "onlineStatus": onlineStatus.index,
       "lastStatusChange": lastStatusChange.toIso8601String(),
       "isPresent": isPresent,
@@ -117,10 +126,12 @@ class UserStatus {
       "outputDevice": outputDevice,
       "isMobile": isMobile,
       "compatibilityHash": compatibilityHash,
+      "sessionType": toBeginningOfSentenceCase(sessionType.name)
     };
   }
 
   UserStatus copyWith({
+    String? userId,
     OnlineStatus? onlineStatus,
     DateTime? lastStatusChange,
     DateTime? lastPresenceTimestamp,
@@ -137,6 +148,7 @@ class UserStatus {
     List<Session>? decodedSessions,
   }) =>
       UserStatus(
+        userId: userId ?? this.userId,
         onlineStatus: onlineStatus ?? this.onlineStatus,
         lastStatusChange: lastStatusChange ?? this.lastStatusChange,
         lastPresenceTimestamp: lastPresenceTimestamp ?? this.lastPresenceTimestamp,
