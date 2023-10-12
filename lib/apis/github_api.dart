@@ -6,9 +6,10 @@ class GithubApi {
   static const baseUrl = "https://api.github.com";
 
   static Future<String> getLatestTagName() async {
-    final response = await http.get(Uri.parse("$baseUrl/repos/Nutcake/ReCon/releases/latest"));
+    final response = await http.get(Uri.parse("$baseUrl/repos/Nutcake/ReCon/releases?per_page=1"));
     if (response.statusCode != 200) return "";
-    final body = jsonDecode(response.body);
-    return body["tag_name"] ?? "";
+    final body = jsonDecode(response.body) as List;
+    if (body.isEmpty) return "";
+    return body.first["tag_name"] ?? "";
   }
 }
