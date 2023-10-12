@@ -1,13 +1,14 @@
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:recon/auxiliary.dart';
-import 'package:recon/clients/inventory_client.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/inventory_client.dart';
+import 'package:share_plus/share_plus.dart';
 
 class InventoryBrowserAppBar extends StatefulWidget {
   const InventoryBrowserAppBar({super.key});
@@ -71,6 +72,15 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                     icon: const Icon(Icons.close),
                   ),
                   actions: [
+                    if (iClient.selectedRecordCount == 1 &&
+                        (iClient.selectedRecords.firstOrNull?.isLink == true ||
+                            iClient.selectedRecords.firstOrNull?.isItem == true))
+                      IconButton(
+                        onPressed: () {
+                          Share.share(iClient.selectedRecords.first.assetUri);
+                        },
+                        icon: const Icon(Icons.share),
+                      ),
                     if (iClient.onlyFilesSelected)
                       IconButton(
                         onPressed: () async {

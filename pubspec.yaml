@@ -63,6 +63,7 @@ dependencies:
   permission_handler: ^10.2.0
   flutter_downloader: ^1.10.4
   flutter_cube: ^0.1.1
+  share_plus: ^7.1.0
 
 dev_dependencies:
   flutter_test:

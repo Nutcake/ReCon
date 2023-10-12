@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/inventory_client.dart';
 import 'package:recon/models/inventory/resonite_directory.dart';
@@ -9,9 +12,6 @@ import 'package:recon/models/records/record.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/inventory/object_inventory_tile.dart';
 import 'package:recon/widgets/inventory/path_inventory_tile.dart';
-import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
-import 'package:provider/provider.dart';
 
 class InventoryBrowser extends StatefulWidget {
   const InventoryBrowser({super.key});
@@ -127,16 +127,23 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                               shrinkWrap: true,
                               itemCount: paths.length,
                               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: 256,
-                                  childAspectRatio: 3.5,
-                                  crossAxisSpacing: 0,
-                                  mainAxisSpacing: 0),
+                                maxCrossAxisExtent: 256,
+                                childAspectRatio: 3.5,
+                                crossAxisSpacing: 0,
+                                mainAxisSpacing: 0,
+                              ),
                               itemBuilder: (context, index) {
                                 final record = paths[index];
                                 return PathInventoryTile(
                                   record: record,
+                                  selected: iClient.isRecordSelected(record),
+                                  onLongPress: () async {
+                                    iClient.toggleRecordSelected(record);
+                                  },
                                   onTap: iClient.isAnyRecordSelected
-                                      ? () {}
+                                      ? () {
+                                          iClient.toggleRecordSelected(record);
+                                        }
                                       : () async {
                                           try {
                                             await iClient.navigateTo(record);

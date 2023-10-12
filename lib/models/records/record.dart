@@ -218,8 +218,12 @@ class Record {
 
   bool get isRoot => this == _rootRecord;
 
+  bool get isLink => assetUri.startsWith("resrec");
+
+  bool get isItem => assetUri.startsWith("resdb");
+
   String get linkRecordId {
-    if (!assetUri.startsWith("resrec")) {
+    if (!isLink) {
       throw "Record is not a link.";
     }
     
