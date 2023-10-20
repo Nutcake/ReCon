@@ -18,9 +18,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   static const List<Widget> _appBars = [
     FriendsListAppBar(),
-    SessionListAppBar(),
-    InventoryBrowserAppBar(),
-    SettingsAppBar()
+    // Disabled due to DownloadManager not working on desktop
+    // SessionListAppBar(),
+    // InventoryBrowserAppBar(),
+    // SettingsAppBar()
   ];
   final PageController _pageController = PageController();
 
@@ -42,42 +43,42 @@ class _HomeState extends State<Home> {
         physics: const NeverScrollableScrollPhysics(),
         children: const [
           FriendsList(),
-          SessionList(),
-          InventoryBrowser(),
-          SettingsPage(),
+          // SessionList(),
+          // InventoryBrowser(),
+          // SettingsPage(),
         ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedPage,
-        onDestinationSelected: (index) {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-          setState(() {
-            _selectedPage = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.message),
-            label: "Chat",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.public),
-            label: "Sessions",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory),
-            label: "Inventory",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: "Settings",
-          ),
-        ],
-      ),
-    );
+      ),);
+    //   bottomNavigationBar: NavigationBar(
+    //     selectedIndex: _selectedPage,
+    //     onDestinationSelected: (index) {
+    //       _pageController.animateToPage(
+    //         index,
+    //         duration: const Duration(milliseconds: 200),
+    //         curve: Curves.easeOut,
+    //       );
+    //       setState(() {
+    //         _selectedPage = index;
+    //       });
+    //     },
+    //     destinations: const [
+    //       NavigationDestination(
+    //         icon: Icon(Icons.message),
+    //         label: "Chat",
+    //       ),
+    //       // NavigationDestination(
+    //       //   icon: Icon(Icons.public),
+    //       //   label: "Sessions",
+    //       // ),
+    //       // NavigationDestination(
+    //       //   icon: Icon(Icons.inventory),
+    //       //   label: "Inventory",
+    //       // ),
+    //       // NavigationDestination(
+    //       //   icon: Icon(Icons.settings),
+    //       //   label: "Settings",
+    //       // ),
+    //     ],
+    //   ),
+    // );
   }
 }

@@ -28,9 +28,9 @@ import 'models/authentication_data.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await FlutterDownloader.initialize(
-    debug: kDebugMode,
-  );
+  // await FlutterDownloader.initialize(
+  //   debug: kDebugMode,
+  // );
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
