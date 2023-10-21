@@ -1,23 +1,73 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:recon/apis/record_api.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/models/inventory/resonite_directory.dart';
 import 'package:recon/models/records/record.dart';
-import 'package:flutter/material.dart';
+
+enum SortMode {
+  name,
+  date;
+
+  int sortFunction(Record a, Record b, {bool reverse = false}) {
+    final func = switch (this) {
+      SortMode.name => (Record x, Record y) =>
+          x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
+      SortMode.date => (Record x, Record y) => x.creationTime.compareTo(y.creationTime),
+    };
+    if (reverse) {
+      return func(b, a);
+    }
+    return func(a, b);
+  }
+
+  static const Map<SortMode, IconData> _iconsMap = {
+    SortMode.name: Icons.sort_by_alpha,
+    SortMode.date: Icons.access_time_outlined
+  };
+
+  IconData get icon => _iconsMap[this] ?? Icons.question_mark;
+}
 
 class InventoryClient extends ChangeNotifier {
   final ApiClient apiClient;
+  final Map<String, Record> _selectedRecords = {};
 
   Future<ResoniteDirectory>? _currentDirectory;
-
-  Future<ResoniteDirectory>? get directoryFuture => _currentDirectory;
+  SortMode _sortMode = SortMode.name;
+  bool _sortReverse = false;
 
   InventoryClient({required this.apiClient});
 
-  final Map<String, Record> _selectedRecords = {};
+  SortMode get sortMode => _sortMode;
+
+  bool get sortReverse => _sortReverse;
+
+  set sortMode(SortMode mode) {
+    if (_sortMode != mode) {
+      _sortMode = mode;
+      notifyListeners();
+    }
+  }
+
+  set sortReverse(bool reverse) {
+    if (_sortReverse != reverse) {
+      _sortReverse = reverse;
+      notifyListeners();
+    }
+  }
 
   List<Record> get selectedRecords => _selectedRecords.values.toList();
+
+  Future<ResoniteDirectory>? get directoryFuture => _currentDirectory?.then(
+        (ResoniteDirectory value) {
+          value.children.sort(
+            (ResoniteDirectory a, ResoniteDirectory b) => _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
+          );
+          return value;
+        },
+      );
 
   bool get isAnyRecordSelected => _selectedRecords.isNotEmpty;
 
@@ -142,7 +192,8 @@ class InventoryClient extends ChangeNotifier {
       _currentDirectory = _getDirectory(record).then(
         (records) {
           childDir.children.clear();
-          childDir.children.addAll(records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: childDir)));
+          childDir.children
+              .addAll(records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: childDir)));
           return childDir;
         },
       ).onError((error, stackTrace) {

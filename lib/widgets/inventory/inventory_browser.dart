@@ -77,8 +77,9 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                     }
                     final directory = snapshot.data;
                     final records = directory?.records ?? [];
-
-                    records.sort((a, b) => a.name.compareTo(b.name));
+                    records.sort(
+                      (Record a, Record b) => iClient.sortMode.sortFunction(a, b, reverse: iClient.sortReverse),
+                    );
                     final paths = records
                         .where((element) =>
                             element.recordType == RecordType.link || element.recordType == RecordType.directory)
