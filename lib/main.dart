@@ -164,6 +164,7 @@ class _ReConState extends State<ReCon> {
                             ChangeNotifierProvider(
                               create: (context) => MessagingClient(
                                 apiClient: clientHolder.apiClient,
+                                settingsClient: clientHolder.settingsClient,
                                 notificationClient: clientHolder.notificationClient,
                               ),
                             ),
