@@ -6,6 +6,7 @@ import 'package:recon/apis/session_api.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/notification_client.dart';
+import 'package:recon/clients/settings_client.dart';
 import 'package:recon/crypto_helper.dart';
 import 'package:recon/hub_manager.dart';
 import 'package:recon/models/hub_events.dart';
@@ -37,6 +38,7 @@ class MessagingClient extends ChangeNotifier {
   final HubManager _hubManager = HubManager();
   final Map<String, Session> _sessionMap = {};
   final Set<String> _knownSessionKeys = {};
+  final SettingsClient _settingsClient;
   Friend? selectedFriend;
 
   Timer? _statusHeartbeat;
@@ -47,9 +49,11 @@ class MessagingClient extends ChangeNotifier {
 
   UserStatus get userStatus => _userStatus;
 
-  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient})
+  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient, required SettingsClient settingsClient})
       : _apiClient = apiClient,
-        _notificationClient = notificationClient {
+        _notificationClient = notificationClient,
+        _settingsClient = settingsClient
+  {
     debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
@@ -276,7 +280,8 @@ class MessagingClient extends ChangeNotifier {
         await _refreshUnreads();
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
         _hubManager.send("RequestStatus", arguments: [null, false]);
-        await setOnlineStatus(OnlineStatus.online);
+        final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
+        await setOnlineStatus(lastOnline ?? OnlineStatus.online);
         _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
           setOnlineStatus(_userStatus.onlineStatus);
         });

@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
@@ -50,7 +51,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
   @override
   Widget build(BuildContext context) {
     return Consumer<InventoryClient>(
-      builder: (BuildContext context, InventoryClient iClient, Widget? child) {
+      builder: (BuildContext context, InventoryClient iClient, Widget? _) {
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
           transitionBuilder: (child, animation) => FadeTransition(
@@ -61,6 +62,103 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
               ? AppBar(
                   key: const ValueKey("default-appbar"),
                   title: const Text("Inventory"),
+                  actions: [
+                    PopupMenuButton(
+                      icon: const Icon(Icons.swap_vert),
+                      onSelected: (value) {
+                        iClient.sortReverse = value;
+                      },
+                      itemBuilder: (context) {
+                        return [
+                          PopupMenuItem(
+                            value: false,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_upward,
+                                  color: iClient.sortReverse == false
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context).colorScheme.onSurface,
+                                ),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "Ascending",
+                                  style: TextStyle(
+                                    color: iClient.sortReverse == false
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: true,
+                            child: Row(
+                              children: [
+                                Icon(Icons.arrow_downward,
+                                    color: iClient.sortReverse == true
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurface),
+                                const SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  "Descending",
+                                  style: TextStyle(
+                                    color: iClient.sortReverse == true
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        ];
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: PopupMenuButton(
+                        icon: const Icon(Icons.sort),
+                        onSelected: (value) {
+                          iClient.sortMode = value;
+                        },
+                        itemBuilder: (context) {
+                          return SortMode.values
+                              .map(
+                                (e) => PopupMenuItem(
+                                  value: e,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        e.icon,
+                                        color: iClient.sortMode == e
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                      const SizedBox(
+                                        width: 8,
+                                      ),
+                                      Text(
+                                        toBeginningOfSentenceCase(e.name) ?? e.name,
+                                        style: TextStyle(
+                                          color: iClient.sortMode == e
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList();
+                        },
+                      ),
+                    ),
+                  ],
                 )
               : AppBar(
                   key: const ValueKey("selection-appbar"),
