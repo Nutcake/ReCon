@@ -116,7 +116,7 @@ class InventoryClient extends ChangeNotifier {
         final linkRecord =
             await RecordApi.getUserRecord(apiClient, recordId: record.linkRecordId, user: record.linkOwnerId);
         records = await RecordApi.getUserRecordsAt(apiClient,
-            path: "${linkRecord.path}\\${record.name}", user: linkRecord.ownerId);
+            path: "${linkRecord.path}\\${linkRecord.name}", user: linkRecord.ownerId);
       } else {
         records =
             await RecordApi.getUserRecordsAt(apiClient, path: "${record.path}\\${record.name}", user: record.ownerId);
