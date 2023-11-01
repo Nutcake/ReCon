@@ -169,9 +169,6 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                 );
                               },
                             ),
-                            const SizedBox(
-                              height: 0,
-                            ),
                             GridView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
                               physics: const NeverScrollableScrollPhysics(),
@@ -187,6 +184,24 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                 final record = objects[index];
                                 return ObjectInventoryTile(
                                   record: record,
+                                  selected: iClient.isRecordSelected(record),
+                                  onTap: iClient.isAnyRecordSelected
+                                      ? () async {
+                                          iClient.toggleRecordSelected(record);
+                                        }
+                                      : () async {
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PhotoView(
+                                                minScale: PhotoViewComputedScale.contained,
+                                                imageProvider:
+                                                    CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
+                                                heroAttributes: PhotoViewHeroAttributes(tag: record.id),
+                                              ),
+                                            ),
+                                          );
+                                        },
                                   onLongPress: () async {
                                     iClient.toggleRecordSelected(record);
                                   },
