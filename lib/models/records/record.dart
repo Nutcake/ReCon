@@ -222,6 +222,8 @@ class Record {
 
   bool get isItem => assetUri.startsWith("resdb");
 
+  bool get isGroupRecord => linkOwnerId.startsWith("G-");
+
   String get linkRecordId {
     if (!isLink) {
       throw "Record is not a link.";
@@ -242,12 +244,12 @@ class Record {
     
     String ownerId = assetUri.replaceFirst("resrec:///", "");
 
-    final lastSlashIdx = ownerId.lastIndexOf("/");
-    if (lastSlashIdx == -1) {
+    final nextSlashIdx = ownerId.indexOf("/");
+    if (nextSlashIdx == -1) {
       throw "Record has invalid assetUri";
     }
 
-    return ownerId.substring(0, lastSlashIdx);
+    return ownerId.substring(0, nextSlashIdx);
   }
 
   Record copyWith({

@@ -24,6 +24,13 @@ class RecordApi {
     return Record.fromMap(body);
   }
 
+  static Future<Record> getGroupRecordByPath(ApiClient client, {required String path, required String groupId}) async {
+    final response = await client.get("/groups/$groupId/records/$path");
+    client.checkResponse(response);
+    final body = jsonDecode(response.body) as Map;
+    return Record.fromMap(body);
+  }
+
   static Future<List<Record>> getUserRecordsAt(ApiClient client, {required String path, String? user}) async {
     final response = await client.get(Uri.encodeFull("/users/${user ?? client.userId}/records?path=$path"));
     client.checkResponse(response);
@@ -32,7 +39,7 @@ class RecordApi {
   }
 
   static Future<List<Record>> getGroupRecordsAt(ApiClient client, {required String path, required String groupId}) async {
-    final response = await client.get("/users/$groupId/records?path=$path");
+    final response = await client.get("/groups/$groupId/records?path=$path");
     client.checkResponse(response);
     final body = jsonDecode(response.body) as List;
     return body.map((e) => Record.fromMap(e)).toList();
