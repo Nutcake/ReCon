@@ -113,7 +113,17 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                               onPressed: () {
                                                 iClient.navigateUp(times: pathSegments.length - 1 - idx);
                                               },
-                                              child: Text(segment),
+                                              child: ConstrainedBox(
+                                                constraints: BoxConstraints(
+                                                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                                                ),
+                                                child: Text(
+                                                  segment,
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  softWrap: true,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -158,9 +168,6 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                         },
                                 );
                               },
-                            ),
-                            const SizedBox(
-                              height: 0,
                             ),
                             GridView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
