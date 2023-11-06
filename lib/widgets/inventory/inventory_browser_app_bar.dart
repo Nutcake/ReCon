@@ -28,9 +28,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
     IsolateNameServer.registerPortWithName(_port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
       // Not useful yet? idk...
-      String id = data[0];
-      DownloadTaskStatus status = DownloadTaskStatus(data[1]);
-      int progress = data[2];
+      // String id = data[0];
+      // DownloadTaskStatus status = data[1];
+      // int progress = data[2];
     });
 
     FlutterDownloader.registerCallback(downloadCallback);
@@ -248,7 +248,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             return;
                           }
                           for (var record in selectedRecords) {
-                            final uri = selectedUris == thumbUris ? record.thumbnailUri : record.thumbnailUri;
+                            final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
                             await FlutterDownloader.enqueue(
                               url: Aux.resdbToHttp(uri),
                               savedDir: directory,

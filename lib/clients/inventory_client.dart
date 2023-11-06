@@ -63,7 +63,8 @@ class InventoryClient extends ChangeNotifier {
   Future<ResoniteDirectory>? get directoryFuture => _currentDirectory?.then(
         (ResoniteDirectory value) {
           value.children.sort(
-            (ResoniteDirectory a, ResoniteDirectory b) => _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
+            (ResoniteDirectory a, ResoniteDirectory b) =>
+                _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
           );
           return value;
         },
@@ -113,10 +114,29 @@ class InventoryClient extends ChangeNotifier {
       );
     } else {
       if (record.recordType == RecordType.link) {
-        final linkRecord =
-            await RecordApi.getUserRecord(apiClient, recordId: record.linkRecordId, user: record.linkOwnerId);
-        records = await RecordApi.getUserRecordsAt(apiClient,
-            path: "${linkRecord.path}\\${record.name}", user: linkRecord.ownerId);
+        if (record.isGroupRecord) {
+          final linkRecord = await RecordApi.getGroupRecordByPath(
+            apiClient,
+            path: "root/${record.path}/${record.name}",
+            groupId: record.linkOwnerId,
+          );
+          records = await RecordApi.getGroupRecordsAt(
+            apiClient,
+            path: "${linkRecord.path}\\${linkRecord.name}",
+            groupId: linkRecord.ownerId,
+          );
+        } else {
+          final linkRecord = await RecordApi.getUserRecord(
+            apiClient,
+            recordId: record.linkRecordId,
+            user: record.linkOwnerId,
+          );
+          records = await RecordApi.getUserRecordsAt(
+            apiClient,
+            path: "${linkRecord.path}\\${linkRecord.name}",
+            user: linkRecord.ownerId,
+          );
+        }
       } else {
         records =
             await RecordApi.getUserRecordsAt(apiClient, path: "${record.path}\\${record.name}", user: record.ownerId);
