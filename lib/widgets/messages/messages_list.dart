@@ -1,4 +1,5 @@
-import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/clients/audio_cache_client.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/friend.dart';
@@ -6,8 +7,6 @@ import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/messages/message_input_bar.dart';
 import 'package:recon/widgets/messages/messages_session_header.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'message_bubble.dart';
 
@@ -18,7 +17,8 @@ class MessagesList extends StatefulWidget {
   State<StatefulWidget> createState() => _MessagesListState();
 }
 
-class _MessagesListState extends State<MessagesList> with SingleTickerProviderStateMixin {
+class _MessagesListState extends State<MessagesList>
+    with SingleTickerProviderStateMixin {
   final ScrollController _sessionListScrollController = ScrollController();
 
   bool _showSessionListScrollChevron = false;
@@ -36,7 +36,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _sessionListScrollController.addListener(() {
-      if (_sessionListScrollController.position.maxScrollExtent > 0 && !_showSessionListScrollChevron) {
+      if (_sessionListScrollController.position.maxScrollExtent > 0 &&
+          !_showSessionListScrollChevron) {
         setState(() {
           _showSessionListScrollChevron = true;
         });
@@ -57,7 +58,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
-      final sessions = friend.userStatus.decodedSessions.where((element) => element.isVisible).toList();
+      final sessions = friend.userStatus.decodedSessions
+          .where((element) => element.isVisible)
+          .toList();
       return Scaffold(
         appBar: AppBar(
           title: Row(
@@ -74,7 +77,10 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                   child: Icon(
                     Icons.dns,
                     size: 18,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSecondaryContainer
+                        .withAlpha(150),
                   ),
                 ),
             ],
@@ -104,8 +110,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
             if (sessions.isNotEmpty)
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) =>
-                    SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
+                transitionBuilder: (child, animation) => SizeTransition(
+                    sizeFactor: animation, axis: Axis.vertical, child: child),
                 child: sessions.isEmpty || !_sessionListOpen
                     ? null
                     : Container(
@@ -133,7 +139,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Container(
-                                  padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
+                                  padding: const EdgeInsets.only(
+                                      left: 16, right: 4, top: 1, bottom: 1),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       begin: Alignment.centerLeft,
@@ -183,11 +190,13 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             children: [
                               const Icon(Icons.message_outlined),
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 24),
                                 child: Text(
                                   "There are no messages here\nWhy not say hello?",
                                   textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
                               )
                             ],
@@ -198,7 +207,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         create: (BuildContext context) => AudioCacheClient(),
                         child: ListView.builder(
                           reverse: true,
-                          physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
+                          physics: const BouncingScrollPhysics(
+                              decelerationRate: ScrollDecelerationRate.fast),
                           itemCount: cache.messages.length,
                           itemBuilder: (context, index) {
                             final entry = cache.messages[index];

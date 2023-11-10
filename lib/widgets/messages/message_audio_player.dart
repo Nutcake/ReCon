@@ -1,16 +1,16 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 
+import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/audio_cache_client.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/widgets/messages/message_state_indicator.dart';
-import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:provider/provider.dart';
 
 class MessageAudioPlayer extends StatefulWidget {
-  const MessageAudioPlayer({required this.message, this.foregroundColor, super.key});
+  const MessageAudioPlayer(
+      {required this.message, this.foregroundColor, super.key});
 
   final Message message;
   final Color? foregroundColor;
@@ -19,7 +19,8 @@ class MessageAudioPlayer extends StatefulWidget {
   State<MessageAudioPlayer> createState() => _MessageAudioPlayerState();
 }
 
-class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBindingObserver {
+class _MessageAudioPlayerState extends State<MessageAudioPlayer>
+    with WidgetsBindingObserver {
   final AudioPlayer _audioPlayer = AudioPlayer();
   Future? _audioFileFuture;
   double _sliderValue = 0;
@@ -42,7 +43,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
     super.didChangeDependencies();
     final audioCache = Provider.of<AudioCacheClient>(context);
     _audioFileFuture = audioCache
-        .cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content)))
+        .cachedNetworkAudioFile(
+            AudioClipContent.fromMap(jsonDecode(widget.message.content)))
         .then((value) => _audioPlayer.setFilePath(value.path))
         .whenComplete(() => _audioPlayer.setLoopMode(LoopMode.off));
   }
@@ -53,7 +55,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
     if (oldWidget.message.id == widget.message.id) return;
     final audioCache = Provider.of<AudioCacheClient>(context);
     _audioFileFuture = audioCache
-        .cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content)))
+        .cachedNetworkAudioFile(
+            AudioClipContent.fromMap(jsonDecode(widget.message.content)))
         .then((value) async {
       final path = _audioPlayer.setFilePath(value.path);
       await _audioPlayer.setLoopMode(LoopMode.off);
@@ -88,7 +91,10 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
             textAlign: TextAlign.center,
             softWrap: true,
             maxLines: 3,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.error),
           ),
         ],
       ),
@@ -97,16 +103,13 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
 
   @override
   Widget build(BuildContext context) {
-    if (!Platform.isAndroid) {
-      return _createErrorWidget("Sorry, audio-messages are not\n supported on this platform.");
-    }
-
     return IntrinsicWidth(
       child: StreamBuilder<PlayerState>(
         stream: _audioPlayer.playerStateStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+            FlutterError.reportError(FlutterErrorDetails(
+                exception: snapshot.error!, stack: snapshot.stackTrace));
             return _createErrorWidget("Failed to load audio-message.");
           }
           final playerState = snapshot.data;
@@ -122,8 +125,12 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                     future: _audioFileFuture,
                     builder: (context, fileSnapshot) {
                       if (fileSnapshot.hasError) {
+                        FlutterError.reportError(FlutterErrorDetails(
+                            exception: fileSnapshot.error!,
+                            stack: fileSnapshot.stackTrace));
                         return const IconButton(
                           icon: Icon(Icons.warning),
+                          tooltip: "Failed to load audio-message.",
                           onPressed: null,
                         );
                       }
@@ -131,7 +138,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                         onPressed: fileSnapshot.hasData &&
                                 snapshot.hasData &&
                                 playerState != null &&
-                                playerState.processingState != ProcessingState.loading
+                                playerState.processingState !=
+                                    ProcessingState.loading
                             ? () {
                                 switch (playerState.processingState) {
                                   case ProcessingState.idle:
@@ -154,11 +162,15 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                             : null,
                         color: widget.foregroundColor,
                         icon: Icon(
-                          ((_audioPlayer.duration ?? const Duration(days: 9999)) - _audioPlayer.position)
+                          ((_audioPlayer.duration ??
+                                              const Duration(days: 9999)) -
+                                          _audioPlayer.position)
                                       .inMilliseconds <
                                   10
                               ? Icons.replay
-                              : ((playerState?.playing ?? false) ? Icons.pause : Icons.play_arrow),
+                              : ((playerState?.playing ?? false)
+                                  ? Icons.pause
+                                  : Icons.play_arrow),
                         ),
                       );
                     },
@@ -168,14 +180,16 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                     builder: (context, snapshot) {
                       _sliderValue = _audioPlayer.duration == null
                           ? 0
-                          : (_audioPlayer.position.inMilliseconds / (_audioPlayer.duration!.inMilliseconds))
+                          : (_audioPlayer.position.inMilliseconds /
+                                  (_audioPlayer.duration!.inMilliseconds))
                               .clamp(0, 1);
                       return StatefulBuilder(
                         // Not sure if this makes sense here...
                         builder: (context, setState) {
                           return SliderTheme(
                             data: SliderThemeData(
-                              inactiveTrackColor: widget.foregroundColor?.withAlpha(100),
+                              inactiveTrackColor:
+                                  widget.foregroundColor?.withAlpha(100),
                             ),
                             child: Slider(
                               thumbColor: widget.foregroundColor,
@@ -189,7 +203,11 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                                 });
                                 _audioPlayer.seek(
                                   Duration(
-                                    milliseconds: (value * (_audioPlayer.duration?.inMilliseconds ?? 0)).round(),
+                                    milliseconds: (value *
+                                            (_audioPlayer
+                                                    .duration?.inMilliseconds ??
+                                                0))
+                                        .round(),
                                   ),
                                 );
                               },
@@ -213,10 +231,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                     builder: (context, snapshot) {
                       return Text(
                         "${snapshot.data?.format() ?? "??"}/${_audioPlayer.duration?.format() ?? "??"}",
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: widget.foregroundColor?.withAlpha(150)),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: widget.foregroundColor?.withAlpha(150)),
                       );
                     },
                   ),

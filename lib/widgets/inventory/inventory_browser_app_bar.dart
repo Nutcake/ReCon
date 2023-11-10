@@ -1,11 +1,13 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:background_downloader/background_downloader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/inventory_client.dart';
@@ -19,32 +21,16 @@ class InventoryBrowserAppBar extends StatefulWidget {
 }
 
 class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
-  final ReceivePort _port = ReceivePort();
-
-  @override
-  void initState() {
-    super.initState();
-
-    IsolateNameServer.registerPortWithName(_port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) {
-      // Not useful yet? idk...
-      // String id = data[0];
-      // DownloadTaskStatus status = data[1];
-      // int progress = data[2];
-    });
-
-    FlutterDownloader.registerCallback(downloadCallback);
-  }
-
-  @override
-  void dispose() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-    super.dispose();
-  }
+  final Future<Directory> _tempDirectoryFuture = getTemporaryDirectory();
 
   @pragma('vm:entry-point')
-  static void downloadCallback(String id, int status, int progress) {
-    final SendPort? send = IsolateNameServer.lookupPortByName('downloader_send_port');
+  static void downloadCallback(TaskUpdate event) {
+    final id = event.task.taskId;
+    final status = event is TaskStatusUpdate ? event.status : null;
+    final progress = event is TaskProgressUpdate ? event.progress : null;
+    final SendPort? send =
+        IsolateNameServer.lookupPortByName('downloader_send_port');
+
     send?.send([id, status, progress]);
   }
 
@@ -88,7 +74,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   style: TextStyle(
                                     color: iClient.sortReverse == false
                                         ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface,
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                   ),
                                 ),
                               ],
@@ -101,7 +89,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 Icon(Icons.arrow_downward,
                                     color: iClient.sortReverse == true
                                         ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface),
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface),
                                 const SizedBox(
                                   width: 8,
                                 ),
@@ -110,7 +100,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   style: TextStyle(
                                     color: iClient.sortReverse == true
                                         ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface,
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                   ),
                                 ),
                               ],
@@ -136,18 +128,27 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       Icon(
                                         e.icon,
                                         color: iClient.sortMode == e
-                                            ? Theme.of(context).colorScheme.primary
-                                            : Theme.of(context).colorScheme.onSurface,
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                       ),
                                       const SizedBox(
                                         width: 8,
                                       ),
                                       Text(
-                                        toBeginningOfSentenceCase(e.name) ?? e.name,
+                                        toBeginningOfSentenceCase(e.name) ??
+                                            e.name,
                                         style: TextStyle(
                                           color: iClient.sortMode == e
-                                              ? Theme.of(context).colorScheme.primary
-                                              : Theme.of(context).colorScheme.onSurface,
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
                                         ),
                                       )
                                     ],
@@ -172,7 +173,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                   actions: [
                     if (iClient.selectedRecordCount == 1 &&
                         (iClient.selectedRecords.firstOrNull?.isLink == true ||
-                            iClient.selectedRecords.firstOrNull?.isItem == true))
+                            iClient.selectedRecords.firstOrNull?.isItem ==
+                                true))
                       IconButton(
                         onPressed: () {
                           Share.share(iClient.selectedRecords.first.assetUri);
@@ -184,8 +186,12 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                         onPressed: () async {
                           final selectedRecords = iClient.selectedRecords;
 
-                          final assetUris = selectedRecords.map((record) => record.assetUri).toList();
-                          final thumbUris = selectedRecords.map((record) => record.thumbnailUri).toList();
+                          final assetUris = selectedRecords
+                              .map((record) => record.assetUri)
+                              .toList();
+                          final thumbUris = selectedRecords
+                              .map((record) => record.thumbnailUri)
+                              .toList();
 
                           final selectedUris = await showDialog<List<String>>(
                             context: context,
@@ -226,7 +232,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           );
                           if (selectedUris == null) return;
 
-                          final directory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Download to...");
+                          final directory = await FilePicker.platform
+                              .getDirectoryPath(dialogTitle: "Download to...");
                           if (directory == null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -241,22 +248,54 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Selected directory is invalid"),
+                                  content:
+                                      Text("Selected directory is invalid"),
                                 ),
                               );
                             }
                             return;
                           }
                           for (var record in selectedRecords) {
-                            final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
-                            await FlutterDownloader.enqueue(
+                            final uri = selectedUris == thumbUris
+                                ? record.thumbnailUri
+                                : record.assetUri;
+                            final filename =
+                                "${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}";
+                            final downloadTask = DownloadTask(
                               url: Aux.resdbToHttp(uri),
-                              savedDir: directory,
-                              showNotification: true,
-                              openFileFromNotification: false,
-                              fileName:
-                                  "${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}",
+                              allowPause: true,
+                              baseDirectory: BaseDirectory.temporary,
+                              filename: filename,
+                              updates: Updates.statusAndProgress,
                             );
+                            await FileDownloader()
+                                .enqueue(downloadTask)
+                                .then((b) {
+                              if (context.mounted) {
+                                if (b) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          "Downloaded ${record.formattedName.toString()}"),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          "Failed to download ${record.formattedName.toString()}"),
+                                    ),
+                                  );
+                                }
+                              }
+                            });
+                            final tempDirectory = await _tempDirectoryFuture;
+                            final file = File(
+                                "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}");
+                            if (await file.exists()) {
+                              final newFile = File("$directory/$filename");
+                              await file.rename(newFile.path);
+                            }
                           }
                           iClient.clearSelectedRecords();
                         },
@@ -278,8 +317,10 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   title: Text(iClient.selectedRecordCount == 1
                                       ? "Really delete this Record?"
                                       : "Really delete ${iClient.selectedRecordCount} Records?"),
-                                  content: const Text("This action cannot be undone!"),
-                                  actionsAlignment: MainAxisAlignment.spaceBetween,
+                                  content: const Text(
+                                      "This action cannot be undone!"),
+                                  actionsAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   actions: [
                                     TextButton(
                                       onPressed: loading
@@ -295,7 +336,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                         if (loading)
                                           const SizedBox.square(
                                             dimension: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
                                           ),
                                         const SizedBox(
                                           width: 4,
@@ -308,12 +350,16 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     loading = true;
                                                   });
                                                   try {
-                                                    await iClient.deleteSelectedRecords();
+                                                    await iClient
+                                                        .deleteSelectedRecords();
                                                   } catch (e) {
                                                     if (context.mounted) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
                                                         SnackBar(
-                                                          content: Text("Failed to delete one or more records: $e"),
+                                                          content: Text(
+                                                              "Failed to delete one or more records: $e"),
                                                         ),
                                                       );
                                                     }
@@ -322,12 +368,16 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     });
                                                   }
                                                   if (context.mounted) {
-                                                    Navigator.of(context).pop(true);
+                                                    Navigator.of(context)
+                                                        .pop(true);
                                                   }
-                                                  iClient.reloadCurrentDirectory();
+                                                  iClient
+                                                      .reloadCurrentDirectory();
                                                 },
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Theme.of(context).colorScheme.error,
+                                            foregroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .error,
                                           ),
                                           child: const Text("Delete"),
                                         ),
