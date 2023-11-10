@@ -5,13 +5,15 @@ import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/online_status.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/generic_avatar.dart';
 import 'package:recon/widgets/messages/messages_list.dart';
 
 class FriendListTile extends StatelessWidget {
-  const FriendListTile({required this.friend, required this.unreads, this.onTap, super.key});
+  const FriendListTile(
+      {required this.friend, required this.unreads, this.onTap, super.key});
 
   final Friend friend;
   final int unreads;
@@ -24,7 +26,8 @@ class FriendListTile extends StatelessWidget {
     final mClient = Provider.of<MessagingClient>(context, listen: false);
     final currentSession = friend.userStatus.currentSessionIndex == -1
         ? null
-        : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
+        : friend.userStatus.decodedSessions
+            .elementAtOrNull(friend.userStatus.currentSessionIndex);
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -32,7 +35,8 @@ class FriendListTile extends StatelessWidget {
       trailing: unreads != 0
           ? Text(
               "+$unreads",
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: theme.colorScheme.primary),
             )
           : null,
       title: Row(
@@ -57,26 +61,36 @@ class FriendListTile extends StatelessWidget {
           const SizedBox(
             width: 4,
           ),
-          Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (currentSession != null && currentSession.isVisible) ...[
-            const Text(" in "),
-            if (currentSession.name.isNotEmpty)
-              Expanded(
-                child: FormattedText(
-                  currentSession.formattedName,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              )
-            else
+          Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ??
+              "Unknown"),
+          if (!(friend.userStatus.onlineStatus == OnlineStatus.offline ||
+              friend.userStatus.onlineStatus == OnlineStatus.invisible))
+            if (currentSession != null) ...[
+              const Text(" in "),
+              if (currentSession.name.isNotEmpty)
+                Expanded(
+                  child: FormattedText(
+                    currentSession.formattedName,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                )
+              else
+                Expanded(
+                  child: Text(
+                    "${currentSession.accessLevel.toReadableString()} World",
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                )
+            ] else if (friend.userStatus.appVersion.isNotEmpty)
               Expanded(
                 child: Text(
-                  "${currentSession.accessLevel.toReadableString()} session",
+                  " on version ${friend.userStatus.appVersion}",
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
-              )
-          ]
+              ),
         ],
       ),
       onTap: () async {
