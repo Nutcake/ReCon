@@ -12,8 +12,7 @@ import 'package:recon/widgets/generic_avatar.dart';
 import 'package:recon/widgets/messages/messages_list.dart';
 
 class FriendListTile extends StatelessWidget {
-  const FriendListTile(
-      {required this.friend, required this.unreads, this.onTap, super.key});
+  const FriendListTile({required this.friend, required this.unreads, this.onTap, super.key});
 
   final Friend friend;
   final int unreads;
@@ -26,8 +25,7 @@ class FriendListTile extends StatelessWidget {
     final mClient = Provider.of<MessagingClient>(context, listen: false);
     final currentSession = friend.userStatus.currentSessionIndex == -1
         ? null
-        : friend.userStatus.decodedSessions
-            .elementAtOrNull(friend.userStatus.currentSessionIndex);
+        : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -35,8 +33,7 @@ class FriendListTile extends StatelessWidget {
       trailing: unreads != 0
           ? Text(
               "+$unreads",
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.primary),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
             )
           : null,
       title: Row(
@@ -61,8 +58,7 @@ class FriendListTile extends StatelessWidget {
           const SizedBox(
             width: 4,
           ),
-          Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ??
-              "Unknown"),
+          Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
           if (!(friend.userStatus.onlineStatus == OnlineStatus.offline ||
               friend.userStatus.onlineStatus == OnlineStatus.invisible))
             if (currentSession != null) ...[
