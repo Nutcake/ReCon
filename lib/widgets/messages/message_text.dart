@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:recon/models/message.dart';
@@ -17,7 +19,24 @@ class MessageText extends StatelessWidget {
       onLongPress: () async {
         await Clipboard.setData(ClipboardData(text: message.content));
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied to clipboard")));
+          const content = Text("Copied to clipboard");
+          ScaffoldMessenger.of(context).showSnackBar(
+            Platform.isIOS
+                ? const SnackBar(content: content)
+                : SnackBar(
+                    content: content,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    dismissDirection: DismissDirection.none,
+                    margin: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height - 170,
+                      right: 20,
+                      left: 20,
+                    ),
+                  ),
+          );
         }
       },
       child: Column(
