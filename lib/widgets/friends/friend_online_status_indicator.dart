@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:recon/models/users/online_status.dart';
 import 'package:recon/models/users/user_status.dart';
-import 'package:flutter/material.dart';
 
 class FriendOnlineStatusIndicator extends StatelessWidget {
   const FriendOnlineStatusIndicator({required this.userStatus, super.key});
@@ -14,8 +14,9 @@ class FriendOnlineStatusIndicator extends StatelessWidget {
             dimension: 10,
             child: Image.asset(
               "assets/images/logo-white.png",
-              alignment: Alignment.center,
               color: userStatus.onlineStatus.color(context),
+              filterQuality: FilterQuality.medium,
+              isAntiAlias: true,
             ),
           )
         : Icon(

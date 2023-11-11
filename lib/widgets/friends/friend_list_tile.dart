@@ -5,6 +5,7 @@ import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/online_status.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/generic_avatar.dart';
@@ -58,25 +59,34 @@ class FriendListTile extends StatelessWidget {
             width: 4,
           ),
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (currentSession != null && currentSession.isVisible) ...[
-            const Text(" in "),
-            if (currentSession.name.isNotEmpty)
-              Expanded(
-                child: FormattedText(
-                  currentSession.formattedName,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              )
-            else
+          if (!(friend.userStatus.onlineStatus == OnlineStatus.offline ||
+              friend.userStatus.onlineStatus == OnlineStatus.invisible))
+            if (currentSession != null) ...[
+              const Text(" in "),
+              if (currentSession.name.isNotEmpty)
+                Expanded(
+                  child: FormattedText(
+                    currentSession.formattedName,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                )
+              else
+                Expanded(
+                  child: Text(
+                    "${currentSession.accessLevel.toReadableString()} World",
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                )
+            ] else if (friend.userStatus.appVersion.isNotEmpty)
               Expanded(
                 child: Text(
-                  "${currentSession.accessLevel.toReadableString()} session",
+                  " on version ${friend.userStatus.appVersion}",
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
-              )
-          ]
+              ),
         ],
       ),
       onTap: () async {
