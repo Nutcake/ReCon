@@ -14,10 +14,10 @@ class MessageText extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: () async {
-        await Clipboard.setData(ClipboardData(text: message.content)).then((_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Copied to clipboard")));
-        });
+        await Clipboard.setData(ClipboardData(text: message.content));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Copied to clipboard")));
+        }
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
