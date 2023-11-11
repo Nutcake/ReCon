@@ -49,10 +49,7 @@ class MessageText extends StatelessWidget {
               message.formattedContent,
               softWrap: true,
               maxLines: null,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge
-                  ?.copyWith(color: foregroundColor),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: foregroundColor),
             ),
           ),
           Row(
