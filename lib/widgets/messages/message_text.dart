@@ -12,7 +12,8 @@ class MessageText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
       onLongPress: () async {
         await Clipboard.setData(ClipboardData(text: message.content));
         if (context.mounted) {
