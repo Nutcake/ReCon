@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:recon/widgets/friends/friends_list.dart';
 import 'package:recon/widgets/friends/friends_list_app_bar.dart';
 import 'package:recon/widgets/inventory/inventory_browser.dart';
@@ -6,7 +7,6 @@ import 'package:recon/widgets/sessions/session_list.dart';
 import 'package:recon/widgets/sessions/session_list_app_bar.dart';
 import 'package:recon/widgets/settings_app_bar.dart';
 import 'package:recon/widgets/settings_page.dart';
-import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -18,7 +18,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   static const List<Widget> _appBars = [
     FriendsListAppBar(),
-    // Disabled due to DownloadManager not working on desktop
     SessionListAppBar(),
     InventoryBrowserAppBar(),
     SettingsAppBar()
