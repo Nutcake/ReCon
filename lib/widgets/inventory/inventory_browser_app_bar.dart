@@ -243,23 +243,22 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               filename: filename,
                               updates: Updates.statusAndProgress,
                             );
-                            await FileDownloader().enqueue(downloadTask).then((b) {
-                              if (context.mounted) {
-                                if (b) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text("Downloaded ${record.formattedName.toString()}"),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text("Failed to download ${record.formattedName.toString()}"),
-                                    ),
-                                  );
-                                }
+                            final downloadStatus = await FileDownloader().enqueue(downloadTask);
+                            if (context.mounted) {
+                              if (downloadStatus) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Downloaded ${record.formattedName.toString()}"),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Failed to download ${record.formattedName.toString()}"),
+                                  ),
+                                );
                               }
-                            });
+                            }
                             final tempDirectory = await _tempDirectoryFuture;
                             final file = File(
                                 "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}");
