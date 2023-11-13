@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    as fln;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
@@ -12,8 +11,7 @@ class NotificationChannel {
   final String name;
   final String description;
 
-  const NotificationChannel(
-      {required this.name, required this.id, required this.description});
+  const NotificationChannel({required this.name, required this.id, required this.description});
 }
 
 class NotificationClient {
@@ -23,18 +21,15 @@ class NotificationClient {
     description: "Messages received from your friends",
   );
 
-  final fln.FlutterLocalNotificationsPlugin _notifier =
-      fln.FlutterLocalNotificationsPlugin()
-        ..initialize(const fln.InitializationSettings(
-          android: fln.AndroidInitializationSettings("ic_notification"),
-          iOS: fln.DarwinInitializationSettings(),
-          macOS: fln.DarwinInitializationSettings(),
-          linux:
-              fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
-        ));
+  final fln.FlutterLocalNotificationsPlugin _notifier = fln.FlutterLocalNotificationsPlugin()
+    ..initialize(const fln.InitializationSettings(
+      android: fln.AndroidInitializationSettings("ic_notification"),
+      iOS: fln.DarwinInitializationSettings(),
+      macOS: fln.DarwinInitializationSettings(),
+      linux: fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
+    ));
 
-  Future<void> showUnreadMessagesNotification(
-      Iterable<Message> messages) async {
+  Future<void> showUnreadMessagesNotification(Iterable<Message> messages) async {
     if (messages.isEmpty) return;
 
     final bySender = groupBy(messages, (p0) => p0.senderId);
@@ -73,8 +68,7 @@ class NotificationClient {
                     break;
                   case MessageType.sessionInvite:
                     try {
-                      final session =
-                          Session.fromMap(jsonDecode(message.content));
+                      final session = Session.fromMap(jsonDecode(message.content));
                       content = "Session Invite to ${session.name}";
                     } catch (e) {
                       content = "Session Invite";

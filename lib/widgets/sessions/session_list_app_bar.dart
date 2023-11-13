@@ -1,8 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/widgets/sessions/session_filter_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 
 class SessionListAppBar extends StatefulWidget {
   const SessionListAppBar({super.key});

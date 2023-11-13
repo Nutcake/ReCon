@@ -18,11 +18,7 @@ import 'package:recon/widgets/messages/message_attachment_list.dart';
 import 'package:record/record.dart';
 
 class MessageInputBar extends StatefulWidget {
-  const MessageInputBar(
-      {this.disabled = false,
-      required this.recipient,
-      this.onMessageSent,
-      super.key});
+  const MessageInputBar({this.disabled = false, required this.recipient, this.onMessageSent, super.key});
 
   final bool disabled;
   final Friend recipient;
@@ -45,8 +41,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
   String _currentText = "";
   double? _sendProgress;
   bool get _isRecording => _recordingStartTime != null;
-  set _isRecording(value) =>
-      _recordingStartTime = value ? DateTime.now() : null;
+  set _isRecording(value) => _recordingStartTime = value ? DateTime.now() : null;
   bool _recordingCancelled = false;
 
   @override
@@ -56,8 +51,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     super.dispose();
   }
 
-  Future<void> sendTextMessage(
-      ApiClient client, MessagingClient mClient, String content) async {
+  Future<void> sendTextMessage(ApiClient client, MessagingClient mClient, String content) async {
     if (content.isEmpty) return;
     final message = Message(
       id: Message.generateId(),
@@ -71,11 +65,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     mClient.sendMessage(message);
   }
 
-  Future<void> sendImageMessage(
-      ApiClient client,
-      MessagingClient mClient,
-      File file,
-      String machineId,
+  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
       void Function(double progress) progressCallback) async {
     final record = await RecordApi.uploadImage(
       client,
@@ -94,11 +84,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     mClient.sendMessage(message);
   }
 
-  Future<void> sendVoiceMessage(
-      ApiClient client,
-      MessagingClient mClient,
-      File file,
-      String machineId,
+  Future<void> sendVoiceMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
       void Function(double progress) progressCallback) async {
     final record = await RecordApi.uploadVoiceClip(
       client,
@@ -118,11 +104,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     mClient.sendMessage(message);
   }
 
-  Future<void> sendRawFileMessage(
-      ApiClient client,
-      MessagingClient mClient,
-      File file,
-      String machineId,
+  Future<void> sendRawFileMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
       void Function(double progress) progressCallback) async {
     final record = await RecordApi.uploadRawFile(
       client,
@@ -205,9 +187,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
               _sendProgress = 0;
             });
             final apiClient = cHolder.apiClient;
-            await sendVoiceMessage(apiClient, mClient, file,
-                cHolder.settingsClient.currentSettings.machineId.valueOrDefault,
-                (progress) {
+            await sendVoiceMessage(
+                apiClient, mClient, file, cHolder.settingsClient.currentSettings.machineId.valueOrDefault, (progress) {
               setState(() {
                 _sendProgress = progress;
               });
@@ -229,8 +210,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
           top: false,
           child: Column(
             children: [
-              if (_isSending && _sendProgress != null)
-                LinearProgressIndicator(value: _sendProgress),
+              if (_isSending && _sendProgress != null) LinearProgressIndicator(value: _sendProgress),
               Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceVariant,
@@ -239,8 +219,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                   duration: const Duration(milliseconds: 200),
                   switchInCurve: Curves.easeOut,
                   switchOutCurve: Curves.easeOut,
-                  transitionBuilder: (Widget child, animation) =>
-                      SizeTransition(
+                  transitionBuilder: (Widget child, animation) => SizeTransition(
                     sizeFactor: animation,
                     child: child,
                   ),
@@ -252,19 +231,12 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             onPressed: _isSending
                                 ? null
                                 : () async {
-                                    final result = await FilePicker.platform
-                                        .pickFiles(
-                                            type: FileType.image,
-                                            allowMultiple: true);
+                                    final result =
+                                        await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
                                     if (result != null) {
                                       setState(() {
                                         _loadedFiles.addAll(result.files
-                                            .map((e) => e.path != null
-                                                ? (
-                                                    FileType.image,
-                                                    File(e.path!)
-                                                  )
-                                                : null)
+                                            .map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
                                             .whereNotNull());
                                       });
                                     }
@@ -276,29 +248,23 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             onPressed: _isSending
                                 ? null
                                 : () async {
-                                    final picture = await _imagePicker
-                                        .pickImage(source: ImageSource.camera);
+                                    final picture = await _imagePicker.pickImage(source: ImageSource.camera);
                                     if (picture == null) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(
-                                                content: Text(
-                                                    "Failed to get image path")));
+                                            .showSnackBar(const SnackBar(content: Text("Failed to get image path")));
                                       }
                                       return;
                                     }
                                     final file = File(picture.path);
                                     if (await file.exists()) {
                                       setState(() {
-                                        _loadedFiles
-                                            .add((FileType.image, file));
+                                        _loadedFiles.add((FileType.image, file));
                                       });
                                     } else {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(
-                                                content: Text(
-                                                    "Failed to load image file")));
+                                            .showSnackBar(const SnackBar(content: Text("Failed to load image file")));
                                       }
                                     }
                                   },
@@ -309,16 +275,12 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             onPressed: _isSending
                                 ? null
                                 : () async {
-                                    final result = await FilePicker.platform
-                                        .pickFiles(
-                                            type: FileType.any,
-                                            allowMultiple: true);
+                                    final result =
+                                        await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
                                     if (result != null) {
                                       setState(() {
                                         _loadedFiles.addAll(result.files
-                                            .map((e) => e.path != null
-                                                ? (FileType.any, File(e.path!))
-                                                : null)
+                                            .map((e) => e.path != null ? (FileType.any, File(e.path!)) : null)
                                             .whereNotNull());
                                       });
                                     }
@@ -332,8 +294,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                     (_, _) => MessageAttachmentList(
                         disabled: _isSending,
                         initialFiles: _loadedFiles,
-                        onChange: (List<(FileType, File)> loadedFiles) =>
-                            setState(() {
+                        onChange: (List<(FileType, File)> loadedFiles) => setState(() {
                           _loadedFiles.clear();
                           _loadedFiles.addAll(loadedFiles);
                         }),
@@ -345,13 +306,10 @@ class _MessageInputBarState extends State<MessageInputBar> {
                 children: [
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) =>
-                            FadeTransition(
+                    transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
                       opacity: animation,
                       child: RotationTransition(
-                        turns: Tween<double>(begin: 0.6, end: 1)
-                            .animate(animation),
+                        turns: Tween<double>(begin: 0.6, end: 1).animate(animation),
                         child: child,
                       ),
                     ),
@@ -360,9 +318,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                           onPressed: () {},
                           icon: Icon(
                             Icons.delete,
-                            color: _recordingCancelled
-                                ? Theme.of(context).colorScheme.error
-                                : null,
+                            color: _recordingCancelled ? Theme.of(context).colorScheme.error : null,
                           ),
                         ),
                       (false, _) => IconButton(
@@ -371,9 +327,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               ? null
                               : () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              "Sorry, this feature is not yet available")));
+                                      const SnackBar(content: Text("Sorry, this feature is not yet available")));
                                   return;
                                   // setState(() {
                                   //   _attachmentPickerOpen = true;
@@ -392,10 +346,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                     await showDialog(
                                         context: context,
                                         builder: (context) => AlertDialog(
-                                              title: const Text(
-                                                  "Remove all attachments"),
-                                              content: const Text(
-                                                  "This will remove all attachments, are you sure?"),
+                                              title: const Text("Remove all attachments"),
+                                              content: const Text("This will remove all attachments, are you sure?"),
                                               actions: [
                                                 TextButton(
                                                   onPressed: () {
@@ -407,8 +359,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                                   onPressed: () {
                                                     setState(() {
                                                       _loadedFiles.clear();
-                                                      _attachmentPickerOpen =
-                                                          false;
+                                                      _attachmentPickerOpen = false;
                                                     });
                                                     Navigator.of(context).pop();
                                                   },
@@ -430,8 +381,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                       child: Stack(
                         children: [
                           TextField(
@@ -453,12 +403,9 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             style: Theme.of(context).textTheme.bodyLarge,
                             decoration: InputDecoration(
                                 isDense: true,
-                                hintText: _isRecording
-                                    ? ""
-                                    : "Message ${widget.recipient.username}...",
+                                hintText: _isRecording ? "" : "Message ${widget.recipient.username}...",
                                 hintMaxLines: 1,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 fillColor: Colors.black26,
                                 filled: true,
                                 border: OutlineInputBorder(
@@ -468,9 +415,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                           ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 200),
-                            transitionBuilder:
-                                (Widget child, Animation<double> animation) =>
-                                    FadeTransition(
+                            transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
                               opacity: animation,
                               child: SlideTransition(
                                 position: Tween<Offset>(
@@ -482,41 +427,33 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             ),
                             child: _isRecording
                                 ? Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12.0),
+                                    padding: const EdgeInsets.symmetric(vertical: 12.0),
                                     child: _recordingCancelled
                                         ? Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               const SizedBox(
                                                 width: 8,
                                               ),
                                               const Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 8.0),
+                                                padding: EdgeInsets.symmetric(horizontal: 8.0),
                                                 child: Icon(
                                                   Icons.cancel,
                                                   color: Colors.red,
                                                   size: 16,
                                                 ),
                                               ),
-                                              Text("Cancel Recording",
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleMedium),
+                                              Text("Cancel Recording", style: Theme.of(context).textTheme.titleMedium),
                                             ],
                                           )
                                         : Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.start,
                                             children: [
                                               const SizedBox(
                                                 width: 8,
                                               ),
                                               const Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 8.0),
+                                                padding: EdgeInsets.symmetric(horizontal: 8.0),
                                                 child: Icon(
                                                   Icons.circle,
                                                   color: Colors.red,
@@ -524,14 +461,10 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                                 ),
                                               ),
                                               StreamBuilder<Duration>(
-                                                  stream:
-                                                      _recordingDurationStream(),
+                                                  stream: _recordingDurationStream(),
                                                   builder: (context, snapshot) {
-                                                    return Text(
-                                                        "Recording: ${snapshot.data?.format()}",
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .titleMedium);
+                                                    return Text("Recording: ${snapshot.data?.format()}",
+                                                        style: Theme.of(context).textTheme.titleMedium);
                                                   }),
                                             ],
                                           ),
@@ -544,13 +477,10 @@ class _MessageInputBarState extends State<MessageInputBar> {
                   ),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) =>
-                            FadeTransition(
+                    transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
                       opacity: animation,
                       child: RotationTransition(
-                        turns: Tween<double>(begin: 0.5, end: 1)
-                            .animate(animation),
+                        turns: Tween<double>(begin: 0.5, end: 1).animate(animation),
                         child: child,
                       ),
                     ),
@@ -563,12 +493,9 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                 ? null
                                 : () async {
                                     final cHolder = ClientHolder.of(context);
-                                    final sMsgnr =
-                                        ScaffoldMessenger.of(context);
-                                    final settings =
-                                        cHolder.settingsClient.currentSettings;
-                                    final toSend = List<(FileType, File)>.from(
-                                        _loadedFiles);
+                                    final sMsgnr = ScaffoldMessenger.of(context);
+                                    final settings = cHolder.settingsClient.currentSettings;
+                                    final toSend = List<(FileType, File)>.from(_loadedFiles);
                                     setState(() {
                                       _isSending = true;
                                       _sendProgress = 0;
@@ -586,8 +513,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                             file.$2,
                                             settings.machineId.valueOrDefault,
                                             (progress) => setState(() {
-                                              _sendProgress = totalProgress +
-                                                  progress * 1 / toSend.length;
+                                              _sendProgress = totalProgress + progress * 1 / toSend.length;
                                             }),
                                           );
                                         } else {
@@ -596,12 +522,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                               mClient,
                                               file.$2,
                                               settings.machineId.valueOrDefault,
-                                              (progress) => setState(() =>
-                                                  _sendProgress =
-                                                      totalProgress +
-                                                          progress *
-                                                              1 /
-                                                              toSend.length));
+                                              (progress) => setState(
+                                                  () => _sendProgress = totalProgress + progress * 1 / toSend.length));
                                         }
                                       }
                                       setState(() {
@@ -609,22 +531,15 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                       });
 
                                       if (_currentText.isNotEmpty) {
-                                        await sendTextMessage(
-                                            cHolder.apiClient,
-                                            mClient,
-                                            _messageTextController.text);
+                                        await sendTextMessage(cHolder.apiClient, mClient, _messageTextController.text);
                                       }
                                       _messageTextController.clear();
                                       _currentText = "";
                                       _loadedFiles.clear();
                                       _attachmentPickerOpen = false;
                                     } catch (e, s) {
-                                      FlutterError.reportError(
-                                          FlutterErrorDetails(
-                                              exception: e, stack: s));
-                                      sMsgnr.showSnackBar(SnackBar(
-                                          content: Text(
-                                              "Failed to send a message: $e")));
+                                      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                                      sMsgnr.showSnackBar(SnackBar(content: Text("Failed to send a message: $e")));
                                     }
                                     setState(() {
                                       _isSending = false;
@@ -642,9 +557,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                 ? null
                                 : (_) async {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text(
-                                                "Sorry, this feature is not yet available")));
+                                        const SnackBar(content: Text("Sorry, this feature is not yet available")));
                                     return;
                                     // HapticFeedback.vibrate();
                                     // final hadToAsk =

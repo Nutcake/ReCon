@@ -17,15 +17,12 @@ class SessionTile extends StatelessWidget {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
       onPressed: () {
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => SessionView(session: session)));
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SessionView(session: session)));
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          GenericAvatar(
-              imageUri: Aux.resdbToHttp(session.thumbnailUrl),
-              placeholderIcon: Icons.no_photography),
+          GenericAvatar(imageUri: Aux.resdbToHttp(session.thumbnailUrl), placeholderIcon: Icons.no_photography),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Column(
@@ -35,11 +32,10 @@ class SessionTile extends StatelessWidget {
                 FormattedText(session.formattedName),
                 Text(
                   "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} active users",
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(.6)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(.6)),
                 )
               ],
             ),

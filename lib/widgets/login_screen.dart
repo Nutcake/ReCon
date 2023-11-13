@@ -83,10 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
             _error = "Please enter your 2FA-Code";
             _totpFocusNode.requestFocus();
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              _scrollController.animateTo(
-                  _scrollController.position.maxScrollExtent,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeOutCirc);
+              _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 400), curve: Curves.easeOutCirc);
             });
           } else {
             _error = "The given 2FA code is not valid.";
@@ -115,16 +113,14 @@ class _LoginScreenState extends State<LoginScreen> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: const Text(
-                  "This app needs to ask your permission to send background notifications."),
+              title: const Text("This app needs to ask your permission to send background notifications."),
               content: const Text("Are you okay with that?"),
               actions: [
                 TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    await settingsClient.changeSettings(settingsClient
-                        .currentSettings
-                        .copyWith(notificationsDenied: true));
+                    await settingsClient
+                        .changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: true));
                   },
                   child: const Text("No"),
                 ),
@@ -133,31 +129,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.of(context).pop();
                     final requestResult = switch (Platform.operatingSystem) {
                       "android" => await notificationManager
-                          .resolvePlatformSpecificImplementation<
-                              AndroidFlutterLocalNotificationsPlugin>()
+                          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
                           ?.requestNotificationsPermission(),
-                      "fuschia" =>
-                        null, // "fuschia" is not supported by flutter_local_notifications
+                      "fuschia" => null, // "fuschia" is not supported by flutter_local_notifications
                       "ios" => await notificationManager
-                          .resolvePlatformSpecificImplementation<
-                              IOSFlutterLocalNotificationsPlugin>()
-                          ?.requestPermissions(
-                              alert: true, badge: true, sound: true),
+                          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+                          ?.requestPermissions(alert: true, badge: true, sound: true),
                       "linux" => null, // don't want to deal with this right now
                       "macos" => await notificationManager
-                          .resolvePlatformSpecificImplementation<
-                              MacOSFlutterLocalNotificationsPlugin>()
-                          ?.requestPermissions(
-                              alert: true, badge: true, sound: true),
-                      "windows" =>
-                        null, // also don't want to deal with this right now
+                          .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
+                          ?.requestPermissions(alert: true, badge: true, sound: true),
+                      "windows" => null, // also don't want to deal with this right now
                       _ => null,
                     };
-                    await settingsClient.changeSettings(
-                        settingsClient.currentSettings.copyWith(
-                            notificationsDenied: requestResult == null
-                                ? false
-                                : !requestResult));
+                    await settingsClient.changeSettings(settingsClient.currentSettings
+                        .copyWith(notificationsDenied: requestResult == null ? false : !requestResult));
                   },
                   child: const Text("Yes"),
                 )
@@ -183,8 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 64),
               child: Center(
-                child: Text("Sign In",
-                    style: Theme.of(context).textTheme.headlineMedium),
+                child: Text("Sign In", style: Theme.of(context).textTheme.headlineMedium),
               ),
             ),
             Padding(
@@ -193,8 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _usernameController,
                 onEditingComplete: () => _passwordFocusNode.requestFocus(),
                 decoration: InputDecoration(
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(32),
                   ),
@@ -210,26 +194,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 onEditingComplete: submit,
                 obscureText: true,
                 decoration: InputDecoration(
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(32)),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(32)),
                   labelText: 'Password',
                 ),
               ),
             ),
             if (_needsTotp)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
                 child: TextField(
                   controller: _totpController,
                   focusNode: _totpFocusNode,
                   onEditingComplete: submit,
                   obscureText: false,
                   decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 24),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(32),
                     ),
@@ -252,13 +232,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 opacity: _errorOpacity,
                 duration: const Duration(milliseconds: 200),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-                  child: Text(_error,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelMedium
-                          ?.copyWith(color: Colors.red)),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                  child: Text(_error, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.red)),
                 ),
               ),
             )

@@ -17,8 +17,7 @@ class MessagesList extends StatefulWidget {
   State<StatefulWidget> createState() => _MessagesListState();
 }
 
-class _MessagesListState extends State<MessagesList>
-    with SingleTickerProviderStateMixin {
+class _MessagesListState extends State<MessagesList> with SingleTickerProviderStateMixin {
   final ScrollController _sessionListScrollController = ScrollController();
 
   bool _showSessionListScrollChevron = false;
@@ -36,8 +35,7 @@ class _MessagesListState extends State<MessagesList>
   void initState() {
     super.initState();
     _sessionListScrollController.addListener(() {
-      if (_sessionListScrollController.position.maxScrollExtent > 0 &&
-          !_showSessionListScrollChevron) {
+      if (_sessionListScrollController.position.maxScrollExtent > 0 && !_showSessionListScrollChevron) {
         setState(() {
           _showSessionListScrollChevron = true;
         });
@@ -58,9 +56,7 @@ class _MessagesListState extends State<MessagesList>
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
-      final sessions = friend.userStatus.decodedSessions
-          .where((element) => element.isVisible)
-          .toList();
+      final sessions = friend.userStatus.decodedSessions.where((element) => element.isVisible).toList();
       return Scaffold(
         appBar: AppBar(
           title: Row(
@@ -77,10 +73,7 @@ class _MessagesListState extends State<MessagesList>
                   child: Icon(
                     Icons.dns,
                     size: 18,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSecondaryContainer
-                        .withAlpha(150),
+                    color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),
                   ),
                 ),
             ],
@@ -110,8 +103,8 @@ class _MessagesListState extends State<MessagesList>
             if (sessions.isNotEmpty)
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) => SizeTransition(
-                    sizeFactor: animation, axis: Axis.vertical, child: child),
+                transitionBuilder: (child, animation) =>
+                    SizeTransition(sizeFactor: animation, axis: Axis.vertical, child: child),
                 child: sessions.isEmpty || !_sessionListOpen
                     ? null
                     : Container(
@@ -139,8 +132,7 @@ class _MessagesListState extends State<MessagesList>
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Container(
-                                  padding: const EdgeInsets.only(
-                                      left: 16, right: 4, top: 1, bottom: 1),
+                                  padding: const EdgeInsets.only(left: 16, right: 4, top: 1, bottom: 1),
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       begin: Alignment.centerLeft,
@@ -190,13 +182,11 @@ class _MessagesListState extends State<MessagesList>
                             children: [
                               const Icon(Icons.message_outlined),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 24),
+                                padding: const EdgeInsets.symmetric(vertical: 24),
                                 child: Text(
                                   "There are no messages here\nWhy not say hello?",
                                   textAlign: TextAlign.center,
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleMedium,
                                 ),
                               )
                             ],
@@ -207,8 +197,7 @@ class _MessagesListState extends State<MessagesList>
                         create: (BuildContext context) => AudioCacheClient(),
                         child: ListView.builder(
                           reverse: true,
-                          physics: const BouncingScrollPhysics(
-                              decelerationRate: ScrollDecelerationRate.fast),
+                          physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
                           itemCount: cache.messages.length,
                           itemBuilder: (context, index) {
                             final entry = cache.messages[index];

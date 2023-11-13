@@ -18,8 +18,7 @@ class AudioCacheClient {
     final file = File("${directory.path}/$fileName.ogg");
     if (!await file.exists()) {
       await file.create(recursive: true);
-      final response =
-          await http.get(Uri.parse(Aux.resdbToHttp(clip.assetUri)));
+      final response = await http.get(Uri.parse(Aux.resdbToHttp(clip.assetUri)));
       ApiClient.checkResponseCode(response);
       await file.writeAsBytes(response.bodyBytes);
     }
@@ -31,8 +30,7 @@ class AudioCacheClient {
       }
       if (!wavFileExists) {
         await wavFile.create(recursive: true);
-        await FFmpegKit.executeAsync(
-            "-y -acodec libvorbis -i ${file.path} -acodec pcm_s16le ${wavFile.path}");
+        await FFmpegKit.executeAsync("-y -acodec libvorbis -i ${file.path} -acodec pcm_s16le ${wavFile.path}");
       }
       return wavFile;
     }
