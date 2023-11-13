@@ -2,7 +2,7 @@
 
 # ReCon
 
-A Resonite Contacts App for Android
+A Resonite Contacts App
 
 [Get it here](https://github.com/Nutcake/ReCon/releases/latest)
 
@@ -10,10 +10,10 @@ A Resonite Contacts App for Android
 
 This is a standard Flutter application, refer to the [Flutter docs](https://docs.flutter.dev/get-started/install) on how to build it.
 
-Currently only Android is supported.
+Currently only Android is fully supported.
 
-In theory this app should also build fine for desktop, though not every feature will be functional. 
-For example, voice-messages and notifications are currently not supported on desktop builds.
+The app works on other platforms, though not every feature will be functional.
+For example, notifications are currently not supported on non-android builds.
 
 ## Screenshots
 

@@ -1,13 +1,12 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 
+import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/audio_cache_client.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/widgets/messages/message_state_indicator.dart';
-import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:provider/provider.dart';
 
 class MessageAudioPlayer extends StatefulWidget {
   const MessageAudioPlayer({required this.message, this.foregroundColor, super.key});
@@ -97,10 +96,6 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
 
   @override
   Widget build(BuildContext context) {
-    if (!Platform.isAndroid) {
-      return _createErrorWidget("Sorry, audio-messages are not\n supported on this platform.");
-    }
-
     return IntrinsicWidth(
       child: StreamBuilder<PlayerState>(
         stream: _audioPlayer.playerStateStream,
@@ -122,8 +117,11 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                     future: _audioFileFuture,
                     builder: (context, fileSnapshot) {
                       if (fileSnapshot.hasError) {
+                        FlutterError.reportError(
+                            FlutterErrorDetails(exception: fileSnapshot.error!, stack: fileSnapshot.stackTrace));
                         return const IconButton(
                           icon: Icon(Icons.warning),
+                          tooltip: "Failed to load audio-message.",
                           onPressed: null,
                         );
                       }
