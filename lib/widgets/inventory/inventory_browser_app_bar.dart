@@ -232,39 +232,50 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             }
                             return;
                           }
+
                           for (var record in selectedRecords) {
                             final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
                             final filename =
                                 "${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}";
-                            final downloadTask = DownloadTask(
-                              url: Aux.resdbToHttp(uri),
-                              allowPause: true,
-                              baseDirectory: BaseDirectory.temporary,
-                              filename: filename,
-                              updates: Updates.statusAndProgress,
-                            );
-                            final downloadStatus = await FileDownloader().enqueue(downloadTask);
-                            if (context.mounted) {
-                              if (downloadStatus) {
+                            try {
+                              final downloadTask = DownloadTask(
+                                url: Aux.resdbToHttp(uri),
+                                allowPause: true,
+                                baseDirectory: BaseDirectory.temporary,
+                                filename: filename,
+                                updates: Updates.statusAndProgress,
+                              );
+                              final downloadStatus = await FileDownloader().download(downloadTask);
+                              if (downloadStatus.status == TaskStatus.complete) {
+                                final tempDirectory = await _tempDirectoryFuture;
+                                final file = File(
+                                    "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}");
+                                if (await file.exists()) {
+                                  final newFile = File("$directory/$filename");
+                                  await file.copy(newFile.absolute.path);
+                                  await file.delete();
+                                }
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Downloaded ${record.formattedName.toString()}"),
+                                    ),
+                                  );
+                                } else {
+                                  throw downloadStatus.exception ?? "Unknown Error";
+                                }
+                              }
+                            } catch (e, s) {
+                              FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text("Downloaded ${record.formattedName.toString()}"),
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("Failed to download ${record.formattedName.toString()}"),
+                                    content: Text(
+                                      "Failed to download '${record.formattedName.toString()}':\n$e",
+                                    ),
                                   ),
                                 );
                               }
-                            }
-                            final tempDirectory = await _tempDirectoryFuture;
-                            final file = File(
-                                "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}");
-                            if (await file.exists()) {
-                              final newFile = File("$directory/$filename");
-                              await file.rename(newFile.path);
                             }
                           }
                           iClient.clearSelectedRecords();
