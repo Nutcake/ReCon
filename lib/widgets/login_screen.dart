@@ -1,9 +1,11 @@
-import 'package:recon/clients/api_client.dart';
-import 'package:recon/models/authentication_data.dart';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:recon/client_holder.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/authentication_data.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({this.onLoginSuccessful, this.cachedUsername, super.key});
@@ -125,9 +127,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    final requestResult = await notificationManager
-                        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-                        ?.requestPermission();
+                    final requestResult = switch (Platform.operatingSystem) {
+                      "android" => await notificationManager
+                          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+                          ?.requestNotificationsPermission(),
+                      "fuschia" => null, // "fuschia" is not supported by flutter_local_notifications
+                      "ios" => await notificationManager
+                          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+                          ?.requestPermissions(alert: true, badge: true, sound: true),
+                      "linux" => null, // don't want to deal with this right now
+                      "macos" => await notificationManager
+                          .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
+                          ?.requestPermissions(alert: true, badge: true, sound: true),
+                      "windows" => null, // also don't want to deal with this right now
+                      _ => null,
+                    };
                     await settingsClient.changeSettings(settingsClient.currentSettings
                         .copyWith(notificationsDenied: requestResult == null ? false : !requestResult));
                   },

@@ -1,4 +1,5 @@
-import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/clients/audio_cache_client.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/friend.dart';
@@ -6,8 +7,6 @@ import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/messages/message_input_bar.dart';
 import 'package:recon/widgets/messages/messages_session_header.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'message_bubble.dart';
 

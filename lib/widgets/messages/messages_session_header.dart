@@ -1,10 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/generic_avatar.dart';
 import 'package:recon/widgets/sessions/session_view.dart';
-import 'package:flutter/material.dart';
 
 class SessionTile extends StatelessWidget {
   const SessionTile({required this.session, super.key});
@@ -33,7 +32,10 @@ class SessionTile extends StatelessWidget {
                 FormattedText(session.formattedName),
                 Text(
                   "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} active users",
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(.6)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(.6)),
                 )
               ],
             ),

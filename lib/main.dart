@@ -1,10 +1,12 @@
 import 'dart:developer';
+import 'dart:isolate';
+import 'dart:ui';
 
+import 'package:background_downloader/background_downloader.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -27,10 +29,6 @@ import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await FlutterDownloader.initialize(
-    debug: kDebugMode,
-  );
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -57,7 +55,9 @@ void main() async {
   AuthenticationData cachedAuth = AuthenticationData.unauthenticated();
   try {
     cachedAuth = await ApiClient.tryCachedLogin();
-  } catch (_) {}
+  } catch (_) {
+    // Ignore
+  }
 
   runApp(ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
 }
@@ -73,7 +73,8 @@ class ReCon extends StatefulWidget {
 }
 
 class _ReConState extends State<ReCon> {
-  final Typography _typography = Typography.material2021(platform: TargetPlatform.android);
+  final Typography _typography = Typography.material2021(platform: defaultTargetPlatform);
+  final ReceivePort _port = ReceivePort();
   late AuthenticationData _authData = widget.cachedAuthentication;
   bool _checkedForUpdate = false;
 
@@ -123,6 +124,30 @@ class _ReConState extends State<ReCon> {
       }
     });
   }
+
+  @override
+  void initState() {
+    super.initState();
+
+    IsolateNameServer.registerPortWithName(_port.sendPort, 'downloader_send_port');
+    _port.listen((dynamic data) {
+      // Not useful yet? idk...
+      // String id = data[0];
+      // DownloadTaskStatus status = data[1];
+      // int progress = data[2];
+    });
+
+    FileDownloader().updates.listen(downloadCallback);
+  }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+    super.dispose();
+  }
+
+  @pragma('vm:entry-point')
+  static void downloadCallback(TaskUpdate event) {}
 
   @override
   Widget build(BuildContext context) {

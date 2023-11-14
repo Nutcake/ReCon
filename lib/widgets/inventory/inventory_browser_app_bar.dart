@@ -1,11 +1,13 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
+import 'package:background_downloader/background_downloader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/inventory_client.dart';
@@ -19,32 +21,15 @@ class InventoryBrowserAppBar extends StatefulWidget {
 }
 
 class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
-  final ReceivePort _port = ReceivePort();
-
-  @override
-  void initState() {
-    super.initState();
-
-    IsolateNameServer.registerPortWithName(_port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) {
-      // Not useful yet? idk...
-      // String id = data[0];
-      // DownloadTaskStatus status = data[1];
-      // int progress = data[2];
-    });
-
-    FlutterDownloader.registerCallback(downloadCallback);
-  }
-
-  @override
-  void dispose() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-    super.dispose();
-  }
+  final Future<Directory> _tempDirectoryFuture = getTemporaryDirectory();
 
   @pragma('vm:entry-point')
-  static void downloadCallback(String id, int status, int progress) {
+  static void downloadCallback(TaskUpdate event) {
+    final id = event.task.taskId;
+    final status = event is TaskStatusUpdate ? event.status : null;
+    final progress = event is TaskProgressUpdate ? event.progress : null;
     final SendPort? send = IsolateNameServer.lookupPortByName('downloader_send_port');
+
     send?.send([id, status, progress]);
   }
 
@@ -247,16 +232,51 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             }
                             return;
                           }
+
                           for (var record in selectedRecords) {
                             final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
-                            await FlutterDownloader.enqueue(
-                              url: Aux.resdbToHttp(uri),
-                              savedDir: directory,
-                              showNotification: true,
-                              openFileFromNotification: false,
-                              fileName:
-                                  "${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}",
-                            );
+                            final filename =
+                                "${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}";
+                            try {
+                              final downloadTask = DownloadTask(
+                                url: Aux.resdbToHttp(uri),
+                                allowPause: true,
+                                baseDirectory: BaseDirectory.temporary,
+                                filename: filename,
+                                updates: Updates.statusAndProgress,
+                              );
+                              final downloadStatus = await FileDownloader().download(downloadTask);
+                              if (downloadStatus.status == TaskStatus.complete) {
+                                final tempDirectory = await _tempDirectoryFuture;
+                                final file = File(
+                                    "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName.toString()}${extension(uri)}");
+                                if (await file.exists()) {
+                                  final newFile = File("$directory/$filename");
+                                  await file.copy(newFile.absolute.path);
+                                  await file.delete();
+                                }
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text("Downloaded ${record.formattedName.toString()}"),
+                                    ),
+                                  );
+                                } else {
+                                  throw downloadStatus.exception ?? "Unknown Error";
+                                }
+                              }
+                            } catch (e, s) {
+                              FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Failed to download '${record.formattedName.toString()}':\n$e",
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
                           }
                           iClient.clearSelectedRecords();
                         },
