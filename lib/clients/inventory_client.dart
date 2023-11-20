@@ -8,13 +8,17 @@ import 'package:recon/models/records/record.dart';
 
 enum SortMode {
   name,
-  date;
+  date,
+  resonite;
 
   int sortFunction(Record a, Record b, {bool reverse = false}) {
     final func = switch (this) {
       SortMode.name => (Record x, Record y) =>
           x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
       SortMode.date => (Record x, Record y) => x.creationTime.compareTo(y.creationTime),
+      SortMode.resonite => (Record x, Record y) => x.isItem
+          ? x.creationTime.compareTo(y.creationTime)
+          : x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
     };
     if (reverse) {
       return func(b, a);
@@ -24,7 +28,8 @@ enum SortMode {
 
   static const Map<SortMode, IconData> _iconsMap = {
     SortMode.name: Icons.sort_by_alpha,
-    SortMode.date: Icons.access_time_outlined
+    SortMode.date: Icons.access_time_outlined,
+    SortMode.resonite: Icons.star_border_purple500_sharp,
   };
 
   IconData get icon => _iconsMap[this] ?? Icons.question_mark;
@@ -35,7 +40,7 @@ class InventoryClient extends ChangeNotifier {
   final Map<String, Record> _selectedRecords = {};
 
   Future<ResoniteDirectory>? _currentDirectory;
-  SortMode _sortMode = SortMode.name;
+  SortMode _sortMode = SortMode.resonite;
   bool _sortReverse = false;
 
   InventoryClient({required this.apiClient});
