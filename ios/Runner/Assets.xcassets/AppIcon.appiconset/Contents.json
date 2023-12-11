@@ -1,104 +1,119 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "Icon_40x40@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "40x40"
+      "filename" : "Icon_40×40@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "20x20"
     },
     {
-      "filename": "Icon_58x58@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "58x58"
+      "filename" : "Icon_60×60@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "20x20"
     },
     {
-      "filename": "Icon_60x60@3x.png",
-      "idiom": "universal",
-      "scale": "3x",
-      "size": "60x60"
+      "filename" : "Icon_58×58@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "29x29"
     },
     {
-      "filename": "Icon_76x76@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "76x76"
+      "filename" : "Icon_87×87@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "29x29"
     },
     {
-      "filename": "Icon_80x80@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "80x80"
+      "filename" : "Icon_76×76@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "38x38"
     },
     {
-      "filename": "Icon_87x87@3x.png",
-      "idiom": "universal",
-      "scale": "3x",
-      "size": "87x87"
+      "filename" : "Icon_114×114@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "38x38"
     },
     {
-      "filename": "Icon_114x114@3x.png",
-      "idiom": "universal",
-      "scale": "3x",
-      "size": "114x114"
+      "filename" : "Icon_80×80@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "40x40"
     },
     {
-      "filename": "Icon_120x120@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "120x120"
+      "filename" : "Icon_120×120@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "40x40"
     },
     {
-      "filename": "Icon_120x120@3x.png",
-      "idiom": "universal",
-      "scale": "3x",
-      "size": "120x120"
+      "filename" : "Icon_120×120@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "60x60"
     },
     {
-      "filename": "Icon_128x128@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "128x128"
+      "filename" : "Icon_180×180@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "60x60"
     },
     {
-      "filename": "Icon_136x136@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "136x136"
+      "filename" : "Icon_128×128@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "64x64"
     },
     {
-      "filename": "Icon_152x152@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "152x152"
+      "filename" : "Icon_192×192@3x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "3x",
+      "size" : "64x64"
     },
     {
-      "filename": "Icon_167x167@2x.png",
-      "idiom": "universal",
-      "scale": "2x",
-      "size": "167x167"
+      "filename" : "Icon_136×136@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "68x68"
     },
     {
-      "filename": "Icon_180x180@3x.png",
-      "idiom": "universal",
-      "scale": "3x",
-      "size": "180x180"
+      "filename" : "Icon_152×152@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "76x76"
     },
     {
-      "filename": "Icon_192x192@3x.png",
-      "idiom": "universal",
-      "scale": "3x",
-      "size": "192x192"
+      "filename" : "Icon_167x167@2x.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "scale" : "2x",
+      "size" : "83.5x83.5"
     },
     {
-      "filename": "Icon-App-iTunes.png",
-      "idiom": "ios-marketing",
-      "scale": "1x",
-      "size": "1024x1024"
+      "filename" : "Icon-App-iTunes.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
     }
   ],
-  "info": {
-    "author": "me.voidspace",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   }
 }
