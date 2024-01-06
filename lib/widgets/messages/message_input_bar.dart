@@ -13,7 +13,7 @@ import 'package:recon/client_holder.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/message.dart';
-import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/contact.dart';
 import 'package:recon/widgets/messages/message_attachment_list.dart';
 import 'package:record/record.dart';
 
@@ -21,7 +21,7 @@ class MessageInputBar extends StatefulWidget {
   const MessageInputBar({this.disabled = false, required this.recipient, this.onMessageSent, super.key});
 
   final bool disabled;
-  final Friend recipient;
+  final Contact recipient;
   final Function()? onMessageSent;
 
   @override
@@ -403,7 +403,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             style: Theme.of(context).textTheme.bodyLarge,
                             decoration: InputDecoration(
                                 isDense: true,
-                                hintText: _isRecording ? "" : "Message ${widget.recipient.username}...",
+                                hintText: _isRecording ? "" : "Message ${widget.recipient.contactUsername}...",
                                 hintMaxLines: 1,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 fillColor: Colors.black26,

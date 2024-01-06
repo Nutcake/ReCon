@@ -1,3 +1,4 @@
+import 'package:recon/models/users/contact_status.dart';
 import 'package:recon/models/users/user_profile.dart';
 
 class User {
@@ -29,6 +30,15 @@ class User {
       "username": username,
       "registrationDate": registrationDate.toIso8601String(),
       "profile": userProfile?.toMap(),
+    };
+  }
+
+  Map asContactRequest(String ownerId) {
+    return {
+      "ownerId": ownerId,
+      "id": id,
+      "contactUsername": username,
+      "contactStatus": ContactStatus.accepted.name,
     };
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/clients/audio_cache_client.dart';
 import 'package:recon/clients/messaging_client.dart';
-import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/contact.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/messages/message_input_bar.dart';
@@ -54,7 +54,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final appBarColor = Theme.of(context).colorScheme.surface;
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
-      final friend = mClient.selectedFriend ?? Friend.empty();
+      final friend = mClient.selectedFriend ?? Contact.empty();
       final cache = mClient.getUserMessageCache(friend.id);
       final sessions = friend.userStatus.decodedSessions.where((element) => element.isVisible).toList();
       return Scaffold(
@@ -66,7 +66,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
               const SizedBox(
                 width: 8,
               ),
-              Text(friend.username),
+              Text(friend.contactUsername),
               if (friend.isHeadless)
                 Padding(
                   padding: const EdgeInsets.only(left: 12),

@@ -12,15 +12,15 @@ import 'package:recon/hub_manager.dart';
 import 'package:recon/models/hub_events.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
-import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/contact.dart';
 import 'package:recon/models/users/online_status.dart';
+import 'package:recon/models/users/user.dart';
 import 'package:recon/models/users/user_status.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
 
 class MessagingClient extends ChangeNotifier {
   static const Duration _autoRefreshDuration = Duration(seconds: 10);
@@ -30,7 +30,7 @@ class MessagingClient extends ChangeNotifier {
   static const String _lastUpdateKey = "__last-update-time";
 
   final ApiClient _apiClient;
-  final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
+  final List<Contact> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("Messaging");
@@ -39,7 +39,7 @@ class MessagingClient extends ChangeNotifier {
   final Map<String, Session> _sessionMap = {};
   final Set<String> _knownSessionKeys = {};
   final SettingsClient _settingsClient;
-  Friend? selectedFriend;
+  Contact? selectedFriend;
 
   Timer? _statusHeartbeat;
   Timer? _autoRefresh;
@@ -49,11 +49,13 @@ class MessagingClient extends ChangeNotifier {
 
   UserStatus get userStatus => _userStatus;
 
-  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient, required SettingsClient settingsClient})
+  MessagingClient(
+      {required ApiClient apiClient,
+      required NotificationClient notificationClient,
+      required SettingsClient settingsClient})
       : _apiClient = apiClient,
         _notificationClient = notificationClient,
-        _settingsClient = settingsClient
-  {
+        _settingsClient = settingsClient {
     debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
@@ -75,16 +77,16 @@ class MessagingClient extends ChangeNotifier {
 
   String? get initStatus => _initStatus;
 
-  List<Friend> get cachedFriends => _sortedFriendsCache;
+  List<Contact> get cachedFriends => _sortedFriendsCache;
 
-  List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.id] ?? [];
+  List<Message> getUnreadsForFriend(Contact friend) => _unreads[friend.id] ?? [];
 
-  bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.id);
+  bool friendHasUnreads(Contact friend) => _unreads.containsKey(friend.id);
 
   bool messageIsUnread(Message message) =>
       _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
 
-  Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
+  Contact? getAsFriend(String userId) => Contact.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
 
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
@@ -106,7 +108,7 @@ class MessagingClient extends ChangeNotifier {
 
     final friends = await ContactApi.getFriendsList(_apiClient, lastStatusUpdate: lastUpdateUtc);
     for (final friend in friends) {
-      await _updateContact(friend);
+      await _updateContactLocal(friend);
     }
 
     _initStatus = "";
@@ -153,7 +155,7 @@ class MessagingClient extends ChangeNotifier {
 
     final self = getAsFriend(_apiClient.userId);
     if (self != null) {
-      await _updateContact(self.copyWith(userStatus: _userStatus));
+      await _updateContactLocal(self.copyWith(userStatus: _userStatus));
     }
     notifyListeners();
   }
@@ -206,13 +208,17 @@ class MessagingClient extends ChangeNotifier {
     final friend = getAsFriend(userId);
     if (friend == null) return;
     final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
-    await _updateContact(friend.copyWith(userStatus: newStatus));
+    await _updateContactLocal(friend.copyWith(userStatus: newStatus));
     notifyListeners();
   }
 
   void resetInitStatus() {
     _initStatus = null;
     notifyListeners();
+  }
+
+  void addUserAsFriend(User user) {
+    _hubManager.send("UpdateContact", arguments: [user.asContactRequest(_apiClient.userId)]);
   }
 
   Future<void> _refreshUnreads() async {
@@ -233,7 +239,7 @@ class MessagingClient extends ChangeNotifier {
     });
   }
 
-  Future<void> _updateContact(Friend friend) async {
+  Future<void> _updateContactLocal(Contact friend) async {
     final box = Hive.box(_messageBoxKey);
     box.put(friend.id, friend.toMap());
     final lastStatusUpdate = box.get(_lastUpdateKey);
@@ -271,16 +277,17 @@ class MessagingClient extends ChangeNotifier {
       "InitializeStatus",
       responseHandler: (Map data) async {
         final rawContacts = data["contacts"] as List;
-        final contacts = rawContacts.map((e) => Friend.fromMap(e)).toList();
+        final contacts = rawContacts.map((e) => Contact.fromMap(e)).toList();
         for (final contact in contacts) {
-          await _updateContact(contact);
+          await _updateContactLocal(contact);
         }
         _initStatus = "";
         notifyListeners();
         await _refreshUnreads();
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
         _hubManager.send("RequestStatus", arguments: [null, false]);
-        final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
+        final lastOnline =
+            OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
         await setOnlineStatus(lastOnline ?? OnlineStatus.online);
         _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
           setOnlineStatus(_userStatus.onlineStatus);
@@ -332,10 +339,12 @@ class MessagingClient extends ChangeNotifier {
     var status = UserStatus.fromMap(statusUpdate);
     final sessionMap = createSessionMap(status.hashSalt);
     status = status.copyWith(
-        decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
+        decodedSessions: status.sessions
+            .map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel))
+            .toList());
     final friend = getAsFriend(statusUpdate["userId"])?.copyWith(userStatus: status);
     if (friend != null) {
-      _updateContact(friend);
+      _updateContactLocal(friend);
     }
     for (var session in status.sessions) {
       if (session.broadcastKey != null && _knownSessionKeys.add(session.broadcastKey ?? "")) {

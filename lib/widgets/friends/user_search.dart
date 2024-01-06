@@ -29,24 +29,19 @@ class _UserSearchState extends State<UserSearch> {
   late Future<List<User>?>? _usersFuture = _emptySearch;
 
   Future<List<User>> get _emptySearch =>
-      Future(() =>
-      throw const SearchError(
-          message: "Start typing to search for users", icon: Icons.search)
-      );
+      Future(() => throw const SearchError(message: "Start typing to search for users", icon: Icons.search));
 
   void _querySearch(BuildContext context, String needle) {
     if (needle.isEmpty) {
       _usersFuture = _emptySearch;
       return;
     }
-    _usersFuture = UserApi.searchUsers(ClientHolder
-        .of(context)
-        .apiClient, needle: needle).then((value) {
+    _usersFuture = UserApi.searchUsers(ClientHolder.of(context).apiClient, needle: needle).then((value) {
       final res = value.toList();
-      if (res.isEmpty) throw SearchError(message: "No user found with username '$needle'", icon: Icons.search_off);
-      res.sort(
-              (a, b) => a.username.length.compareTo(b.username.length)
-      );
+      if (res.isEmpty) {
+        throw SearchError(message: "No user found with username '$needle'", icon: Icons.search_off);
+      }
+      res.sort((a, b) => a.username.length.compareTo(b.username.length));
       return res;
     });
   }
@@ -72,9 +67,13 @@ class _UserSearchState extends State<UserSearch> {
                       itemCount: users.length,
                       itemBuilder: (context, index) {
                         final user = users[index];
-                        return UserListTile(user: user, onChanged: () {
-                          mClient.refreshFriendsList();
-                        }, isFriend: mClient.getAsFriend(user.id) != null,);
+                        return UserListTile(
+                          user: user,
+                          onChanged: () {
+                            mClient.refreshFriendsList();
+                          },
+                          isFriend: mClient.getAsFriend(user.id) != null,
+                        );
                       },
                     );
                   } else if (snapshot.hasError) {
@@ -85,9 +84,13 @@ class _UserSearchState extends State<UserSearch> {
                         iconOverride: err.icon,
                       );
                     } else {
-                      FlutterError.reportError(
-                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
-                      return DefaultErrorWidget(title: "${snapshot.error}",);
+                      FlutterError.reportError(FlutterErrorDetails(
+                        exception: snapshot.error!,
+                        stack: snapshot.stackTrace,
+                      ));
+                      return DefaultErrorWidget(
+                        title: "${snapshot.error}",
+                      );
                     }
                   } else {
                     return const Column(
@@ -106,10 +109,7 @@ class _UserSearchState extends State<UserSearch> {
                     isDense: true,
                     hintText: "Search for users...",
                     contentPadding: const EdgeInsets.all(16),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24)
-                    )
-                ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(24))),
                 autocorrect: false,
                 controller: _searchInputController,
                 onChanged: (String value) {

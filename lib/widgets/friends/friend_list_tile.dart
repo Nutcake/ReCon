@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/message.dart';
-import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/contact.dart';
 import 'package:recon/models/users/online_status.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
@@ -14,7 +14,7 @@ import 'package:recon/widgets/messages/messages_list.dart';
 class FriendListTile extends StatelessWidget {
   const FriendListTile({required this.friend, required this.unreads, this.onTap, super.key});
 
-  final Friend friend;
+  final Contact friend;
   final int unreads;
   final Function? onTap;
 
@@ -38,7 +38,7 @@ class FriendListTile extends StatelessWidget {
           : null,
       title: Row(
         children: [
-          Text(friend.username),
+          Text(friend.contactUsername),
           if (friend.isHeadless)
             Padding(
               padding: const EdgeInsets.only(left: 8),

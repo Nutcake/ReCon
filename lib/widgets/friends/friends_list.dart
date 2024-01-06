@@ -45,9 +45,9 @@ class _FriendsListState extends State<FriendsList> with AutomaticKeepAliveClient
                   var friends = List.from(mClient.cachedFriends); // Explicit copy.
                   if (_searchFilter.isNotEmpty) {
                     friends = friends
-                        .where((element) => element.username.toLowerCase().contains(_searchFilter.toLowerCase()))
+                        .where((element) => element.contactUsername.toLowerCase().contains(_searchFilter.toLowerCase()))
                         .toList();
-                    friends.sort((a, b) => a.username.length.compareTo(b.username.length));
+                    friends.sort((a, b) => a.contactUsername.length.compareTo(b.contactUsername.length));
                   }
                   return ListView.builder(
                     physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
