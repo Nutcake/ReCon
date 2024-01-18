@@ -164,7 +164,7 @@ class _ReConState extends State<ReCon> {
           },
           child: DynamicColorBuilder(
             builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
-              debugShowCheckedModeBanner: false,
+              debugShowCheckedModeBanner: true,
               title: 'ReCon',
               theme: ThemeData(
                 useMaterial3: true,

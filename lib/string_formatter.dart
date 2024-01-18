@@ -84,8 +84,10 @@ class FormatTag {
     required this.format,
   });
 
+  static final _tagRegExp = RegExp(r"<(.+?)>");
+
   static List<FormatTag> parseTags(String text) {
-    final startMatches = RegExp(r"<(.+?)>").allMatches(text);
+    final startMatches = _tagRegExp.allMatches(text);
 
     final spans = <FormatTag>[];
 
@@ -143,8 +145,8 @@ class FormatData {
     },
   };
 
-  static const _hexColorRegex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$";
-  static const _platformColorRegex = r"^([a-zA-Z]+)\.([a-zA-Z]+)$";
+  static final _hexColorRegExp = RegExp(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+  static final _platformColorRegExp = RegExp(r"^([a-zA-Z]+)\.([a-zA-Z]+)$");
 
   static Color? _parseHexColor(String text) {
     try {
@@ -159,12 +161,12 @@ class FormatData {
 
   static Color? tryParseColor(String text) {
     // is it a hex color?
-    if (RegExp(_hexColorRegex).hasMatch(text)) {
+    if (_hexColorRegExp.hasMatch(text)) {
       return _parseHexColor(text);
     }
 
     // is it one of Resonite's color constants?
-    if (RegExp(_platformColorRegex).hasMatch(text)) {
+    if (_platformColorRegExp.hasMatch(text)) {
       final parts = text.split(".");
       if (parts.length == 2) {
         final palette = _platformColorPalette[parts[0]];
