@@ -50,45 +50,50 @@ class FriendListTile extends StatelessWidget {
             ),
         ],
       ),
-      subtitle: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          FriendOnlineStatusIndicator(userStatus: friend.userStatus),
-          const SizedBox(
-            width: 4,
-          ),
+      subtitle: Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.center, children: [
+        FriendOnlineStatusIndicator(friend: friend),
+        const SizedBox(
+          width: 4,
+        ),
+        if (!(friend.isOffline || friend.isHeadless)) ...[
           Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (!(friend.userStatus.onlineStatus == OnlineStatus.offline ||
-              friend.userStatus.onlineStatus == OnlineStatus.invisible))
-            if (currentSession != null) ...[
-              const Text(" in "),
-              if (currentSession.name.isNotEmpty)
-                Expanded(
-                  child: FormattedText(
-                    currentSession.formattedName,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                )
-              else
-                Expanded(
-                  child: Text(
-                    "${currentSession.accessLevel.toReadableString()} World",
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                )
-            ] else if (friend.userStatus.appVersion.isNotEmpty)
+          if (currentSession != null) ...[
+            const Text(" in "),
+            if (currentSession.name.isNotEmpty)
               Expanded(
-                child: Text(
-                  " on version ${friend.userStatus.appVersion}",
+                child: FormattedText(
+                  currentSession.formattedName,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
+              )
+            else
+              Expanded(
+                child: Text(
+                  "${currentSession.accessLevel.toReadableString()} World",
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              )
+          ] else if (friend.userStatus.appVersion.isNotEmpty)
+            Expanded(
+              child: Text(
+                " on version ${friend.userStatus.appVersion}",
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-        ],
-      ),
+            ),
+        ] else if (friend.isOffline)
+          Text("Offline",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: theme.textTheme.bodyMedium?.copyWith(color: OnlineStatus.offline.color(context)))
+        else
+          Text("Headless Host",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: theme.textTheme.bodyMedium?.copyWith(color: const Color.fromARGB(255, 41, 77, 92)))
+      ]),
       onTap: () async {
         onTap?.call();
         mClient.loadUserMessageCache(friend.id);

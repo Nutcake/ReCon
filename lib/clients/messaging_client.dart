@@ -1,5 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/apis/contact_api.dart';
 import 'package:recon/apis/message_api.dart';
 import 'package:recon/apis/session_api.dart';
@@ -15,12 +20,6 @@ import 'package:recon/models/session.dart';
 import 'package:recon/models/users/friend.dart';
 import 'package:recon/models/users/online_status.dart';
 import 'package:recon/models/users/user_status.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:logging/logging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
 
 class MessagingClient extends ChangeNotifier {
   static const Duration _autoRefreshDuration = Duration(seconds: 10);
@@ -49,11 +48,13 @@ class MessagingClient extends ChangeNotifier {
 
   UserStatus get userStatus => _userStatus;
 
-  MessagingClient({required ApiClient apiClient, required NotificationClient notificationClient, required SettingsClient settingsClient})
+  MessagingClient(
+      {required ApiClient apiClient,
+      required NotificationClient notificationClient,
+      required SettingsClient settingsClient})
       : _apiClient = apiClient,
         _notificationClient = notificationClient,
-        _settingsClient = settingsClient
-  {
+        _settingsClient = settingsClient {
     debugPrint("mClient created: $hashCode");
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
@@ -222,14 +223,44 @@ class MessagingClient extends ChangeNotifier {
     } catch (_) {}
   }
 
+  // Calculate online status value, with 'headless' between 'busy' and 'offline'
+  double getOnlineStatusValue(friend) {
+    // Adjusting values to ensure correct placement of 'headless'
+    if (friend.isHeadless) return 2.5;
+    switch (friend.userStatus.onlineStatus) {
+      case OnlineStatus.online:
+        return 0;
+      case OnlineStatus.away:
+        return 1;
+      case OnlineStatus.busy:
+        return 2;
+      case OnlineStatus.invisible:
+        return 2.5;
+      case OnlineStatus.offline:
+      default:
+        return 3;
+    }
+  }
+
   void _sortFriendsCache() {
     _sortedFriendsCache.sort((a, b) {
-      var aVal = friendHasUnreads(a) ? -3 : 0;
-      var bVal = friendHasUnreads(b) ? -3 : 0;
+      // Check for unreads and sort by latest message time if either has unreads
+      bool aHasUnreads = friendHasUnreads(a);
+      bool bHasUnreads = friendHasUnreads(b);
+      if (aHasUnreads || bHasUnreads) {
+        if (aHasUnreads && bHasUnreads) {
+          return -a.latestMessageTime.compareTo(b.latestMessageTime);
+        }
 
-      aVal -= a.latestMessageTime.compareTo(b.latestMessageTime);
-      aVal += a.userStatus.onlineStatus.compareTo(b.userStatus.onlineStatus) * 2;
-      return aVal.compareTo(bVal);
+        return aHasUnreads ? -1 : 1;
+      }
+
+      int onlineStatusComparison = getOnlineStatusValue(a).compareTo(getOnlineStatusValue(b));
+      if (onlineStatusComparison != 0) {
+        return onlineStatusComparison;
+      }
+
+      return -a.latestMessageTime.compareTo(b.latestMessageTime);
     });
   }
 
@@ -280,7 +311,8 @@ class MessagingClient extends ChangeNotifier {
         await _refreshUnreads();
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
         _hubManager.send("RequestStatus", arguments: [null, false]);
-        final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
+        final lastOnline =
+            OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
         await setOnlineStatus(lastOnline ?? OnlineStatus.online);
         _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
           setOnlineStatus(_userStatus.onlineStatus);
@@ -332,7 +364,9 @@ class MessagingClient extends ChangeNotifier {
     var status = UserStatus.fromMap(statusUpdate);
     final sessionMap = createSessionMap(status.hashSalt);
     status = status.copyWith(
-        decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
+        decodedSessions: status.sessions
+            .map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel))
+            .toList());
     final friend = getAsFriend(statusUpdate["userId"])?.copyWith(userStatus: status);
     if (friend != null) {
       _updateContact(friend);

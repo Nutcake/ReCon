@@ -15,10 +15,13 @@ enum OnlineStatus {
     Colors.green,
   ];
 
-  Color color(BuildContext context) => this == OnlineStatus.offline || this == OnlineStatus.invisible ? Theme.of(context).colorScheme.onSurface : _colors[index];
+  Color color(BuildContext context) => this == OnlineStatus.offline || this == OnlineStatus.invisible
+      ? Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150)
+      : _colors[index];
 
   factory OnlineStatus.fromString(String? text) {
-    return OnlineStatus.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
+    return OnlineStatus.values.firstWhere(
+      (element) => element.name.toLowerCase() == text?.toLowerCase(),
       orElse: () => OnlineStatus.online,
     );
   }
