@@ -59,13 +59,14 @@ class Friend implements Comparable {
 
   factory Friend.empty() {
     return Friend(
-        id: _emptyId,
-        username: "",
-        ownerId: "",
-        userStatus: UserStatus.empty(),
-        userProfile: UserProfile.empty(),
-        contactStatus: FriendStatus.none,
-        latestMessageTime: DateTimeX.epoch);
+      id: _emptyId,
+      username: "",
+      ownerId: "",
+      userStatus: UserStatus.empty(),
+      userProfile: UserProfile.empty(),
+      contactStatus: FriendStatus.none,
+      latestMessageTime: DateTimeX.epoch,
+    );
   }
 
   bool get isEmpty => id == _emptyId;
