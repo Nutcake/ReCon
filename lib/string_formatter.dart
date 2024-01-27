@@ -48,9 +48,10 @@ class FormatNode {
 
   TextSpan toTextSpan({required TextStyle baseStyle}) {
     final spanTree = TextSpan(
-        text: text,
-        style: format.isUnformatted ? baseStyle : format.style(),
-        children: children.map((e) => e.toTextSpan(baseStyle: baseStyle)).toList());
+      text: text,
+      style: format.isUnformatted ? baseStyle : format.style(),
+      children: children.map((e) => e.toTextSpan(baseStyle: baseStyle)).toList(),
+    );
     return spanTree;
   }
 
