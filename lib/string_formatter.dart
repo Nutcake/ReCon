@@ -40,9 +40,7 @@ class FormatNode {
         }
       }
       if (substr.isNotEmpty) {
-        root.children.add(
-            FormatNode.buildFromStyles(activeTags, substr)
-        );
+        root.children.add(FormatNode.buildFromStyles(activeTags, substr));
       }
     }
     return root;
@@ -50,9 +48,9 @@ class FormatNode {
 
   TextSpan toTextSpan({required TextStyle baseStyle}) {
     final spanTree = TextSpan(
-        text: text,
-        style: format.isUnformatted ? baseStyle : format.style(),
-        children: children.map((e) => e.toTextSpan(baseStyle: baseStyle)).toList()
+      text: text,
+      style: format.isUnformatted ? baseStyle : format.style(),
+      children: children.map((e) => e.toTextSpan(baseStyle: baseStyle)).toList(),
     );
     return spanTree;
   }
@@ -87,8 +85,10 @@ class FormatTag {
     required this.format,
   });
 
+  static final _tagRegExp = RegExp(r"<(.+?)>");
+
   static List<FormatTag> parseTags(String text) {
-    final startMatches = RegExp(r"<(.+?)>").allMatches(text);
+    final startMatches = _tagRegExp.allMatches(text);
 
     final spans = <FormatTag>[];
 
@@ -96,13 +96,11 @@ class FormatTag {
       final fullTag = startMatch.group(1);
       if (fullTag == null) continue;
       final tag = FormatData.parse(fullTag);
-      spans.add(
-          FormatTag(
-            startIndex: startMatch.start,
-            endIndex: startMatch.end,
-            format: tag,
-          )
-      );
+      spans.add(FormatTag(
+        startIndex: startMatch.start,
+        endIndex: startMatch.end,
+        format: tag,
+      ));
     }
     return spans;
   }
@@ -116,18 +114,77 @@ class FormatAction {
 }
 
 class FormatData {
-  static Color? tryParseColor(String? text) {
-    if (text == null) return null;
-    var color = cc.RgbColor.namedColors[text];
-    if (color != null) {
-      return Color.fromARGB(255, color.r.round(), color.g.round(), color.b.round());
-    }
+  static final Map<String, Map<String, Color>> _platformColorPalette = {
+    "neutrals": {
+      "dark": const Color(0xFF11151D),
+      "mid": const Color(0xFF86888B),
+      "light": const Color(0xFFE1E1E0),
+    },
+    "hero": {
+      "yellow": const Color(0xFFF8F770),
+      "green": const Color(0xFF59EB5C),
+      "red": const Color(0xFFFF7676),
+      "purple": const Color(0xFFBA64F2),
+      "cyan": const Color(0xFF61D1FA),
+      "orange": const Color(0xFFE69E50),
+    },
+    "sub": {
+      "yellow": const Color(0xFF484A2C),
+      "green": const Color(0xFF24512C),
+      "red": const Color(0xFF5D323A),
+      "purple": const Color(0xFF492F64),
+      "cyan": const Color(0xFF284C5D),
+      "orange": const Color(0xFF48392A),
+    },
+    "dark": {
+      "yellow": const Color(0xFF2B2E26),
+      "green": const Color(0xFF192D24),
+      "red": const Color(0xFF1A1318),
+      "purple": const Color(0xFF241E35),
+      "cyan": const Color(0xFF1A2A36),
+      "orange": const Color(0xFF292423),
+    },
+  };
+
+  static final _hexColorRegExp = RegExp(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+  static final _platformColorRegExp = RegExp(r"^([a-zA-Z]+)\.([a-zA-Z]+)$");
+
+  static Color? _parseHexColor(String text) {
     try {
-      color = cc.HexColor(text);
+      if (text.startsWith("#")) text = text.substring(1);
+      if (text.length == 3) text = text.split("").map((e) => e + e).join("");
+      final color = cc.HexColor(text);
       return Color.fromARGB(255, color.r.round(), color.g.round(), color.b.round());
     } catch (_) {
       return null;
     }
+  }
+
+  static Color? tryParseColor(String text) {
+    // is it a hex color?
+    if (_hexColorRegExp.hasMatch(text)) {
+      return _parseHexColor(text);
+    }
+
+    // is it one of Resonite's color constants?
+    if (_platformColorRegExp.hasMatch(text)) {
+      final parts = text.split(".");
+      if (parts.length == 2) {
+        final palette = _platformColorPalette[parts[0]];
+        if (palette != null) {
+          return palette[parts[1]];
+        }
+      }
+    }
+
+    // is it a named color?
+    final color = cc.RgbColor.namedColors[text];
+    if (color != null) {
+      return Color.fromARGB(255, color.r.round(), color.g.round(), color.b.round());
+    }
+
+    // whatever it is, it's probably safe to assume it's not a color
+    return null;
   }
 
   static final Map<String, FormatAction> _richTextTags = {
@@ -153,8 +210,12 @@ class FormatData {
     "line-height": FormatAction(),
     "line-indent": FormatAction(),
     "link": FormatAction(),
-    "lowercase": FormatAction(transform: (input, parameter) => input.toLowerCase(),),
-    "uppercase": FormatAction(transform: (input, parameter) => input.toUpperCase(),),
+    "lowercase": FormatAction(
+      transform: (input, parameter) => input.toLowerCase(),
+    ),
+    "uppercase": FormatAction(
+      transform: (input, parameter) => input.toUpperCase(),
+    ),
     "smallcaps": FormatAction(),
     "margin": FormatAction(),
     "mark": FormatAction(style: (param, baseStyle) {
@@ -168,22 +229,20 @@ class FormatData {
     "nobr": FormatAction(),
     "page": FormatAction(),
     "pos": FormatAction(),
-    "size": FormatAction(
-        style: (param, baseStyle) {
-          if (param == null) return baseStyle;
-          final baseSize = baseStyle.fontSize ?? 12;
-          if (param.endsWith("%")) {
-            final percentage = int.tryParse(param.replaceAll("%", ""));
-            if (percentage == null || percentage <= 0) return baseStyle;
-            return baseStyle.copyWith(fontSize: baseSize * (percentage / 100));
-          } else {
-            final size = num.tryParse(param);
-            if (size == null || size <= 0) return baseStyle;
-            final realSize = baseSize * (size / 1000);
-            return baseStyle.copyWith(fontSize: realSize.toDouble().clamp(8, 400));
-          }
-        }
-    ),
+    "size": FormatAction(style: (param, baseStyle) {
+      if (param == null) return baseStyle;
+      final baseSize = baseStyle.fontSize ?? 12;
+      if (param.endsWith("%")) {
+        final percentage = int.tryParse(param.replaceAll("%", ""));
+        if (percentage == null || percentage <= 0) return baseStyle;
+        return baseStyle.copyWith(fontSize: baseSize * (percentage / 100));
+      } else {
+        final size = num.tryParse(param);
+        if (size == null || size <= 0) return baseStyle;
+        final realSize = baseSize * (size / 1000);
+        return baseStyle.copyWith(fontSize: realSize.toDouble().clamp(8, 400));
+      }
+    }),
     "space": FormatAction(),
     "sprite": FormatAction(),
     "s": FormatAction(style: (param, baseStyle) => baseStyle.copyWith(decoration: TextDecoration.lineThrough)),
