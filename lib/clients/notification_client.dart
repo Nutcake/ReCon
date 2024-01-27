@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart' as
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
+import 'package:recon/models/users/contact.dart';
 
 class NotificationChannel {
   final String id;
@@ -29,13 +30,13 @@ class NotificationClient {
       linux: fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
     ));
 
-  Future<void> showUnreadMessagesNotification(Iterable<Message> messages) async {
+  Future<void> showUnreadMessagesNotification(Iterable<Message> messages, Contact? Function(String userId) contactGetter) async {
     if (messages.isEmpty) return;
 
     final bySender = groupBy(messages, (p0) => p0.senderId);
-
     for (final entry in bySender.entries) {
-      final uname = entry.key.stripUid();
+      final contact = contactGetter(entry.key);
+      final uname = contact?.contactUsername ?? "Unknown";
       await _notifier.show(
         uname.hashCode,
         null,
@@ -92,5 +93,14 @@ class NotificationClient {
         ),
       );
     }
+  }
+
+  Future<void> showContactRequestNotification(Contact contact) async {
+    await _notifier.show(
+      contact.contactUsername.hashCode,
+      "New Contact request",
+      "User ${contact.contactUsername} wants to be your friend.",
+      null
+    );
   }
 }

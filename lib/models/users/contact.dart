@@ -10,13 +10,17 @@ class Contact implements Comparable {
   final String id;
   final String contactUsername;
   final String ownerId;
+  final bool isAccepted;
+  final bool isMigrated;
+  final bool isCounterpartMigrated;
   final UserStatus userStatus;
   final UserProfile userProfile;
-  final ContactStatus friendStatus;
+  final ContactStatus contactStatus;
   final DateTime latestMessageTime;
 
-  const Contact({required this.id, required this.contactUsername, required this.ownerId, required this.userStatus, required this.userProfile,
-    required this.friendStatus, required this.latestMessageTime,
+  const Contact({required this.id, required this.contactUsername, required this.ownerId, required this.isAccepted,
+    required this.isMigrated, required this.isCounterpartMigrated, required this.userStatus, required this.userProfile,
+    required this.contactStatus, required this.latestMessageTime,
   });
 
   bool get isHeadless => userStatus.outputDevice == "Headless";
@@ -27,10 +31,13 @@ class Contact implements Comparable {
       id: map["id"],
       contactUsername: map["contactUsername"],
       ownerId: map["ownerId"] ?? map["id"],
-      // Neos bot status is always offline but should be displayed as online
+      isAccepted: map["isAccepted"] ?? false,
+      isMigrated: map["isMigrated"] ?? false,
+      isCounterpartMigrated: map["isCounterpartMigrated"] ?? false,
+      // Resonite bot status is always offline but should be displayed as online
       userStatus:  map["id"] == _resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
-      friendStatus: ContactStatus.fromString(map["contactStatus"]),
+      contactStatus: ContactStatus.fromString(map["contactStatus"]),
       latestMessageTime: map["latestMessageTime"] == null
           ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
     );
@@ -46,25 +53,33 @@ class Contact implements Comparable {
         id: _emptyId,
         contactUsername: "",
         ownerId: "",
+        isAccepted: false,
+        isMigrated: false,
+        isCounterpartMigrated: false,
         userStatus: UserStatus.empty(),
         userProfile: UserProfile.empty(),
-        friendStatus: ContactStatus.none,
+        contactStatus: ContactStatus.none,
         latestMessageTime: DateTimeX.epoch
     );
   }
 
   bool get isEmpty => id == _emptyId;
+  bool get isPartiallyMigrated => isMigrated && !isCounterpartMigrated;
+  bool get isContactRequest => !isPartiallyMigrated && isAccepted && contactStatus == ContactStatus.requested;
 
   Contact copyWith({
-    String? id, String? contactUsername, String? ownerId, UserStatus? userStatus, UserProfile? userProfile,
-    ContactStatus? friendStatus, DateTime? latestMessageTime}) {
+    String? id, String? contactUsername, String? ownerId, UserStatus? userStatus, bool? isAccepted, bool? isMigrated,
+    bool? isCounterpartMigrated, UserProfile? userProfile, ContactStatus? contactStatus, DateTime? latestMessageTime}) {
     return Contact(
       id: id ?? this.id,
       contactUsername: contactUsername ?? this.contactUsername,
       ownerId: ownerId ?? this.ownerId,
+      isAccepted: isAccepted ?? this.isAccepted,
+      isMigrated: isMigrated ?? this.isMigrated,
+      isCounterpartMigrated: isCounterpartMigrated ?? this.isCounterpartMigrated,
       userStatus: userStatus ?? this.userStatus,
       userProfile: userProfile ?? this.userProfile,
-      friendStatus: friendStatus ?? this.friendStatus,
+      contactStatus: contactStatus ?? this.contactStatus,
       latestMessageTime: latestMessageTime ?? this.latestMessageTime,
     );
   }
@@ -74,9 +89,12 @@ class Contact implements Comparable {
       "id": id,
       "contactUsername": contactUsername,
       "ownerId": ownerId,
+      "isAccepted": isAccepted,
+      "isMigrated": isMigrated,
+      "isCounterpartMigrated": isCounterpartMigrated,
       "userStatus": userStatus.toMap(shallow: shallow),
       "profile": userProfile.toMap(),
-      "contactStatus": friendStatus.name,
+      "contactStatus": contactStatus.name,
       "latestMessageTime": latestMessageTime.toIso8601String(),
     };
   }

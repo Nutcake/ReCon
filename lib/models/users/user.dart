@@ -33,7 +33,7 @@ class User {
     };
   }
 
-  Map asContactRequest(String ownerId) {
+  Map asContactRequest({required String ownerId, required ContactStatus contactStatus}) {
     return {
       "ownerId": ownerId,
       "id": id,

@@ -105,12 +105,13 @@ class HubManager {
   }
 
   void _handleInvocation(body) async {
+    _logger.info(body);
     final target = EventTarget.parse(body["target"]);
     final args = body["arguments"] ?? [];
     final handler = _handlers[target];
     if (handler == null) {
       _logger.warning("Unhandled event received");
-      if (kDebugMode) _logger.warning("Invocation target: ${target.name}, args:\n$args");
+      if (kDebugMode) _logger.warning("Invocation target: ${body["target"]}, args:\n$args");
       return;
     }
     handler(args);
@@ -132,6 +133,9 @@ class HubManager {
   }
 
   void dispose() {
+    _handlers.clear();
+    _responseHandlers.clear();
     _wsChannel?.close();
+    _wsChannel = null;
   }
 }

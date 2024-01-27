@@ -72,7 +72,7 @@ class _UserSearchState extends State<UserSearch> {
                           onChanged: () {
                             mClient.refreshFriendsList();
                           },
-                          isFriend: mClient.getAsFriend(user.id) != null,
+                          isFriend: mClient.getAsContact(user.id) != null,
                         );
                       },
                     );

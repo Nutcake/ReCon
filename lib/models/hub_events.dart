@@ -16,7 +16,9 @@ enum EventTarget {
   messagesRead,
   receiveSessionUpdate,
   removeSession,
-  receiveStatusUpdate;
+  receiveStatusUpdate,
+  sendStatusToUser,
+  contactAddedOrUpdated;
 
   factory EventTarget.parse(String? text) {
     if (text == null) return EventTarget.unknown;

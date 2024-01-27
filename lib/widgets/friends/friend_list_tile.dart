@@ -30,12 +30,25 @@ class FriendListTile extends StatelessWidget {
       leading: GenericAvatar(
         imageUri: imageUri,
       ),
-      trailing: unreads != 0
-          ? Text(
-              "+$unreads",
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+      trailing: friend.isContactRequest
+          ? IconButton(
+              splashRadius: 24,
+              iconSize: 20,
+              icon: const Icon(Icons.person_add),
+              style: IconButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.onBackground,
+                side: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+              ),
+              onPressed: () async {
+                final mClient = Provider.of<MessagingClient>(context, listen: false);
+              },
             )
-          : null,
+          : unreads != 0
+              ? Text(
+                  "+$unreads",
+                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary),
+                )
+              : null,
       title: Row(
         children: [
           Text(friend.contactUsername),
@@ -92,7 +105,7 @@ class FriendListTile extends StatelessWidget {
       onTap: () async {
         onTap?.call();
         mClient.loadUserMessageCache(friend.id);
-        final unreads = mClient.getUnreadsForFriend(friend);
+        final unreads = mClient.getUnreadsForContact(friend);
         if (unreads.isNotEmpty) {
           final readBatch = MarkReadBatch(
             senderId: friend.id,

@@ -54,7 +54,7 @@ class _FriendsListState extends State<FriendsList> with AutomaticKeepAliveClient
                     itemCount: friends.length,
                     itemBuilder: (context, index) {
                       final friend = friends[index];
-                      final unreads = mClient.getUnreadsForFriend(friend);
+                      final unreads = mClient.getUnreadsForContact(friend);
                       return FriendListTile(
                         friend: friend,
                         unreads: unreads.length,

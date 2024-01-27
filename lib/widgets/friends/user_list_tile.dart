@@ -1,7 +1,5 @@
 import 'package:provider/provider.dart';
-import 'package:recon/apis/contact_api.dart';
 import 'package:recon/auxiliary.dart';
-import 'package:recon/client_holder.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/user.dart';
 import 'package:recon/widgets/generic_avatar.dart';
@@ -61,10 +59,7 @@ class _UserListTileState extends State<UserListTile> {
                 });
                 try {
                   if (_localAdded) {
-                    await ContactApi.removeUserAsFriend(
-                      ClientHolder.of(context).apiClient,
-                      user: widget.user,
-                    );
+                    mClient.removeUserAsFriend(widget.user);
                   } else {
                     mClient.addUserAsFriend(widget.user);
                   }
