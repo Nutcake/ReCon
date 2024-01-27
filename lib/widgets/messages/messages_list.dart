@@ -62,7 +62,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
           title: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              FriendOnlineStatusIndicator(userStatus: friend.userStatus),
+              FriendOnlineStatusIndicator(friend: friend),
               const SizedBox(
                 width: 8,
               ),

@@ -54,13 +54,12 @@ class FriendListTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          FriendOnlineStatusIndicator(userStatus: friend.userStatus),
+          FriendOnlineStatusIndicator(friend: friend),
           const SizedBox(
             width: 4,
           ),
-          Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-          if (!(friend.userStatus.onlineStatus == OnlineStatus.offline ||
-              friend.userStatus.onlineStatus == OnlineStatus.invisible))
+          if (!(friend.isOffline || friend.isHeadless)) ...[
+            Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
             if (currentSession != null) ...[
               const Text(" in "),
               if (currentSession.name.isNotEmpty)
@@ -87,6 +86,24 @@ class FriendListTile extends StatelessWidget {
                   maxLines: 1,
                 ),
               ),
+          ] else if (friend.isOffline)
+            Text(
+              "Offline",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: OnlineStatus.offline.color(context),
+              ),
+            )
+          else
+            Text(
+              "Headless Host",
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: const Color.fromARGB(255, 41, 77, 92),
+              ),
+            )
         ],
       ),
       onTap: () async {
