@@ -224,7 +224,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   // Calculate online status value, with 'headless' between 'busy' and 'offline'
-  double getOnlineStatusValue(friend) {
+  double getOnlineStatusValue(Friend friend) {
     // Adjusting values to ensure correct placement of 'headless'
     if (friend.isHeadless) return 2.5;
     switch (friend.userStatus.onlineStatus) {
