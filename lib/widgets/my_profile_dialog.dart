@@ -48,24 +48,25 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile.username, style: tt.titleLarge),
-                          Text(
-                            profile.email,
-                            style:
-                                tt.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
-                          )
-                        ],
-                      ),
                       GenericAvatar(
                         imageUri: Aux.resdbToHttp(profile.userProfile.iconUrl),
-                        radius: 24,
-                      )
+                        radius: 32,
+                      ),
+                      Padding(
+                          padding: const EdgeInsets.only(left: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(profile.username, style: tt.titleLarge),
+                              Text(
+                                profile.accountType.label,
+                                style: tt.labelMedium?.copyWith(color: profile.accountType.color),
+                              ),
+                            ],
+                          )),
                     ],
                   ),
                   const SizedBox(
@@ -85,10 +86,10 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "2FA: ",
+                        "Email: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.twoFactor ? "Enabled" : "Disabled")
+                      Text(profile.email)
                     ],
                   ),
                   Row(
@@ -99,6 +100,16 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         style: tt.labelLarge,
                       ),
                       Text(profile.isPatreonSupporter ? "Yes" : "No")
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "2FA: ",
+                        style: tt.labelLarge,
+                      ),
+                      Text(profile.twoFactor ? "Enabled" : "Disabled")
                     ],
                   ),
                   if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)

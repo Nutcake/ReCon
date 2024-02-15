@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/users/entitlement.dart';
 import 'package:recon/models/users/user_profile.dart';
@@ -9,6 +10,7 @@ class PersonalProfile {
   final DateTime? publicBanExpiration;
   final String? publicBanType;
   final bool twoFactor;
+  final List<String> tags;
   final UserProfile userProfile;
   final List<Entitlement> entitlements;
   final List<SupporterMetadata> supporterMetadata;
@@ -20,6 +22,7 @@ class PersonalProfile {
     required this.publicBanExpiration,
     required this.publicBanType,
     required this.twoFactor,
+    required this.tags,
     required this.userProfile,
     required this.entitlements,
     required this.supporterMetadata,
@@ -33,6 +36,7 @@ class PersonalProfile {
       publicBanExpiration: DateTime.tryParse(map["publicBanExpiration"] ?? ""),
       publicBanType: map["publicBanType"],
       twoFactor: map["2fa_login"] ?? false,
+      tags: (map["tags"] ?? []).cast<String>(),
       userProfile: UserProfile.fromMap(map["profile"]),
       entitlements: ((map["entitlements"] ?? []) as List).map((e) => Entitlement.fromMap(e)).toList(),
       supporterMetadata: ((map["supporterMetadata"] ?? []) as List).map((e) => SupporterMetadata.fromMap(e)).toList(),
@@ -41,6 +45,34 @@ class PersonalProfile {
 
   bool get isPatreonSupporter =>
       supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
+
+  static final List<AccountType> accountTypes = [
+    AccountType(label: "Standard Account", color: const Color(0xFF86888B)),
+    AccountType(label: "Patreon Supporter", color: const Color(0xFFFF7676)),
+    AccountType(label: "Resonite Mentor", color: const Color(0xFF59EB5C)),
+    AccountType(label: "Resonite Moderator", color: const Color(0xFF61D1FA)),
+    AccountType(label: "Resonite Team", color: const Color.fromARGB(255, 255, 230, 0)),
+  ];
+
+  AccountType get accountType => tags.contains("team member")
+      ? accountTypes[4]
+      : tags.contains("moderator")
+          ? accountTypes[3]
+          : tags.contains("mentor")
+              ? accountTypes[2]
+              : isPatreonSupporter
+                  ? accountTypes[1]
+                  : accountTypes[0];
+}
+
+class AccountType {
+  final String label;
+  final Color color;
+
+  AccountType({
+    required this.label,
+    required this.color,
+  });
 }
 
 class StorageQuota {
