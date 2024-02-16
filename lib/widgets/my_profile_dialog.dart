@@ -33,84 +33,138 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     DateFormat dateFormat = DateFormat.yMd();
     return Dialog(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      backgroundColor: const Color(0xFF11151D),
       child: FutureBuilder(
         future: _personalProfileFuture,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             final profile = snapshot.data as PersonalProfile;
             return Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.only(bottom: 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      GenericAvatar(
-                        imageUri: Aux.resdbToHttp(profile.userProfile.iconUrl),
-                        radius: 32,
-                      ),
-                      Padding(
-                          padding: const EdgeInsets.only(left: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(profile.username, style: tt.titleLarge),
-                              Text(
-                                profile.accountType.label,
-                                style: tt.labelMedium?.copyWith(color: profile.accountType.color),
-                              ),
-                            ],
-                          )),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0x6611151D),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        GenericAvatar(
+                          imageUri: Aux.resdbToHttp(profile.userProfile.iconUrl),
+                          radius: 32,
+                        ),
+                        Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(profile.username, style: textTheme.titleLarge),
+                                Text(
+                                  profile.accountType.label,
+                                  style: textTheme.labelMedium?.copyWith(color: profile.accountType.color),
+                                ),
+                              ],
+                            )),
+                      ],
+                    ),
                   ),
                   const SizedBox(
-                    height: 16,
+                    height: 12,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "User ID: ",
-                        style: tt.labelLarge,
-                      ),
-                      Text(profile.id)
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Email: ",
-                        style: tt.labelLarge,
-                      ),
-                      Text(profile.email)
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Patreon Supporter: ",
-                        style: tt.labelLarge,
-                      ),
-                      Text(profile.isPatreonSupporter ? "Yes" : "No")
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "2FA: ",
-                        style: tt.labelLarge,
-                      ),
-                      Text(profile.twoFactor ? "Enabled" : "Disabled")
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Account Info",
+                          style: textTheme.titleMedium,
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              color: const Color(0x6611151D),
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "User ID",
+                                          style: textTheme.titleSmall,
+                                        ),
+                                        Text(profile.id,
+                                            style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Email",
+                                          style: textTheme.titleSmall,
+                                        ),
+                                        Text(profile.email,
+                                            style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Patreon Supporter",
+                                          style: textTheme.titleSmall,
+                                        ),
+                                        Text(profile.isPatreonSupporter ? "Yes" : "No",
+                                            style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Two Factor Authentication",
+                                          style: textTheme.titleSmall,
+                                        ),
+                                        Text(profile.twoFactor ? "Enabled" : "Disabled",
+                                            style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                      ],
+                                    ),
+                                  ])),
+                        ),
+                      ],
+                    ),
                   ),
                   if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)
                     Row(
@@ -118,11 +172,14 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                       children: [
                         Text(
                           "Ban Expiration: ",
-                          style: tt.labelLarge,
+                          style: textTheme.labelLarge,
                         ),
                         Text(dateFormat.format(profile.publicBanExpiration!))
                       ],
                     ),
+                  const SizedBox(
+                    height: 12,
+                  ),
                   FutureBuilder(
                       future: _storageQuotaFuture,
                       builder: (context, snapshot) {
@@ -132,9 +189,6 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                           maxBytes: storage?.fullQuotaBytes ?? 1,
                         );
                       }),
-                  const SizedBox(
-                    height: 12,
-                  ),
                 ],
               ),
             );
@@ -179,28 +233,48 @@ class StorageIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final value = usedBytes / maxBytes;
     return Padding(
-      padding: const EdgeInsets.only(top: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Storage:", style: Theme.of(context).textTheme.titleMedium),
-              Text(// Displayed in GiB instead of GB for consistency with Resonite
-                  "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)}/${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB"),
-            ],
-          ),
+          Text("Storage", style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(
             height: 8,
           ),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              minHeight: 12,
-              color: value > 0.95 ? Theme.of(context).colorScheme.error : null,
-              value: value,
-            ),
+            child: Stack(children: [
+              LinearProgressIndicator(
+                value: value,
+                minHeight: 48,
+                color: value > 0.95 ? Theme.of(context).colorScheme.error : const Color(0xFF61D1FA),
+                backgroundColor: const Color(0xFF284C5D),
+              ),
+              Container(
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        "${(value * 100).toStringAsFixed(0)}%",
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            // Displayed in GiB instead of GB for consistency with Resonite
+                            Text(
+                                "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB of ${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB"),
+                            Text("Storage Space Used",
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10)),
+                          ]),
+                    ],
+                  )),
+            ]),
           )
         ],
       ),

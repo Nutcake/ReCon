@@ -46,23 +46,15 @@ class PersonalProfile {
   bool get isPatreonSupporter =>
       supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
 
-  static final List<AccountType> accountTypes = [
-    AccountType(label: "Standard Account", color: const Color(0xFF86888B)),
-    AccountType(label: "Patreon Supporter", color: const Color(0xFFFF7676)),
-    AccountType(label: "Resonite Mentor", color: const Color(0xFF59EB5C)),
-    AccountType(label: "Resonite Moderator", color: const Color(0xFF61D1FA)),
-    AccountType(label: "Resonite Team", color: const Color.fromARGB(255, 255, 230, 0)),
-  ];
-
   AccountType get accountType => tags.contains("team member")
-      ? accountTypes[4]
+      ? AccountType(label: "Resonite Team", color: const Color.fromARGB(255, 255, 230, 0))
       : tags.contains("moderator")
-          ? accountTypes[3]
+          ? AccountType(label: "Resonite Moderator", color: const Color(0xFF61D1FA))
           : tags.contains("mentor")
-              ? accountTypes[2]
+              ? AccountType(label: "Resonite Mentor", color: const Color(0xFF59EB5C))
               : isPatreonSupporter
-                  ? accountTypes[1]
-                  : accountTypes[0];
+                  ? AccountType(label: "Patreon Supporter", color: const Color(0xFFFF7676))
+                  : AccountType(label: "Standard Account", color: const Color(0xFF86888B));
 }
 
 class AccountType {
