@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/auxiliary.dart';
+import 'package:recon/blend_mask.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/personal_profile.dart';
 import 'package:recon/widgets/default_error_widget.dart';
@@ -63,18 +64,19 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                           imageUri: Aux.resdbToHttp(profile.userProfile.iconUrl),
                           radius: 32,
                         ),
-                        Padding(
-                            padding: const EdgeInsets.only(left: 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(profile.username, style: textTheme.titleLarge),
-                                Text(
-                                  profile.accountType.label,
-                                  style: textTheme.labelMedium?.copyWith(color: profile.accountType.color),
-                                ),
-                              ],
-                            )),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(profile.username, style: textTheme.titleLarge),
+                            Text(
+                              profile.accountType.label,
+                              style: textTheme.labelMedium?.copyWith(color: profile.accountType.color),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -254,25 +256,28 @@ class StorageIndicator extends StatelessWidget {
                   height: 48,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   alignment: Alignment.center,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        "${(value * 100).toStringAsFixed(0)}%",
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            // Displayed in GiB instead of GB for consistency with Resonite
-                            Text(
-                                "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB of ${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB"),
-                            Text("Storage Space Used",
-                                style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10)),
-                          ]),
-                    ],
+                  child: BlendMask(
+                    blendMode: BlendMode.colorDodge,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "${(value * 100).toStringAsFixed(0)}%",
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              // Displayed in GiB instead of GB for consistency with Resonite
+                              Text(
+                                  "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB of ${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB"),
+                              Text("Storage Space Used",
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10)),
+                            ]),
+                      ],
+                    ),
                   )),
             ]),
           )
