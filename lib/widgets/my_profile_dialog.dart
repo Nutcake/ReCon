@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/auxiliary.dart';
-import 'package:recon/blend_mask.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/personal_profile.dart';
+import 'package:recon/widgets/blend_mask.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/generic_avatar.dart';
 
@@ -106,31 +107,57 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          "User ID",
-                                          style: textTheme.titleSmall,
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "User ID",
+                                              style: textTheme.titleSmall,
+                                            ),
+                                            Text(profile.id,
+                                                style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                          ],
                                         ),
-                                        Text(profile.id,
-                                            style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                        IconButton(
+                                            onPressed: () {
+                                              Clipboard.setData(ClipboardData(text: profile.id));
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                  content: Text("User ID copied to clipboard"),
+                                                  behavior: SnackBarBehavior.floating));
+                                            },
+                                            icon: const Icon(Icons.copy_outlined))
                                       ],
                                     ),
                                     const SizedBox(
                                       height: 8,
                                     ),
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          "Email",
-                                          style: textTheme.titleSmall,
+                                        Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Email",
+                                              style: textTheme.titleSmall,
+                                            ),
+                                            Text(profile.email,
+                                                style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                          ],
                                         ),
-                                        Text(profile.email,
-                                            style: textTheme.bodySmall?.copyWith(color: const Color(0xFFE1E1E0)))
+                                        IconButton(
+                                            onPressed: () {
+                                              Clipboard.setData(ClipboardData(text: profile.email));
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                  content: Text("Email copied to clipboard"),
+                                                  behavior: SnackBarBehavior.floating));
+                                            },
+                                            icon: const Icon(Icons.copy_outlined))
                                       ],
                                     ),
                                     const SizedBox(
@@ -257,7 +284,7 @@ class StorageIndicator extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   alignment: Alignment.center,
                   child: BlendMask(
-                    blendMode: BlendMode.colorDodge,
+                    blendMode: BlendMode.srcATop,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
