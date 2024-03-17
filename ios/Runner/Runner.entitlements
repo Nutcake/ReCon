@@ -4,7 +4,7 @@
 <dict>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)me.voidspace.recon</string>
+		<string>$(AppIdentifierPrefix)ch.isota.recon</string>
 	</array>
 </dict>
 </plist>
