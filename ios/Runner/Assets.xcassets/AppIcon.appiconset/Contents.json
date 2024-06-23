@@ -1,134 +1,116 @@
 {
   "images" : [
-    {
-      "filename" : "icon_40x40@2x.png",
-      "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "20x20"
+	{
+      "size" : "20x20",
+      "idiom": "iphone",
+	  "filename" : "Icon-App-iTunes-20@2x.png",
+      "scale": "2x"
+    },
+	{
+      "size" : "20x20",
+      "idiom": "iphone",
+	  "filename" : "Icon-App-iTunes-20@3x.png",
+      "scale": "3x"
+    },
+	{
+      "size" : "20x20",
+      "idiom": "ipad",
+	  "filename" : "Icon-App-iTunes-20.png",
+      "scale": "1x"
     },
     {
-      "filename" : "icon_60x60@3x.png",
-      "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "20x20"
+      "size" : "20x20",
+      "idiom": "ipad",
+	  "filename" : "Icon-App-iTunes-20@2x.png",
+      "scale": "2x"
     },
     {
-      "filename" : "icon_58x58@2x.png",
+      "size" : "29x29",
       "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "29x29"
+      "filename" : "Icon-App-iTunes-29@2x.png",
+      "scale" : "2x"
     },
     {
-      "filename" : "icon_87x87@3x.png",
+      "size" : "29x29",
       "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "29x29"
+      "filename" : "Icon-App-iTunes-29@3x.png",
+      "scale" : "3x"
     },
     {
-      "filename" : "icon_80x80@2x.png",
+      "size" : "40x40",
       "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "40x40"
+      "filename" : "Icon-App-iTunes-40@2x.png",
+      "scale" : "2x"
     },
     {
-      "filename" : "icon_120x120@3x.png",
+      "size" : "40x40",
       "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "40x40"
+      "filename" : "Icon-App-iTunes-40@3x.png",
+      "scale" : "3x"
     },
     {
-      "filename" : "icon_60x60@2x.png",
+      "size" : "60x60",
       "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "60x60"
+      "filename" : "Icon-App-iTunes-60@2x.png",
+      "scale" : "2x"
     },
     {
-      "filename" : "icon_180x180@3x.png",
+      "size" : "60x60",
       "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "60x60"
+      "filename" : "Icon-App-iTunes-60@3x.png",
+      "scale" : "3x"
     },
     {
-      "filename" : "icon_40x40@2x 1.png",
+      "size" : "29x29",
       "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "20x20"
+      "filename" : "Icon-App-iTunes-29.png",
+      "scale" : "1x"
     },
     {
-      "filename" : "icon_58x58@2x 1.png",
+      "size" : "29x29",
       "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "29x29"
+      "filename" : "Icon-App-iTunes-29@2x.png",
+      "scale" : "2x"
     },
     {
-      "filename" : "icon_80x80@2x 1.png",
+      "size" : "40x40",
       "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "40x40"
+      "filename" : "Icon-App-iTunes-40.png",
+      "scale" : "1x"
     },
     {
-      "filename" : "icon_76x76@2x.png",
+      "size" : "40x40",
       "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "76x76"
+      "filename" : "Icon-App-iTunes-40@2x.png",
+      "scale" : "2x"
     },
     {
-      "filename" : "icon_83.5x83.5@2x.png",
+      "size" : "76x76",
       "idiom" : "ipad",
-      "scale" : "2x",
-      "size" : "83.5x83.5"
+      "filename" : "Icon-App-iTunes-76.png",
+      "scale" : "1x"
     },
     {
-      "filename" : "icon_1024x1024.png",
+      "size" : "76x76",
+      "idiom" : "ipad",
+      "filename" : "Icon-App-iTunes-76@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "83.5x83.5",
+      "idiom" : "ipad",
+      "filename" : "Icon-App-iTunes-83.5@2x.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
       "idiom" : "ios-marketing",
-      "scale" : "1x",
-      "size" : "1024x1024"
-    },
-    {
-      "filename" : "icon_114x114@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x",
-      "size" : "114x114"
-    },
-    {
-      "filename" : "icon_120x120@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x",
-      "size" : "120x120"
-    },
-    {
-      "filename" : "icon_128x128@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x",
-      "size" : "128x128"
-    },
-    {
-      "filename" : "icon_136x136@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x",
-      "size" : "136x136"
-    },
-    {
-      "filename" : "icon_152x152@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x",
-      "size" : "152x152"
-    },
-    {
-      "filename" : "icon_167x167@2x.png",
-      "idiom" : "universal",
-      "scale" : "2x",
-      "size" : "167x167"
-    },
-    {
-      "filename" : "icon_192x192@3x.png",
-      "idiom" : "universal",
-      "scale" : "3x",
-      "size" : "192x192"
+      "filename" : "Icon-App-iTunes-1024.png",
+      "scale" : "1x"
     }
   ],
   "info" : {
-    "author" : "xcode",
-    "version" : 1
+    "version" : 1,
+    "author" : "xcode"
   }
 }
