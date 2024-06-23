@@ -33,28 +33,23 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Send photos to other users</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Record voice messages</string>
+	<string>ReCon uses your microphone to record voice messages.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Send photos to other users</string>
+	<string>ReCon uses your photo library to send images to your contacts.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
 		<string>processing</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
+	<string>LaunchScreen.storyboard</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 </dict>
 </plist>
