@@ -65,6 +65,9 @@ dependencies:
   share_plus: ^7.1.0
   ffmpeg_kit_flutter_audio: ^6.0.3
   background_downloader: ^7.12.2
+  device_info_plus: ^9.1.2
+  apple_product_name: ^2.4.0
+  smooth_corner: ^1.1.0
 
 dev_dependencies:
   flutter_test:
