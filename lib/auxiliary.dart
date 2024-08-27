@@ -1,7 +1,7 @@
-import 'package:recon/config.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' as htmlparser;
+import 'package:path/path.dart' as p;
+import 'package:recon/config.dart';
 
 class Aux {
   static String resdbToHttp(String? resdb) {
@@ -60,4 +60,8 @@ extension ColorX on Color {
 
     return Color.fromARGB((opacity * 255).round(), r, g, b);
   }
+
+  String toHex() => value.toRadixString(16).substring(2);
+
+  String toCss() => "#${toHex()}";
 }

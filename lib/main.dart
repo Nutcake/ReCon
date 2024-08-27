@@ -20,6 +20,8 @@ import 'package:recon/clients/inventory_client.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/clients/settings_client.dart';
+import 'package:recon/color_palette.dart';
+import 'package:recon/device_info.dart';
 import 'package:recon/models/sem_ver.dart';
 import 'package:recon/widgets/homepage.dart';
 import 'package:recon/widgets/login_screen.dart';
@@ -39,6 +41,8 @@ void main() async {
   );
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: [SystemUiOverlay.top]);
+
+  await DeviceInfo.initDeviceInfo();
 
   await Hive.initFlutter();
 
@@ -169,13 +173,38 @@ class _ReConState extends State<ReCon> {
               theme: ThemeData(
                 useMaterial3: true,
                 textTheme: _typography.black,
-                colorScheme:
-                    lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
+                colorScheme: lightDynamic ??
+                    ColorScheme.fromSeed(
+                      brightness: Brightness.light,
+                      seedColor: palette.hero.cyan,
+                      primary: palette.dark.cyan,
+                      secondary: palette.mid.cyan,
+                      tertiary: palette.sub.cyan,
+                      surface: palette.hero.cyan.withOpacity(0.5),
+                      onSurface: palette.neutrals.dark,
+                      background: palette.neutrals.light,
+                      onBackground: palette.neutrals.dark,
+                      outline: palette.neutrals.dark.withOpacity(0.1),
+                      outlineVariant: palette.neutrals.dark.withOpacity(0.2),
+                    ),
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
                 textTheme: _typography.white,
-                colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+                colorScheme: darkDynamic ??
+                    ColorScheme.fromSeed(
+                      brightness: Brightness.dark,
+                      seedColor: palette.hero.cyan,
+                      primary: palette.sub.cyan,
+                      secondary: palette.hero.cyan,
+                      tertiary: palette.sub.cyan,
+                      surface: palette.dark.cyan.withOpacity(0.5),
+                      onSurface: palette.neutrals.light,
+                      background: palette.neutrals.dark,
+                      onBackground: palette.neutrals.light,
+                      outline: palette.neutrals.light.withOpacity(0.1),
+                      outlineVariant: palette.neutrals.light.withOpacity(0.2),
+                    ),
               ),
               themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
               home: Builder(
