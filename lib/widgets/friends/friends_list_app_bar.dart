@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/online_status.dart';
 import 'package:recon/widgets/friends/user_search.dart';
 import 'package:recon/widgets/my_profile_dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 class FriendsListAppBar extends StatefulWidget {
   const FriendsListAppBar({super.key});
@@ -16,12 +16,26 @@ class FriendsListAppBar extends StatefulWidget {
 }
 
 class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKeepAliveClientMixin {
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return AppBar(
-      title: const Text("ReCon"),
+      title: Row(
+        children: [
+          SizedBox.square(
+            dimension: 28,
+            child: Image.asset(
+              "assets/images/logo.png",
+              filterQuality: FilterQuality.medium,
+              isAntiAlias: true,
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Text("ReCon")
+        ],
+      ),
+      centerTitle: false,
+      backgroundColor: Colors.transparent,
       actions: [
         Consumer<MessagingClient>(builder: (context, client, _) {
           return PopupMenuButton<OnlineStatus>(
@@ -53,7 +67,10 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               }
             },
             itemBuilder: (BuildContext context) => OnlineStatus.values
-                .where((element) => element == OnlineStatus.online || element == OnlineStatus.offline).sorted((a, b) => b.index.compareTo(a.index),)
+                .where((element) => element == OnlineStatus.online || element == OnlineStatus.offline)
+                .sorted(
+                  (a, b) => b.index.compareTo(a.index),
+                )
                 .map(
                   (item) => PopupMenuItem<OnlineStatus>(
                     value: item,

@@ -4,7 +4,7 @@ import 'package:recon/models/users/online_status.dart';
 import 'package:recon/models/users/user_status.dart';
 
 class FriendOnlineStatusIndicator extends StatelessWidget {
-  const FriendOnlineStatusIndicator({required this.friend, super.key});
+  const FriendOnlineStatusIndicator(this.friend, {super.key});
 
   final Friend friend;
 

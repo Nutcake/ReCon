@@ -47,6 +47,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
               ? AppBar(
                   key: const ValueKey("default-appbar"),
                   title: const Text("Inventory"),
+                  centerTitle: false,
+                  backgroundColor: Colors.transparent,
                   actions: [
                     PopupMenuButton(
                       icon: const Icon(Icons.swap_vert),
@@ -148,6 +150,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
               : AppBar(
                   key: const ValueKey("selection-appbar"),
                   title: Text("${iClient.selectedRecordCount} Selected"),
+                  centerTitle: false,
+                  backgroundColor: Colors.transparent,
                   leading: IconButton(
                     onPressed: () {
                       iClient.clearSelectedRecords();

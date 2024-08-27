@@ -1,5 +1,6 @@
 import 'package:color/color.dart' as cc;
 import 'package:flutter/material.dart';
+import 'package:recon/color_palette.dart';
 
 class FormatNode {
   String text;
@@ -72,6 +73,16 @@ class FormatNode {
     current.text = text;
     return root;
   }
+
+  static FormatNode merge(List<FormatNode> nodes) {
+    if (nodes.isEmpty) return FormatNode.unformatted("");
+    final root = FormatNode(
+      text: '',
+      format: FormatData.unformatted(),
+      children: nodes,
+    );
+    return root;
+  }
 }
 
 class FormatTag {
@@ -114,38 +125,7 @@ class FormatAction {
 }
 
 class FormatData {
-  static final Map<String, Map<String, Color>> _platformColorPalette = {
-    "neutrals": {
-      "dark": const Color(0xFF11151D),
-      "mid": const Color(0xFF86888B),
-      "light": const Color(0xFFE1E1E0),
-    },
-    "hero": {
-      "yellow": const Color(0xFFF8F770),
-      "green": const Color(0xFF59EB5C),
-      "red": const Color(0xFFFF7676),
-      "purple": const Color(0xFFBA64F2),
-      "cyan": const Color(0xFF61D1FA),
-      "orange": const Color(0xFFE69E50),
-    },
-    "sub": {
-      "yellow": const Color(0xFF484A2C),
-      "green": const Color(0xFF24512C),
-      "red": const Color(0xFF5D323A),
-      "purple": const Color(0xFF492F64),
-      "cyan": const Color(0xFF284C5D),
-      "orange": const Color(0xFF48392A),
-    },
-    "dark": {
-      "yellow": const Color(0xFF2B2E26),
-      "green": const Color(0xFF192D24),
-      "red": const Color(0xFF1A1318),
-      "purple": const Color(0xFF241E35),
-      "cyan": const Color(0xFF1A2A36),
-      "orange": const Color(0xFF292423),
-    },
-  };
-
+  static final Map<String, Color> _platformColorPalette = palette.toMap();
   static final _hexColorRegExp = RegExp(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
   static final _platformColorRegExp = RegExp(r"^([a-zA-Z]+)\.([a-zA-Z]+)$");
 
@@ -168,13 +148,7 @@ class FormatData {
 
     // is it one of Resonite's color constants?
     if (_platformColorRegExp.hasMatch(text)) {
-      final parts = text.split(".");
-      if (parts.length == 2) {
-        final palette = _platformColorPalette[parts[0]];
-        if (palette != null) {
-          return palette[parts[1]];
-        }
-      }
+      return _platformColorPalette[text];
     }
 
     // is it a named color?
@@ -254,8 +228,13 @@ class FormatData {
     "width": FormatAction(),
   };
 
+  /// The name of the format tag (e.g. `"color"`, `"b"`, `"i"`)
   final String name;
+
+  /// The value of the format tag (e.g. `"#FF0000"`, `"bold"`)
   final String parameter;
+
+  /// Whether the format tag is additive or not
   final bool isAdditive;
 
   const FormatData({required this.name, required this.parameter, required this.isAdditive});

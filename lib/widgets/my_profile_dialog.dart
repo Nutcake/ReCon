@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
+import 'package:recon/color_palette.dart';
 import 'package:recon/models/personal_profile.dart';
 import 'package:recon/widgets/blend_mask.dart';
 import 'package:recon/widgets/default_error_widget.dart';
@@ -35,12 +36,14 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final ThemeData theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
     DateFormat dateFormat = DateFormat.yMd();
+
     return Dialog(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: const Color(0xFF11151D),
+      backgroundColor: colorScheme.background,
       child: FutureBuilder(
         future: _personalProfileFuture,
         builder: (context, snapshot) {
@@ -54,8 +57,8 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      color: Color(0x6611151D),
+                    decoration: BoxDecoration(
+                      color: colorScheme.background.withOpacity(0.4),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -98,11 +101,11 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                           height: 8,
                         ),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                           child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              color: const Color(0x6611151D),
+                              color: colorScheme.background.withOpacity(0.4),
                               child: Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,24 +263,26 @@ class StorageIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     final value = usedBytes / maxBytes;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Storage", style: Theme.of(context).textTheme.titleMedium),
+          Text("Storage", style: theme.textTheme.titleMedium),
           const SizedBox(
             height: 8,
           ),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: Stack(children: [
               LinearProgressIndicator(
                 value: value,
                 minHeight: 48,
-                color: value > 0.95 ? Theme.of(context).colorScheme.error : const Color(0xFF61D1FA),
-                backgroundColor: const Color(0xFF284C5D),
+                color: value >= 0.95 ? palette.hero.red.withOpacity(0.7) : palette.hero.cyan,
+                backgroundColor: value >= 0.95 ? palette.hero.red.withOpacity(0.3) : palette.sub.cyan,
               ),
               Container(
                   height: 48,
@@ -291,7 +296,8 @@ class StorageIndicator extends StatelessWidget {
                       children: [
                         Text(
                           "${(value * 100).toStringAsFixed(0)}%",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(color: palette.neutrals.light, fontWeight: FontWeight.bold),
                         ),
                         Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -299,9 +305,14 @@ class StorageIndicator extends StatelessWidget {
                             children: [
                               // Displayed in GiB instead of GB for consistency with Resonite
                               Text(
-                                  "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB of ${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB"),
-                              Text("Storage Space Used",
-                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(fontSize: 10)),
+                                "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB of ${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB",
+                                style: theme.textTheme.bodyMedium?.copyWith(color: palette.neutrals.light),
+                              ),
+                              Text(
+                                "Storage Space Used",
+                                style:
+                                    theme.textTheme.labelSmall?.copyWith(color: palette.neutrals.light, fontSize: 10),
+                              ),
                             ]),
                       ],
                     ),

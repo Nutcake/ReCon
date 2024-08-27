@@ -8,6 +8,7 @@ import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/models/message.dart';
 
+// TODO: Don't use wav, use vorbis maybe?
 class AudioCacheClient {
   final Future<Directory> _directoryFuture = getTemporaryDirectory();
   final bool _isDarwin = Platform.isMacOS || Platform.isIOS;

@@ -7,6 +7,7 @@ import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/messages/message_input_bar.dart';
 import 'package:recon/widgets/messages/messages_session_header.dart';
+import 'package:recon/widgets/translucent_glass.dart';
 
 import 'message_bubble.dart';
 
@@ -52,52 +53,62 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final appBarColor = Theme.of(context).colorScheme.surface;
+    final ThemeData theme = Theme.of(context);
+    final appBarColor = theme.colorScheme.surface;
+
     return Consumer<MessagingClient>(builder: (context, mClient, _) {
       final friend = mClient.selectedFriend ?? Friend.empty();
       final cache = mClient.getUserMessageCache(friend.id);
       final sessions = friend.userStatus.decodedSessions.where((element) => element.isVisible).toList();
+
       return Scaffold(
-        appBar: AppBar(
-          title: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              FriendOnlineStatusIndicator(friend: friend),
-              const SizedBox(
-                width: 8,
-              ),
-              Text(friend.username),
-              if (friend.isHeadless)
-                Padding(
-                  padding: const EdgeInsets.only(left: 12),
-                  child: Icon(
-                    Icons.dns,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),
+        backgroundColor: theme.colorScheme.background,
+        extendBodyBehindAppBar: true,
+        extendBody: true,
+        appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight - 8),
+            child: TranslucentGlass.edgeToEdge(context,
+                gradient: TranslucentGlass.defaultTopGradient(context),
+                child: AppBar(
+                  title: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      FriendOnlineStatusIndicator(friend),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      Text(friend.username),
+                      if (friend.isHeadless)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12),
+                          child: Icon(
+                            Icons.dns,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-            ],
-          ),
-          actions: [
-            if (sessions.isNotEmpty)
-              AnimatedRotation(
-                turns: _sessionListOpen ? -1 / 4 : 1 / 4,
-                duration: const Duration(milliseconds: 200),
-                child: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _sessionListOpen = !_sessionListOpen;
-                    });
-                  },
-                  icon: const Icon(Icons.chevron_right),
-                ),
-              ),
-            const SizedBox(
-              width: 4,
-            )
-          ],
-          scrolledUnderElevation: 0.0,
-        ),
+                  actions: [
+                    if (sessions.isNotEmpty)
+                      AnimatedRotation(
+                        turns: _sessionListOpen ? -1 / 4 : 1 / 4,
+                        duration: const Duration(milliseconds: 200),
+                        child: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _sessionListOpen = !_sessionListOpen;
+                            });
+                          },
+                          icon: const Icon(Icons.chevron_right),
+                        ),
+                      ),
+                    const SizedBox(
+                      width: 4,
+                    )
+                  ],
+                  scrolledUnderElevation: 0.0,
+                ))),
         body: Column(
           children: [
             if (sessions.isNotEmpty)
@@ -220,14 +231,14 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                 ],
               ),
             ),
-            MessageInputBar(
-              recipient: friend,
-              disabled: cache == null || cache.error != null,
-              onMessageSent: () {
-                setState(() {});
-              },
-            ),
           ],
+        ),
+        bottomNavigationBar: MessageInputBar(
+          recipient: friend,
+          disabled: cache == null || cache.error != null,
+          onMessageSent: () {
+            setState(() {});
+          },
         ),
       );
     });

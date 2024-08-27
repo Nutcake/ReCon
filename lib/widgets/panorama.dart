@@ -204,16 +204,16 @@
 // Adapted from https://github.com/zesage/panorama to remove nonfunctional motion sensor control and fix any linting
 // warnings
 
-
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_cube/flutter_cube.dart';
 
 class Panorama extends StatefulWidget {
   const Panorama({
-    Key? key,
+    super.key,
     this.latitude = 0,
     this.longitude = 0,
     this.zoom = 1.0,
@@ -240,7 +240,7 @@ class Panorama extends StatefulWidget {
     this.onImageLoad,
     this.child,
     this.hotspots,
-  }) : super(key: key);
+  });
 
   /// The initial latitude, in degrees, between -90 and 90. default to 0 (the vertical center of the image).
   final double latitude;
@@ -566,7 +566,6 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
     longitude = degrees(widget.longitude);
     _streamController = StreamController<void>.broadcast();
     _stream = _streamController.stream;
-
 
     _controller = AnimationController(duration: const Duration(milliseconds: 60000), vsync: this)
       ..addListener(_updateView);

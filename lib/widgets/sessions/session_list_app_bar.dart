@@ -15,6 +15,8 @@ class _SessionListAppBarState extends State<SessionListAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       title: const Text("Sessions"),
+      centerTitle: false,
+      backgroundColor: Colors.transparent,
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),

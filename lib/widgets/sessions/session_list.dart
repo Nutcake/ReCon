@@ -1,12 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/sessions/session_view.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:recon/widgets/translucent_glass.dart';
 
 class SessionList extends StatefulWidget {
   const SessionList({super.key});
@@ -27,6 +28,8 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
     super.build(context);
     return ChangeNotifierProvider.value(
       value: Provider.of<SessionClient>(context),
@@ -36,73 +39,66 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
             future: sClient.sessionsFuture,
             builder: (context, snapshot) {
               final data = snapshot.data ?? [];
-              return Stack(
-                children: [
-                  RefreshIndicator(
-                    onRefresh: () async {
-                      sClient.reloadSessions();
-                      try {
-                        await sClient.sessionsFuture;
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
-                        }
-                      }
-                    },
-                    child: data.isEmpty && snapshot.connectionState == ConnectionState.done
+              return RefreshIndicator(
+                onRefresh: () async {
+                  sClient.reloadSessions();
+                  try {
+                    await sClient.sessionsFuture;
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
+                  }
+                },
+                child: Stack(
+                  children: [
+                    data.isEmpty && snapshot.connectionState == ConnectionState.done
                         ? const DefaultErrorWidget(
                             title: "No Sessions Found",
                             message: "Try to adjust your filters",
                             iconOverride: Icons.public_off,
                           )
                         : Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: GridView.builder(
                               padding: const EdgeInsets.only(top: 10),
                               itemCount: data.length,
                               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                                 maxCrossAxisExtent: 256,
-                                crossAxisSpacing: 4,
-                                mainAxisSpacing: 4,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
                                 childAspectRatio: .8,
                               ),
                               itemBuilder: (context, index) {
                                 final session = data[index];
-                                return Card(
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      color: Theme.of(context).colorScheme.outline,
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
+                                return TranslucentGlass.card(
+                                  context,
+                                  padding: const EdgeInsets.all(0),
+                                  borderRadius: BorderRadius.circular(18),
+                                  gradient: TranslucentGlass.defaultTopGradient(context),
                                   child: InkWell(
                                     onTap: () {
                                       Navigator.of(context)
                                           .push(MaterialPageRoute(builder: (context) => SessionView(session: session)));
                                     },
-                                    borderRadius: BorderRadius.circular(16),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           flex: 5,
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(16),
-                                            child: Hero(
-                                              tag: session.id,
-                                              child: CachedNetworkImage(
-                                                imageUrl: Aux.resdbToHttp(session.thumbnailUrl),
-                                                fit: BoxFit.cover,
-                                                errorWidget: (context, url, error) => const Center(
-                                                  child: Icon(
-                                                    Icons.broken_image,
-                                                    size: 64,
-                                                  ),
+                                          child: Hero(
+                                            tag: session.id,
+                                            child: CachedNetworkImage(
+                                              imageUrl: Aux.resdbToHttp(session.thumbnailUrl),
+                                              fit: BoxFit.cover,
+                                              errorWidget: (context, url, error) => const Center(
+                                                child: Icon(
+                                                  Icons.broken_image,
+                                                  size: 64,
                                                 ),
-                                                placeholder: (context, uri) =>
-                                                    const Center(child: CircularProgressIndicator()),
                                               ),
+                                              placeholder: (context, uri) =>
+                                                  const Center(child: CircularProgressIndicator()),
                                             ),
                                           ),
                                         ),
@@ -135,12 +131,9 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                                         "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} Online",
                                                         maxLines: 1,
                                                         overflow: TextOverflow.ellipsis,
-                                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                              color: Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onSurface
-                                                                  .withOpacity(.5),
-                                                            ),
+                                                        style: theme.textTheme.bodySmall?.copyWith(
+                                                          color: theme.colorScheme.onSurface.withOpacity(.5),
+                                                        ),
                                                       ),
                                                     ),
                                                   ],
@@ -156,9 +149,9 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                               },
                             ),
                           ),
-                  ),
-                  if (snapshot.connectionState == ConnectionState.waiting) const LinearProgressIndicator()
-                ],
+                    if (snapshot.connectionState == ConnectionState.waiting) const LinearProgressIndicator()
+                  ],
+                ),
               );
             },
           );

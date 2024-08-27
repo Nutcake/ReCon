@@ -6,6 +6,7 @@ import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/users/friend.dart';
 import 'package:recon/models/users/online_status.dart';
+import 'package:recon/string_formatter.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/friends/friend_online_status_indicator.dart';
 import 'package:recon/widgets/generic_avatar.dart';
@@ -26,6 +27,40 @@ class FriendListTile extends StatelessWidget {
     final currentSession = friend.userStatus.currentSessionIndex == -1
         ? null
         : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
+
+    FormatNode offlineStatus = FormatNode.buildFromStyles(
+      [FormatData(name: 'color', parameter: OnlineStatus.offline.color(context).toCss(), isAdditive: true)],
+      'Offline',
+    );
+    FormatNode headlessHostStatus = FormatNode.buildFromStyles(
+      [FormatData(name: 'color', parameter: const Color.fromARGB(255, 41, 77, 92).toCss(), isAdditive: true)],
+      'Headless Host',
+    );
+
+    List<FormatNode> statusSegments = [
+      FormatNode.unformatted(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? '')
+    ];
+
+    if (friend.isOffline) {
+      statusSegments = [offlineStatus];
+    } else if (friend.isHeadless) {
+      statusSegments = [headlessHostStatus];
+    } else if (currentSession != null) {
+      statusSegments.add(FormatNode.unformatted(' in '));
+      if (currentSession.name.isNotEmpty) {
+        statusSegments.add(currentSession.formattedName);
+      } else {
+        final bool showHidden = !currentSession.isVisible && currentSession.accessLevel.index != 1;
+        final bool hideAccessLevel = currentSession.accessLevel.index > 3 || currentSession.accessLevel.index == 0;
+        statusSegments.add(FormatNode.unformatted(
+            'a ${showHidden ? 'Hidden${hideAccessLevel ? '' : ', '}' : ''}${!hideAccessLevel ? currentSession.accessLevel.toReadableString() : ''} World'));
+      }
+    } else if (friend.userStatus.appVersion.isNotEmpty) {
+      statusSegments.add(FormatNode.unformatted(' on version ${friend.userStatus.appVersion}'));
+    }
+
+    FormatNode formattedStatus = FormatNode.merge(statusSegments);
+
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -54,56 +89,15 @@ class FriendListTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          FriendOnlineStatusIndicator(friend: friend),
-          const SizedBox(
-            width: 4,
+          FriendOnlineStatusIndicator(friend),
+          const SizedBox(width: 4),
+          Expanded(
+            child: FormattedText(
+              formattedStatus,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
-          if (!(friend.isOffline || friend.isHeadless)) ...[
-            Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
-            if (currentSession != null) ...[
-              const Text(" in "),
-              if (currentSession.name.isNotEmpty)
-                Expanded(
-                  child: FormattedText(
-                    currentSession.formattedName,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                )
-              else
-                Expanded(
-                  child: Text(
-                    "${currentSession.accessLevel.toReadableString()} World",
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                )
-            ] else if (friend.userStatus.appVersion.isNotEmpty)
-              Expanded(
-                child: Text(
-                  " on version ${friend.userStatus.appVersion}",
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-          ] else if (friend.isOffline)
-            Text(
-              "Offline",
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: OnlineStatus.offline.color(context),
-              ),
-            )
-          else
-            Text(
-              "Headless Host",
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: const Color.fromARGB(255, 41, 77, 92),
-              ),
-            )
         ],
       ),
       onTap: () async {

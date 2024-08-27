@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/models/authentication_data.dart';
+import 'package:recon/widgets/translucent_glass.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({this.onLoginSuccessful, this.cachedUsername, super.key});
@@ -159,9 +160,31 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("ReCon"),
-      ),
+      appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: TranslucentGlass(
+              border: Border(
+                bottom: TranslucentGlass.defaultBorderSide(context),
+              ),
+              gradient: TranslucentGlass.defaultTopGradient(context),
+              child: AppBar(
+                backgroundColor: Colors.transparent,
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox.square(
+                      child: Image.asset(
+                        "assets/images/logo.png",
+                        width: 28,
+                        filterQuality: FilterQuality.medium,
+                        isAntiAlias: true,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text("ReCon")
+                  ],
+                ),
+              ))),
       body: Builder(builder: (context) {
         return ListView(
           controller: _scrollController,

@@ -12,7 +12,7 @@ class UserApi {
     final data = jsonDecode(response.body) as List;
     return data.map((e) => User.fromMap(e));
   }
-  
+
   static Future<User> getUser(ApiClient client, {required String userId}) async {
     final response = await client.get("/users/$userId/");
     client.checkResponse(response);
@@ -21,13 +21,12 @@ class UserApi {
   }
 
   static Future<UserStatus> getUserStatus(ApiClient client, {required String userId}) async {
-    return UserStatus.empty();
     final response = await client.get("/users/$userId/status");
     client.checkResponse(response);
     final data = jsonDecode(response.body);
     return UserStatus.fromMap(data);
   }
-  
+
   static Future<void> notifyOnlineInstance(ApiClient client) async {
     final response = await client.post("/stats/instanceOnline/${client.authenticationData.secretMachineIdHash}");
     client.checkResponse(response);
