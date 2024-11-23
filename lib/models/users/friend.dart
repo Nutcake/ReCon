@@ -29,6 +29,11 @@ class Friend implements Comparable {
 
   bool get isBot => userStatus.sessionType == UserSessionType.bot || id == _resoniteBotId;
 
+  bool get isSociable =>
+      (userStatus.onlineStatus == OnlineStatus.sociable) &&
+      !isBot &&
+      !isHeadless;
+
   bool get isOffline =>
       (userStatus.onlineStatus == OnlineStatus.offline || userStatus.onlineStatus == OnlineStatus.invisible) &&
       !isBot &&
