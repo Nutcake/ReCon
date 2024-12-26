@@ -139,7 +139,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                                               color: Theme.of(context)
                                                                   .colorScheme
                                                                   .onSurface
-                                                                  .withOpacity(.5),
+                                                                  .withValues(alpha: .5),
                                                             ),
                                                       ),
                                                     ),

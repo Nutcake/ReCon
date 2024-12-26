@@ -138,7 +138,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                       begin: Alignment.centerLeft,
                                       end: Alignment.centerRight,
                                       colors: [
-                                        appBarColor.withOpacity(0),
+                                        appBarColor.withValues(alpha: 0),
                                         appBarColor,
                                         appBarColor,
                                       ],

@@ -111,7 +111,7 @@ class _ReConState extends State<ReCon> {
         return;
       }
 
-      if (remoteSem > currentSem && navigator.overlay?.context != null && context.mounted) {
+      if (remoteSem > currentSem && navigator.overlay?.context != null && mounted) {
         showDialog(
           context: navigator.overlay!.context,
           builder: (context) {
@@ -207,7 +207,7 @@ class _ReConState extends State<ReCon> {
                           ],
                           child: AnnotatedRegion<SystemUiOverlayStyle>(
                             value: SystemUiOverlayStyle(
-                              statusBarColor: Theme.of(context).colorScheme.surfaceVariant,
+                              statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                             ),
                             child: const Home(),
                           ),

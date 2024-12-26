@@ -54,10 +54,10 @@ extension DateTimeX on DateTime {
 
 extension ColorX on Color {
   Color invert() {
-    final r = 255 - red;
-    final g = 255 - green;
-    final b = 255 - blue;
+    final ir = 1.0 - r;
+    final ig = 1.0 - g;
+    final ib = 1.0 - b;
 
-    return Color.fromARGB((opacity * 255).round(), r, g, b);
+    return Color.fromARGB((a * 255).round(), (ir * 255).round(), (ig * 255).round(), (ib * 255).round());
   }
 }

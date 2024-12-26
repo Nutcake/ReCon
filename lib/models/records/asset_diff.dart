@@ -5,7 +5,7 @@ class AssetDiff extends ResoniteDBAsset{
   final Diff state;
   final bool isUploaded;
 
-  const AssetDiff({required hash, required bytes, required this.state, required this.isUploaded}) : super(hash: hash, bytes: bytes);
+  const AssetDiff({required super.hash, required super.bytes, required this.state, required this.isUploaded});
 
   factory AssetDiff.fromMap(Map map) {
     return AssetDiff(

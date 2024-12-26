@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -56,7 +55,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                 colors: [Colors.transparent, Colors.transparent, Colors.transparent, Theme
                     .of(context)
                     .colorScheme
-                    .surfaceVariant
+                    .surfaceContainerHighest
                 ],
                 stops: [0.0, 0.0, _showShadow ? 0.90 : 1.0, 1.0], // 10% purple, 80% transparent, 10% purple
               ).createShader(bounds);
@@ -164,7 +163,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                     setState(() {
                       _loadedFiles.addAll(
                           result.files.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
-                              .whereNotNull());
+                              .nonNulls);
                     });
                   }
 
@@ -235,7 +234,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                     setState(() {
                       _loadedFiles.addAll(
                           result.files.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null)
-                              .whereNotNull());
+                              .nonNulls);
                     });
                   }
                 },
@@ -245,7 +244,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
           ) : const SizedBox.shrink(),
         ),
         Container(
-          color: Theme.of(context).colorScheme.surfaceVariant,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: IconButton(onPressed: () {
             setState(() {
               _popupIsOpen = !_popupIsOpen;

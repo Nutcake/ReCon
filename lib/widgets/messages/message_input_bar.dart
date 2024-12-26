@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -203,7 +202,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
       child: Container(
         decoration: BoxDecoration(
           border: const Border(top: BorderSide(width: 1, color: Colors.black)),
-          color: Theme.of(context).colorScheme.surfaceVariant,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: SafeArea(
@@ -213,7 +212,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
               if (_isSending && _sendProgress != null) LinearProgressIndicator(value: _sendProgress),
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
@@ -237,7 +236,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                       setState(() {
                                         _loadedFiles.addAll(result.files
                                             .map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
-                                            .whereNotNull());
+                                            .nonNulls);
                                       });
                                     }
                                   },
@@ -281,7 +280,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                       setState(() {
                                         _loadedFiles.addAll(result.files
                                             .map((e) => e.path != null ? (FileType.any, File(e.path!)) : null)
-                                            .whereNotNull());
+                                            .nonNulls);
                                       });
                                     }
                                   },
