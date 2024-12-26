@@ -41,14 +41,12 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
           future: iClient.directoryFuture,
           builder: (context, snapshot) {
             final currentDir = snapshot.data;
-            return WillPopScope(
-              onWillPop: () async {
-                // Allow pop when at root or not loaded
-                if (currentDir?.isRoot ?? true) {
-                  return true;
+            return PopScope(
+              canPop: currentDir?.isRoot ?? true,
+              onPopInvokedWithResult: (didPop, result) {
+                if (!didPop) {
+                  iClient.navigateUp();
                 }
-                iClient.navigateUp();
-                return false;
               },
               child: RefreshIndicator(
                 onRefresh: () async {
