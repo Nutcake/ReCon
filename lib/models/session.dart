@@ -131,6 +131,7 @@ class Session {
 enum SessionAccessLevel {
   unknown,
   private,
+  lan,
   contacts,
   contactsPlus,
   registeredUsers,
@@ -139,6 +140,7 @@ enum SessionAccessLevel {
   static const _readableNamesMap = {
     SessionAccessLevel.unknown: "Unknown",
     SessionAccessLevel.private: "Private",
+    SessionAccessLevel.lan: "LAN",
     SessionAccessLevel.contacts: "Contacts only",
     SessionAccessLevel.contactsPlus: "Contacts+",
     SessionAccessLevel.registeredUsers: "Registered users",
