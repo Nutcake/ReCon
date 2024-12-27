@@ -239,8 +239,7 @@ class MessagingClient extends ChangeNotifier {
       case OnlineStatus.invisible:
         return 3.5;
       case OnlineStatus.offline:
-      default:
-        return 4;
+      return 4;
     }
   }
 

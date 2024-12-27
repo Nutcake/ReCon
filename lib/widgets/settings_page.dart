@@ -12,73 +12,75 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final sClient = ClientHolder.of(context).settingsClient;
     return ListView(
-        children: [
-          const ListSectionHeader(leadingText: "Notifications"),
-          BooleanSettingsTile(
-            title: "Enable Notifications",
-            initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
-            onChanged: (value) async =>
-                await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
-          ),
-          const ListSectionHeader(leadingText: "Appearance"),
-          ListTile(
-            trailing: StatefulBuilder(builder: (context, setState) {
-              return DropdownButton<ThemeMode>(
-                items: ThemeMode.values
-                    .map((mode) => DropdownMenuItem<ThemeMode>(
-                          value: mode,
-                          child: Text(
-                            "${toBeginningOfSentenceCase(mode.name)}",
-                          ),
-                        ))
-                    .toList(),
-                value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
-                onChanged: (ThemeMode? value) async {
-                  final currentSetting = sClient.currentSettings.themeMode.value;
-                  if (currentSetting != value?.index) {
-                    await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
-                    if (context.mounted) {
-                      Phoenix.rebirth(context);
-                    }
+      children: [
+        const ListSectionHeader(leadingText: "Notifications"),
+        BooleanSettingsTile(
+          title: "Enable Notifications",
+          initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
+          onChanged: (value) async =>
+              await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
+        ),
+        const ListSectionHeader(leadingText: "Appearance"),
+        ListTile(
+          trailing: StatefulBuilder(builder: (context, setState) {
+            return DropdownButton<ThemeMode>(
+              items: ThemeMode.values
+                  .map((mode) => DropdownMenuItem<ThemeMode>(
+                        value: mode,
+                        child: Text(
+                          toBeginningOfSentenceCase(mode.name),
+                        ),
+                      ))
+                  .toList(),
+              value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
+              onChanged: (ThemeMode? value) async {
+                final currentSetting = sClient.currentSettings.themeMode.value;
+                if (currentSetting != value?.index) {
+                  await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
+                  if (context.mounted) {
+                    Phoenix.rebirth(context);
                   }
-                  setState(() {});
-                },
-              );
-            }),
-            title: const Text("Theme Mode"),
-          ),
-          const ListSectionHeader(leadingText: "Other"),
-          ListTile(
-            trailing: const Icon(Icons.logout),
-            title: const Text("Sign out"),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text(
-                    "Are you sure you want to sign out?",
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
-                    TextButton(
-                      onPressed: () async {
-                        await ClientHolder.of(context).apiClient.logout();
-                      },
-                      child: const Text("Yes"),
-                    ),
-                  ],
+                }
+                setState(() {});
+              },
+            );
+          }),
+          title: const Text("Theme Mode"),
+        ),
+        const ListSectionHeader(leadingText: "Other"),
+        ListTile(
+          trailing: const Icon(Icons.logout),
+          title: const Text("Sign out"),
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(
+                  "Are you sure you want to sign out?",
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-              );
-            },
-          ),
-          ListTile(
-            trailing: const Icon(Icons.info_outline),
-            title: const Text("About ReCon"),
-            onTap: () async {
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
+                  TextButton(
+                    onPressed: () async {
+                      await ClientHolder.of(context).apiClient.logout();
+                    },
+                    child: const Text("Yes"),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        ListTile(
+          trailing: const Icon(Icons.info_outline),
+          title: const Text("About ReCon"),
+          onTap: () async {
+            final version = (await PackageInfo.fromPlatform()).version;
+            if (context.mounted) {
               showAboutDialog(
                 context: context,
-                applicationVersion: (await PackageInfo.fromPlatform()).version,
+                applicationVersion: version,
                 applicationIcon: InkWell(
                   onTap: () async {
                     if (!await launchUrl(Uri.parse("https://github.com/Nutcake/ReCon"),
@@ -97,10 +99,11 @@ class SettingsPage extends StatelessWidget {
                 ),
                 applicationLegalese: "Created by Nutcake with love <3",
               );
-            },
-          )
-        ],
-      );
+            }
+          },
+        )
+      ],
+    );
   }
 }
 

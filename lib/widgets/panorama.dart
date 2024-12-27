@@ -213,7 +213,7 @@ import 'package:flutter_cube/flutter_cube.dart';
 
 class Panorama extends StatefulWidget {
   const Panorama({
-    Key? key,
+    super.key,
     this.latitude = 0,
     this.longitude = 0,
     this.zoom = 1.0,
@@ -240,7 +240,7 @@ class Panorama extends StatefulWidget {
     this.onImageLoad,
     this.child,
     this.hotspots,
-  }) : super(key: key);
+  });
 
   /// The initial latitude, in degrees, between -90 and 90. default to 0 (the vertical center of the image).
   final double latitude;

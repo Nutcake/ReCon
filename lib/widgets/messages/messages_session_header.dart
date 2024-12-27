@@ -35,7 +35,7 @@ class SessionTile extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .labelMedium
-                      ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(.6)),
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
                 )
               ],
             ),

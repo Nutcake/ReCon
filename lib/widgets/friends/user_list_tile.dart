@@ -28,13 +28,13 @@ class _UserListTileState extends State<UserListTile> {
         .of(context)
         .colorScheme;
     final style = _localAdded ? IconButton.styleFrom(
-      foregroundColor: colorScheme.onBackground,
+      foregroundColor: colorScheme.onSurface,
       side: BorderSide(
         color: colorScheme.error,
         width: 2
       ),
     ) : IconButton.styleFrom(
-      foregroundColor: colorScheme.onBackground,
+      foregroundColor: colorScheme.onSurface,
         side: BorderSide(
           color: colorScheme.primary,
           width: 2

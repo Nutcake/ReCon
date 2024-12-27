@@ -111,7 +111,7 @@ class _ReConState extends State<ReCon> {
         return;
       }
 
-      if (remoteSem > currentSem && navigator.overlay?.context != null && context.mounted) {
+      if (remoteSem > currentSem && navigator.overlay?.context != null && mounted) {
         showDialog(
           context: navigator.overlay!.context,
           builder: (context) {
@@ -149,6 +149,44 @@ class _ReConState extends State<ReCon> {
   @pragma('vm:entry-point')
   static void downloadCallback(TaskUpdate event) {}
 
+  // Workaround for issue https://github.com/material-foundation/flutter-packages/issues/582
+  // Dynamic color schemes do not generate new additional surface container colours so we have to do it manually
+  (ColorScheme light, ColorScheme dark) _generateDynamicColourSchemes(
+      ColorScheme lightDynamic, ColorScheme darkDynamic) {
+    var lightBase = ColorScheme.fromSeed(seedColor: lightDynamic.primary);
+    var darkBase = ColorScheme.fromSeed(seedColor: darkDynamic.primary, brightness: Brightness.dark);
+
+    var lightAdditionalColours = _extractAdditionalColours(lightBase);
+    var darkAdditionalColours = _extractAdditionalColours(darkBase);
+
+    var lightScheme = _insertAdditionalColours(lightBase, lightAdditionalColours);
+    var darkScheme = _insertAdditionalColours(darkBase, darkAdditionalColours);
+
+    return (lightScheme.harmonized(), darkScheme.harmonized());
+  }
+
+  List<Color> _extractAdditionalColours(ColorScheme scheme) => [
+        scheme.surface,
+        scheme.surfaceDim,
+        scheme.surfaceBright,
+        scheme.surfaceContainerLowest,
+        scheme.surfaceContainerLow,
+        scheme.surfaceContainer,
+        scheme.surfaceContainerHigh,
+        scheme.surfaceContainerHighest,
+      ];
+
+  ColorScheme _insertAdditionalColours(ColorScheme scheme, List<Color> additionalColours) => scheme.copyWith(
+        surface: additionalColours[0],
+        surfaceDim: additionalColours[1],
+        surfaceBright: additionalColours[2],
+        surfaceContainerLowest: additionalColours[3],
+        surfaceContainerLow: additionalColours[4],
+        surfaceContainer: additionalColours[5],
+        surfaceContainerHigh: additionalColours[6],
+        surfaceContainerHighest: additionalColours[7],
+      );
+
   @override
   Widget build(BuildContext context) {
     return Phoenix(
@@ -163,67 +201,73 @@ class _ReConState extends State<ReCon> {
             Phoenix.rebirth(context);
           },
           child: DynamicColorBuilder(
-            builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) => MaterialApp(
-              debugShowCheckedModeBanner: true,
-              title: 'ReCon',
-              theme: ThemeData(
-                useMaterial3: true,
-                textTheme: _typography.black,
-                colorScheme:
-                    lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
-              ),
-              darkTheme: ThemeData(
-                useMaterial3: true,
-                textTheme: _typography.white,
-                colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
-              ),
-              themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
-              home: Builder(
-                // Builder is necessary here since we need a context which has access to the ClientHolder
-                builder: (context) {
-                  showUpdateDialogOnFirstBuild(context);
-                  final clientHolder = ClientHolder.of(context);
-                  return _authData.isAuthenticated
-                      ? MultiProvider(
-                          providers: [
-                            ChangeNotifierProvider(
-                              create: (context) => MessagingClient(
-                                apiClient: clientHolder.apiClient,
-                                settingsClient: clientHolder.settingsClient,
-                                notificationClient: clientHolder.notificationClient,
+            builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+              if (lightDynamic != null && darkDynamic != null) {
+                (lightDynamic, darkDynamic) = _generateDynamicColourSchemes(lightDynamic, darkDynamic);
+              }
+              return MaterialApp(
+                debugShowCheckedModeBanner: true,
+                title: 'ReCon',
+                theme: ThemeData(
+                  useMaterial3: true,
+                  textTheme: _typography.black,
+                  colorScheme:
+                      lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
+                ),
+                darkTheme: ThemeData(
+                  useMaterial3: true,
+                  textTheme: _typography.white,
+                  colorScheme:
+                      darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+                ),
+                themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+                home: Builder(
+                  // Builder is necessary here since we need a context which has access to the ClientHolder
+                  builder: (context) {
+                    showUpdateDialogOnFirstBuild(context);
+                    final clientHolder = ClientHolder.of(context);
+                    return _authData.isAuthenticated
+                        ? MultiProvider(
+                            providers: [
+                              ChangeNotifierProvider(
+                                create: (context) => MessagingClient(
+                                  apiClient: clientHolder.apiClient,
+                                  settingsClient: clientHolder.settingsClient,
+                                  notificationClient: clientHolder.notificationClient,
+                                ),
                               ),
-                            ),
-                            ChangeNotifierProvider(
-                              create: (context) => SessionClient(
-                                apiClient: clientHolder.apiClient,
-                                settingsClient: clientHolder.settingsClient,
+                              ChangeNotifierProvider(
+                                create: (context) => SessionClient(
+                                  apiClient: clientHolder.apiClient,
+                                  settingsClient: clientHolder.settingsClient,
+                                ),
                               ),
-                            ),
-                            ChangeNotifierProvider(
-                              create: (context) => InventoryClient(
-                                apiClient: clientHolder.apiClient,
+                              ChangeNotifierProvider(
+                                create: (context) => InventoryClient(
+                                  apiClient: clientHolder.apiClient,
+                                ),
+                              )
+                            ],
+                            child: AnnotatedRegion<SystemUiOverlayStyle>(
+                              value: SystemUiOverlayStyle(
+                                statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                               ),
-                            )
-                          ],
-                          child: AnnotatedRegion<SystemUiOverlayStyle>(
-                            value: SystemUiOverlayStyle(
-                              statusBarColor: Theme.of(context).colorScheme.surfaceVariant,
+                              child: const Home(),
                             ),
-                            child: const Home(),
-                          ),
-                        )
-                      : LoginScreen(
-                          onLoginSuccessful: (AuthenticationData authData) async {
-                            if (authData.isAuthenticated) {
-                              setState(() {
-                                _authData = authData;
-                              });
-                            }
-                          },
-                        );
-                },
-              ),
-            ),
+                          )
+                        : LoginScreen(
+                            onLoginSuccessful: (AuthenticationData authData) async {
+                              if (authData.isAuthenticated) {
+                                setState(() {
+                                  _authData = authData;
+                                });
+                              }
+                            },
+                          );
+                  },
+                ),
+              );
+            },
           ),
         );
       }),

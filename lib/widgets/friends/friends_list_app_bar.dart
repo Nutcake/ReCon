@@ -53,7 +53,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               }
             },
             itemBuilder: (BuildContext context) => OnlineStatus.values
-                .where((element) => element == OnlineStatus.online || element == OnlineStatus.offline).sorted((a, b) => b.index.compareTo(a.index),)
+                .where((element) => element == OnlineStatus.sociable || element == OnlineStatus.online ||element == OnlineStatus.busy || element == OnlineStatus.offline).sorted((a, b) => b.index.compareTo(a.index),)
                 .map(
                   (item) => PopupMenuItem<OnlineStatus>(
                     value: item,

@@ -1,8 +1,6 @@
 
 import 'dart:math';
 
-import 'package:collection/collection.dart';
-
 class PhotoAsset {
   final String locationName;
   final List<String> userIds;
@@ -23,7 +21,7 @@ class PhotoAsset {
         return null;
       }
       return MapEntry(key, value);
-    }).whereNotNull());
+    }).nonNulls);
     return PhotoAsset(
       locationName: parsedTags["location_name"]!,
       userIds: userIds,
