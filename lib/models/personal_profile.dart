@@ -38,9 +38,18 @@ class PersonalProfile {
       supporterMetadata: ((map["supporterMetadata"] ?? []) as List).map((e) => SupporterMetadata.fromMap(e)).toList(),
     );
   }
+  
+  /// Has supported anywhere
+  bool get isSupporter => supporterMetadata.any((element) => element.TotalSupportMonths > 0);
 
-  bool get isPatreonSupporter =>
-      supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
+  /// Actively supporting
+  bool get isAnyActiveSupporter => supporterMetadata.any((element) => element.isActiveSupporter);
+
+  /// Actively supporting on Patreon
+  bool get isPatreonSupporter => supporterMetadata.any((element) => element.type == "patreon" && element.isActiveSupporter);
+
+  /// Actively supporting on Stripe
+  bool get isStripeSupporter => supporterMetadata.any((element) => element.type == "stripe" && element.isActiveSupporter);
 }
 
 class StorageQuota {
@@ -72,13 +81,15 @@ class SupporterMetadata {
   factory SupporterMetadata.fromMap(Map map) {
     final type = map["\$type"];
     return switch (type) {
-      "patreon" => PatreonSupporter.fromMap(map),
-      _ => SupporterMetadata(),
-    };
+      "patreon" => SubscriptionSupporter.fromMap(map),
+      "stripe" => SubscriptionSupporter.fromMap(map),
+      _ => SupporterMetadata()
+    }
   }
 }
 
-class PatreonSupporter extends SupporterMetadata {
+class SubscriptionSupporter extends SupporterMetadata {
+  final String type;
   final bool isActiveSupporter;
   final int totalSupportMonths;
   final int totalSupportCents;
@@ -88,7 +99,8 @@ class PatreonSupporter extends SupporterMetadata {
   final DateTime firstSupportTimestamp;
   final DateTime lastSupportTimestamp;
 
-  PatreonSupporter({
+  SubscriptionSupporter({
+    required this.type,
     required this.isActiveSupporter,
     required this.totalSupportMonths,
     required this.totalSupportCents,
@@ -99,8 +111,9 @@ class PatreonSupporter extends SupporterMetadata {
     required this.lastSupportTimestamp,
   });
 
-  factory PatreonSupporter.fromMap(Map map) {
-    return PatreonSupporter(
+  factory SubscriptionSupporter.fromMap(Map map) {
+    return SubscriptionSupporter(
+      type: map["\$type"] ?? "unknown",
       isActiveSupporter: map["isActiveSupporter"],
       totalSupportMonths: map["totalSupportMonths"],
       totalSupportCents: map["totalSupportCents"],
