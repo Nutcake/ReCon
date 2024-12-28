@@ -40,16 +40,16 @@ class PersonalProfile {
   }
   
   /// Has supported anywhere
-  bool get isSupporter => supporterMetadata.any((element) => element.TotalSupportMonths > 0);
+  bool get isSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.totalSupportMonths > 0);
 
   /// Actively supporting
-  bool get isAnyActiveSupporter => supporterMetadata.any((element) => element.isActiveSupporter);
+  bool get isAnyActiveSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.isActiveSupporter);
 
   /// Actively supporting on Patreon
-  bool get isPatreonSupporter => supporterMetadata.any((element) => element.type == "patreon" && element.isActiveSupporter);
+  bool get isPatreonSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.type == "patreon" && element.isActiveSupporter);
 
   /// Actively supporting on Stripe
-  bool get isStripeSupporter => supporterMetadata.any((element) => element.type == "stripe" && element.isActiveSupporter);
+  bool get isStripeSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.type == "stripe" && element.isActiveSupporter);
 }
 
 class StorageQuota {
@@ -84,7 +84,7 @@ class SupporterMetadata {
       "patreon" => SubscriptionSupporter.fromMap(map),
       "stripe" => SubscriptionSupporter.fromMap(map),
       _ => SupporterMetadata()
-    }
+    };
   }
 }
 

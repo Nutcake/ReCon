@@ -18,7 +18,7 @@ class UserProfile {
 
   factory UserProfile.fromMap(Map? map) {
     return UserProfile(
-      iconUrl: map?["iconUrl"] ?? ""
+      iconUrl: map?["iconUrl"] ?? "",
       tagline: map?["tagline"],
       description: map?["description"],
     );
