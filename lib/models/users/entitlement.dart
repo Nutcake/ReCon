@@ -52,8 +52,8 @@ class StorageSpace extends Entitlement {
 }
 
 enum BadgeType {
-  Static2D,
-  Model
+  static2D,
+  model
 }
 
 class Badge extends Entitlement {
@@ -69,7 +69,7 @@ class Badge extends Entitlement {
 
   factory Badge.fromMap(Map map) {
     return Badge(
-      badgeType: BadgeType.values.firstWhere((e) => e.name == map["badgeType"], orElse: () => BadgeType.Static2D),
+      badgeType: BadgeType.values.firstWhere((e) => e.name == map["badgeType"], orElse: () => BadgeType.static2D),
       badgeCount: map["badgeCount"],
       entitlementOrigins: List<String>.from(map["entitlementOrigins"] ?? []),
     );
@@ -111,7 +111,7 @@ class Credits extends Entitlement {
 
   factory Credits.fromMap(Map map) {
     return Credits(
-      creditType: CreditType.values.firstWhere((e) => e.name == map["creditType"], orElse: () => CreditType.Basic),
+      creditType: CreditType.values.firstWhere((e) => e.name == map["creditType"], orElse: () => CreditType.basic),
       entitlementOrigins: List<String>.from(map["entitlementOrigins"] ?? []),
     );
   }
