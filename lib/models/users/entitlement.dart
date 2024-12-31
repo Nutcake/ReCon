@@ -94,10 +94,10 @@ class ShoutOut extends Entitlement {
 }
 
 enum CreditType {
-  Basic,
-  Prominent,
-  Spoken,
-  Sponsor
+  basic,
+  prominent,
+  spoken,
+  sponsor
 }
 
 class Credits extends Entitlement {
