@@ -18,7 +18,7 @@ class Entitlement {
 
 class StorageSpace extends Entitlement {
   final int bytes;
-  final int maximumShareLevel;
+  final StorageShareLevel maximumShareLevel;
   final String storageId;
   final String group;
   final DateTime startsOn;
@@ -40,7 +40,7 @@ class StorageSpace extends Entitlement {
   factory StorageSpace.fromMap(Map map) {
     return StorageSpace(
       bytes: map["bytes"],
-      maximumShareLevel: map["maximumShareLevel"],
+      maximumShareLevel: StorageShareLevel.fromString(map["maximumShareLevel"]),
       storageId: map["storageId"],
       group: map["group"],
       startsOn: DateTime.tryParse(map["startsOn"] ?? "") ?? DateTimeX.epoch,
@@ -54,6 +54,18 @@ class StorageSpace extends Entitlement {
 enum BadgeType {
   static2D,
   model
+}
+
+enum StorageShareLevel {
+  none,
+  groups,
+  groupsAndUsers;
+
+  factory StorageShareLevel.fromString(String text) {
+    return StorageShareLevel.values.firstWhere((element) => element.name.toLowerCase() == text.toLowerCase(),
+      orElse: () => StorageShareLevel.none,
+    );
+  }
 }
 
 class Badge extends Entitlement {
