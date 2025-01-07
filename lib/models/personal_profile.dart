@@ -46,10 +46,10 @@ class PersonalProfile {
   bool get isAnyActiveSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.isActiveSupporter);
 
   /// Actively supporting on Patreon
-  bool get isPatreonSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.type == "patreon" && element.isActiveSupporter);
+  bool get isPatreonSupporter => supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
 
   /// Actively supporting on Stripe
-  bool get isStripeSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.type == "stripe" && element.isActiveSupporter);
+  bool get isStripeSupporter => supporterMetadata.whereType<StripeSupporter>().any((element) => element.isActiveSupporter);
 }
 
 class StorageQuota {
@@ -81,15 +81,14 @@ class SupporterMetadata {
   factory SupporterMetadata.fromMap(Map map) {
     final type = map["\$type"];
     return switch (type) {
-      "patreon" => SubscriptionSupporter.fromMap(map),
-      "stripe" => SubscriptionSupporter.fromMap(map),
+      "patreon" => PatreonSupporter.fromMap(map),
+      "stripe" => StripeSupporter.fromMap(map),
       _ => SupporterMetadata()
     };
   }
 }
 
 class SubscriptionSupporter extends SupporterMetadata {
-  final String type;
   final bool isActiveSupporter;
   final int totalSupportMonths;
   final int totalSupportCents;
@@ -100,7 +99,6 @@ class SubscriptionSupporter extends SupporterMetadata {
   final DateTime lastSupportTimestamp;
 
   SubscriptionSupporter({
-    required this.type,
     required this.isActiveSupporter,
     required this.totalSupportMonths,
     required this.totalSupportCents,
@@ -113,7 +111,59 @@ class SubscriptionSupporter extends SupporterMetadata {
 
   factory SubscriptionSupporter.fromMap(Map map) {
     return SubscriptionSupporter(
-      type: map["\$type"] ?? "unknown",
+      isActiveSupporter: map["isActiveSupporter"],
+      totalSupportMonths: map["totalSupportMonths"],
+      totalSupportCents: map["totalSupportCents"],
+      lastTierCents: map["lastTierCents"],
+      highestTierCents: map["highestTierCents"],
+      lowestTierCents: map["lowestTierCents"],
+      firstSupportTimestamp: DateTime.tryParse(map["firstSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+      lastSupportTimestamp: DateTime.tryParse(map["lastSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+    );
+  }
+}
+
+class PatreonSupporter extends SubscriptionSupporter {
+  PatreonSupporter({
+    required super.isActiveSupporter,
+    required super.totalSupportMonths,
+    required super.totalSupportCents,
+    required super.lastTierCents,
+    required super.highestTierCents,
+    required super.lowestTierCents,
+    required super.firstSupportTimestamp,
+    required super.lastSupportTimestamp,
+  });
+
+
+  factory PatreonSupporter.fromMap(Map map) {
+    return PatreonSupporter(
+      isActiveSupporter: map["isActiveSupporter"],
+      totalSupportMonths: map["totalSupportMonths"],
+      totalSupportCents: map["totalSupportCents"],
+      lastTierCents: map["lastTierCents"],
+      highestTierCents: map["highestTierCents"],
+      lowestTierCents: map["lowestTierCents"],
+      firstSupportTimestamp: DateTime.tryParse(map["firstSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+      lastSupportTimestamp: DateTime.tryParse(map["lastSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+    );
+  }
+}
+
+class StripeSupporter extends SubscriptionSupporter {
+  StripeSupporter({
+    required super.isActiveSupporter,
+    required super.totalSupportMonths,
+    required super.totalSupportCents,
+    required super.lastTierCents,
+    required super.highestTierCents,
+    required super.lowestTierCents,
+    required super.firstSupportTimestamp,
+    required super.lastSupportTimestamp,
+  });
+
+  factory StripeSupporter.fromMap(Map map) {
+    return StripeSupporter(
       isActiveSupporter: map["isActiveSupporter"],
       totalSupportMonths: map["totalSupportMonths"],
       totalSupportCents: map["totalSupportCents"],
