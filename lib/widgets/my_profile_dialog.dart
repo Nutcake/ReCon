@@ -101,6 +101,16 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                       Text(profile.isPatreonSupporter ? "Yes" : "No")
                     ],
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Stripe Supporter: ",
+                        style: tt.labelLarge,
+                      ),
+                      Text(profile.isStripeSupporter ? "Yes" : "No")
+                    ],
+                  ),
                   if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
