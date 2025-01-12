@@ -38,9 +38,18 @@ class PersonalProfile {
       supporterMetadata: ((map["supporterMetadata"] ?? []) as List).map((e) => SupporterMetadata.fromMap(e)).toList(),
     );
   }
+  
+  /// Has supported anywhere
+  bool get isSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.totalSupportMonths > 0);
 
-  bool get isPatreonSupporter =>
-      supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
+  /// Actively supporting
+  bool get isAnyActiveSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.isActiveSupporter);
+
+  /// Actively supporting on Patreon
+  bool get isPatreonSupporter => supporterMetadata.whereType<PatreonSupporter>().any((element) => element.isActiveSupporter);
+
+  /// Actively supporting on Stripe
+  bool get isStripeSupporter => supporterMetadata.whereType<StripeSupporter>().any((element) => element.isActiveSupporter);
 }
 
 class StorageQuota {
@@ -73,12 +82,13 @@ class SupporterMetadata {
     final type = map["\$type"];
     return switch (type) {
       "patreon" => PatreonSupporter.fromMap(map),
-      _ => SupporterMetadata(),
+      "stripe" => StripeSupporter.fromMap(map),
+      _ => SupporterMetadata()
     };
   }
 }
 
-class PatreonSupporter extends SupporterMetadata {
+class SubscriptionSupporter extends SupporterMetadata {
   final bool isActiveSupporter;
   final int totalSupportMonths;
   final int totalSupportCents;
@@ -88,7 +98,7 @@ class PatreonSupporter extends SupporterMetadata {
   final DateTime firstSupportTimestamp;
   final DateTime lastSupportTimestamp;
 
-  PatreonSupporter({
+  SubscriptionSupporter({
     required this.isActiveSupporter,
     required this.totalSupportMonths,
     required this.totalSupportCents,
@@ -99,8 +109,61 @@ class PatreonSupporter extends SupporterMetadata {
     required this.lastSupportTimestamp,
   });
 
+  factory SubscriptionSupporter.fromMap(Map map) {
+    return SubscriptionSupporter(
+      isActiveSupporter: map["isActiveSupporter"],
+      totalSupportMonths: map["totalSupportMonths"],
+      totalSupportCents: map["totalSupportCents"],
+      lastTierCents: map["lastTierCents"],
+      highestTierCents: map["highestTierCents"],
+      lowestTierCents: map["lowestTierCents"],
+      firstSupportTimestamp: DateTime.tryParse(map["firstSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+      lastSupportTimestamp: DateTime.tryParse(map["lastSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+    );
+  }
+}
+
+class PatreonSupporter extends SubscriptionSupporter {
+  PatreonSupporter({
+    required super.isActiveSupporter,
+    required super.totalSupportMonths,
+    required super.totalSupportCents,
+    required super.lastTierCents,
+    required super.highestTierCents,
+    required super.lowestTierCents,
+    required super.firstSupportTimestamp,
+    required super.lastSupportTimestamp,
+  });
+
+
   factory PatreonSupporter.fromMap(Map map) {
     return PatreonSupporter(
+      isActiveSupporter: map["isActiveSupporter"],
+      totalSupportMonths: map["totalSupportMonths"],
+      totalSupportCents: map["totalSupportCents"],
+      lastTierCents: map["lastTierCents"],
+      highestTierCents: map["highestTierCents"],
+      lowestTierCents: map["lowestTierCents"],
+      firstSupportTimestamp: DateTime.tryParse(map["firstSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+      lastSupportTimestamp: DateTime.tryParse(map["lastSupportTimestamp"] ?? "") ?? DateTimeX.epoch,
+    );
+  }
+}
+
+class StripeSupporter extends SubscriptionSupporter {
+  StripeSupporter({
+    required super.isActiveSupporter,
+    required super.totalSupportMonths,
+    required super.totalSupportCents,
+    required super.lastTierCents,
+    required super.highestTierCents,
+    required super.lowestTierCents,
+    required super.firstSupportTimestamp,
+    required super.lastSupportTimestamp,
+  });
+
+  factory StripeSupporter.fromMap(Map map) {
+    return StripeSupporter(
       isActiveSupporter: map["isActiveSupporter"],
       totalSupportMonths: map["totalSupportMonths"],
       totalSupportCents: map["totalSupportCents"],
