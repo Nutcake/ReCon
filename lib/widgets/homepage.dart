@@ -7,6 +7,8 @@ import 'package:recon/widgets/sessions/session_list.dart';
 import 'package:recon/widgets/sessions/session_list_app_bar.dart';
 import 'package:recon/widgets/settings_app_bar.dart';
 import 'package:recon/widgets/settings_page.dart';
+import 'package:recon/widgets/worlds/world_list.dart';
+import 'package:recon/widgets/worlds/world_list_app_bar.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -16,13 +18,23 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  static const List<Widget> _appBars = [
-    FriendsListAppBar(),
-    SessionListAppBar(),
-    InventoryBrowserAppBar(),
-    SettingsAppBar()
+  late final List<Widget> _appBars = [
+    const FriendsListAppBar(),
+    const SessionListAppBar(),
+    WorldListAppBar(
+      onQueryChanged: ({required needle, required sortDirection, required sortParameter}) {
+        _worldListKey.currentState?.changeQuery(
+          needle: needle,
+          sortDirection: sortDirection,
+          sortParameter: sortParameter,
+        );
+      },
+    ),
+    const InventoryBrowserAppBar(),
+    const SettingsAppBar(),
   ];
   final PageController _pageController = PageController();
+  final _worldListKey = GlobalKey<WorldListState>();
 
   int _selectedPage = 0;
 
@@ -40,11 +52,14 @@ class _HomeState extends State<Home> {
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
-        children: const [
-          FriendsList(),
-          SessionList(),
-          InventoryBrowser(),
-          SettingsPage(),
+        children: [
+          const FriendsList(),
+          const SessionList(),
+          WorldList(
+            key: _worldListKey,
+          ),
+          const InventoryBrowser(),
+          const SettingsPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -65,8 +80,12 @@ class _HomeState extends State<Home> {
             label: "Chat",
           ),
           NavigationDestination(
-            icon: Icon(Icons.public),
+            icon: Icon(Icons.groups),
             label: "Sessions",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.public),
+            label: "Worlds",
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory),

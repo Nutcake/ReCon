@@ -15,6 +15,7 @@ import 'package:recon/models/records/preprocess_status.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
+import 'package:recon/models/records/search_sort.dart';
 
 class RecordApi {
   static Future<Record> getUserRecord(ApiClient client, {required String recordId, String? user}) async {
@@ -29,6 +30,28 @@ class RecordApi {
     client.checkResponse(response);
     final body = jsonDecode(response.body) as Map;
     return Record.fromMap(body);
+  }
+
+  static Future<List<Record>> searchWorldRecords(
+    ApiClient client, {
+    List<String> requiredTags = const [],
+    SearchSortDirection sortDirection = SearchSortDirection.descending,
+    SearchSortParameter sortParameter = SearchSortParameter.lastUpdateDate,
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final requestBody = {
+      "requiredTags": requiredTags,
+      "sortDirection": sortDirection.toString(),
+      "sortBy": sortParameter.toString(),
+      "count": limit,
+      "offset": offset,
+      "recordType": "world",
+    };
+    final response = await client.post("/records/pagedSearch", body: jsonEncode(requestBody));
+    client.checkResponse(response);
+    final body = (jsonDecode(response.body) as Map)["records"] as List;
+    return body.map((e) => Record.fromMap(e)).toList();
   }
 
   static Future<List<Record>> getUserRecordsAt(ApiClient client, {required String path, String? user}) async {
@@ -52,18 +75,14 @@ class RecordApi {
 
   static Future<PreprocessStatus> preprocessRecord(ApiClient client, {required Record record}) async {
     final body = jsonEncode(record.toMap());
-    final response = await client.post(
-        "/users/${record.ownerId}/records/${record.id}/preprocess", body: body);
+    final response = await client.post("/users/${record.ownerId}/records/${record.id}/preprocess", body: body);
     client.checkResponse(response);
     final resultBody = jsonDecode(response.body);
     return PreprocessStatus.fromMap(resultBody);
   }
 
-  static Future<PreprocessStatus> getPreprocessStatus(ApiClient client,
-      {required PreprocessStatus preprocessStatus}) async {
-    final response = await client.get(
-        "/users/${preprocessStatus.ownerId}/records/${preprocessStatus.recordId}/preprocess/${preprocessStatus.id}"
-    );
+  static Future<PreprocessStatus> getPreprocessStatus(ApiClient client, {required PreprocessStatus preprocessStatus}) async {
+    final response = await client.get("/users/${preprocessStatus.ownerId}/records/${preprocessStatus.recordId}/preprocess/${preprocessStatus.id}");
     client.checkResponse(response);
     final body = jsonDecode(response.body);
     return PreprocessStatus.fromMap(body);
@@ -98,18 +117,21 @@ class RecordApi {
   }
 
   static Future<void> uploadAsset(ApiClient client,
-      {required AssetUploadData uploadData, required String filename, required ResoniteDBAsset asset, required Uint8List data, void Function(double number)? progressCallback}) async {
+      {required AssetUploadData uploadData,
+      required String filename,
+      required ResoniteDBAsset asset,
+      required Uint8List data,
+      void Function(double number)? progressCallback}) async {
     for (int i = 0; i < uploadData.totalChunks; i++) {
-      progressCallback?.call(i/uploadData.totalChunks);
+      progressCallback?.call(i / uploadData.totalChunks);
       final offset = i * uploadData.chunkSize;
       final end = (i + 1) * uploadData.chunkSize;
       final request = http.MultipartRequest(
         "POST",
         ApiClient.buildFullUri("/users/${client.userId}/assets/${asset.hash}/chunks/$i"),
       )
-        ..files.add(http.MultipartFile.fromBytes(
-            "file", data.getRange(offset, min(end, data.length)).toList(), filename: filename,
-            contentType: MediaType.parse("multipart/form-data")))
+        ..files.add(
+            http.MultipartFile.fromBytes("file", data.getRange(offset, min(end, data.length)).toList(), filename: filename, contentType: MediaType.parse("multipart/form-data")))
         ..headers.addAll(client.authorizationHeader);
       final response = await request.send();
       final bodyBytes = await response.stream.toBytes();
@@ -126,19 +148,20 @@ class RecordApi {
   static Future<void> uploadAssets(ApiClient client, {required List<AssetDigest> assets, void Function(double progress)? progressCallback}) async {
     progressCallback?.call(0);
     for (int i = 0; i < assets.length; i++) {
-      final totalProgress = i/assets.length;
+      final totalProgress = i / assets.length;
       progressCallback?.call(totalProgress);
       final entry = assets[i];
       final uploadData = await beginUploadAsset(client, asset: entry.asset);
       if (uploadData.uploadState == UploadState.failed) {
         throw "Asset upload failed: ${uploadData.uploadState.name}";
       }
-      await uploadAsset(client,
+      await uploadAsset(
+        client,
         uploadData: uploadData,
         asset: entry.asset,
         data: entry.data,
         filename: entry.name,
-        progressCallback: (progress) => progressCallback?.call(totalProgress + progress * 1/assets.length),
+        progressCallback: (progress) => progressCallback?.call(totalProgress + progress * 1 / assets.length),
       );
       await finishUpload(client, asset: entry.asset);
     }
@@ -151,8 +174,7 @@ class RecordApi {
     final imageData = await decodeImageFromList(imageDigest.data);
     final filename = basenameWithoutExtension(image.path);
 
-    final objectJson = jsonEncode(
-        JsonTemplate.image(imageUri: imageDigest.dbUri, filename: filename, width: imageData.width, height: imageData.height).data);
+    final objectJson = jsonEncode(JsonTemplate.image(imageUri: imageDigest.dbUri, filename: filename, width: imageData.width, height: imageData.height).data);
     final objectBytes = Uint8List.fromList(utf8.encode(objectJson));
 
     final objectDigest = await AssetDigest.fromData(objectBytes, "${basenameWithoutExtension(image.path)}.json");
@@ -174,10 +196,9 @@ class RecordApi {
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
     progressCallback?.call(.2);
 
-    await uploadAssets(
-      client,
-      assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
-      progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await uploadAssets(client,
+        assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+        progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
     await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;
@@ -205,8 +226,7 @@ class RecordApi {
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
     progressCallback?.call(.2);
 
-    await uploadAssets(
-        client,
+    await uploadAssets(client,
         assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
         progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
     await upsertRecord(client, record: record);
@@ -240,8 +260,7 @@ class RecordApi {
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
     progressCallback?.call(.2);
 
-    await uploadAssets(
-        client,
+    await uploadAssets(client,
         assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
         progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
     await upsertRecord(client, record: record);
