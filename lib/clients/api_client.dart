@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:recon/models/authentication_data.dart';
 import 'package:logging/logging.dart';
+import 'package:recon/models/authentication_data.dart';
 import 'package:uuid/uuid.dart';
 
 import '../config.dart';
@@ -17,8 +18,7 @@ class ApiClient {
   static const String passwordKey = "password";
   static const String uidKey = "uid";
 
-  ApiClient({required AuthenticationData authenticationData, required this.onLogout})
-      : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData, required this.onLogout}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
@@ -43,7 +43,7 @@ class ApiClient {
     final body = {
       (username.contains("@") ? "email" : "username"): username.trim(),
       "authentication": {
-        "\$type": "password",
+        r"$type": "password",
         "password": password,
       },
       "rememberMe": rememberMe,
@@ -66,11 +66,11 @@ class ApiClient {
       throw "Invalid Credentials";
     }
     checkResponseCode(response);
-    final data = jsonDecode(response.body);
-    data["entity"]["uid"] = uid;
+    final data = jsonDecode(response.body) as Map;
+    (data["entity"] as Map)["uid"] = uid;
     final authData = AuthenticationData.fromMap(data);
     if (authData.isAuthenticated) {
-      const FlutterSecureStorage storage = FlutterSecureStorage(
+      const storage = FlutterSecureStorage(
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       );
       await storage.write(key: userIdKey, value: authData.userId);
@@ -83,24 +83,27 @@ class ApiClient {
   }
 
   static Future<AuthenticationData> tryCachedLogin() async {
-    const FlutterSecureStorage storage = FlutterSecureStorage(
+    const storage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     );
-    String? userId = await storage.read(key: userIdKey);
-    String? machineId = await storage.read(key: machineIdKey);
-    String? token = await storage.read(key: tokenKey);
-    String? password = await storage.read(key: passwordKey);
-    String? uid = await storage.read(key: uidKey);
+    var userId = await storage.read(key: userIdKey);
+    final machineId = await storage.read(key: machineIdKey);
+    final token = await storage.read(key: tokenKey);
+    final password = await storage.read(key: passwordKey);
+    final uid = await storage.read(key: uidKey);
 
     if (userId == null || machineId == null || uid == null) {
       return AuthenticationData.unauthenticated();
     }
 
     if (token != null) {
-      final response = await http.patch(buildFullUri("/userSessions"), headers: {
-        "Authorization": "res $userId:$token",
-        "UID": uid,
-      });
+      final response = await http.patch(
+        buildFullUri("/userSessions"),
+        headers: {
+          "Authorization": "res $userId:$token",
+          "UID": uid,
+        },
+      );
       if (response.statusCode < 300) {
         return AuthenticationData(
           userId: userId,
@@ -125,7 +128,7 @@ class ApiClient {
   }
 
   Future<void> logout() async {
-    const FlutterSecureStorage storage = FlutterSecureStorage(
+    const storage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     );
     await storage.delete(key: userIdKey);
@@ -156,8 +159,7 @@ class ApiClient {
   static void checkResponseCode(http.Response response) {
     if (response.statusCode < 300) return;
 
-    final error =
-        "${response.request?.method ?? "Unknown Method"}|${response.request?.url ?? "Unknown URL"}: ${switch (response.statusCode) {
+    final error = "${response.request?.method ?? "Unknown Method"}|${response.request?.url ?? "Unknown URL"}: ${switch (response.statusCode) {
       429 => "You are being rate limited.",
       403 => "You are not authorized to do that.",
       404 => "Resource not found.",
@@ -165,10 +167,12 @@ class ApiClient {
       _ => "Unknown Error."
     }} (${response.statusCode}${kDebugMode && response.body.isNotEmpty ? "|${response.body}" : ""})";
 
-    FlutterError.reportError(FlutterErrorDetails(
-      exception: error,
-      stack: StackTrace.current,
-    ));
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: StackTrace.current,
+      ),
+    );
     throw error;
   }
 

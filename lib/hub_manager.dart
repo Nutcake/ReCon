@@ -1,22 +1,24 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import 'package:recon/config.dart';
 import 'package:recon/models/hub_events.dart';
-import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart';
 
 class HubManager {
   static const String _eofChar = "";
-  static const String _negotiationPacket = "{\"protocol\":\"json\", \"version\":1}$_eofChar";
+  static const String _negotiationPacket = '{"protocol":"json", "version":1}$_eofChar';
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
 
   final Logger _logger = Logger("Hub");
   final Map<String, dynamic> _headers = {};
   final Map<EventTarget, dynamic Function(List arguments)> _handlers = {};
   final Map<String, dynamic Function(Map result)> _responseHandlers = {};
+  FutureOr<void> Function() onConnected = () {};
   WebSocket? _wsChannel;
   bool _isConnecting = false;
   int _attempts = 0;
@@ -29,7 +31,7 @@ class HubManager {
     _headers.addAll(headers);
   }
 
-  void _onDisconnected(error) async {
+  Future<void> _onDisconnected(error) async {
     _wsChannel = null;
     _logger.warning("Hub connection died with error '$error', reconnecting...");
     await start();
@@ -43,9 +45,10 @@ class HubManager {
     _wsChannel = await _tryConnect();
     _isConnecting = false;
     _logger.info("Connected to Resonite Hub.");
-    _wsChannel!.done.then((error) => _onDisconnected(error));
+    unawaited(_wsChannel!.done.then(_onDisconnected));
     _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
     _wsChannel!.add(_negotiationPacket);
+    await onConnected();
   }
 
   Future<WebSocket> _tryConnect() async {
@@ -56,8 +59,9 @@ class HubManager {
         return ws;
       } catch (e) {
         final timeout = _reconnectTimeoutsSeconds[_attempts.clamp(0, _reconnectTimeoutsSeconds.length - 1)];
-        _logger.severe(e);
-        _logger.severe("Retrying in $timeout seconds");
+        _logger
+          ..severe(e)
+          ..severe("Retrying in $timeout seconds");
         await Future.delayed(Duration(seconds: timeout));
         _attempts++;
       }
@@ -66,8 +70,8 @@ class HubManager {
 
   void _handleEvent(event) {
     final bodies = event.toString().split(_eofChar);
-    final eventBodies = bodies.whereNot((element) => element.isEmpty).map((e) => jsonDecode(e));
-    for (final body in eventBodies) {
+    final eventBodies = bodies.whereNot((element) => element.isEmpty).map(jsonDecode);
+    for (final Map body in eventBodies) {
       final int? rawType = body["type"];
       if (rawType == null) {
         _logger.warning("Received empty event, content was $event");
@@ -104,7 +108,7 @@ class HubManager {
     }
   }
 
-  void _handleInvocation(body) async {
+  Future<void> _handleInvocation(Map body) async {
     final target = EventTarget.parse(body["target"]);
     final args = body["arguments"] ?? [];
     final handler = _handlers[target];
