@@ -123,7 +123,7 @@ class _SessionViewState extends State<SessionView> {
                                 ? Text("No description", style: Theme.of(context).textTheme.labelLarge)
                                 : FormattedText(
                                     session.formattedDescription,
-                                    style: Theme.of(context).textTheme.titleLarge,
+                                    style: Theme.of(context).textTheme.labelLarge?.apply(fontStyle: FontStyle.italic),
                                   ),
                           ),
                           const ListSectionHeader(
@@ -177,8 +177,7 @@ class _SessionViewState extends State<SessionView> {
                           ),
                           ListSectionHeader(
                             leadingText: "Users",
-                            trailingText:
-                                "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")}",
+                            trailingText: "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")}",
                             showLine: false,
                           ),
                         ],

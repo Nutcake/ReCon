@@ -3,7 +3,6 @@ import 'package:recon/models/message.dart';
 import 'package:recon/models/records/asset_digest.dart';
 import 'package:recon/models/records/resonite_db_asset.dart';
 import 'package:recon/string_formatter.dart';
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 enum RecordType {
@@ -85,6 +84,7 @@ class Record {
   final String name;
   final FormatNode formattedName;
   final String description;
+  final FormatNode formattedDescription;
   final RecordType recordType;
   final List<String> tags;
   final String path;
@@ -133,7 +133,8 @@ class Record {
     required this.visits,
     required this.rating,
     required this.randomOrder,
-  }) : formattedName = FormatNode.fromText(name);
+  })  : formattedName = FormatNode.fromText(name),
+        formattedDescription = FormatNode.fromText(description);
 
   factory Record.fromRequiredData({
     required RecordType recordType,
@@ -241,7 +242,7 @@ class Record {
       throw "Record is not a link.";
     }
 
-    String ownerId = assetUri.replaceFirst("resrec:///", "");
+    final ownerId = assetUri.replaceFirst("resrec:///", "");
 
     final nextSlashIdx = ownerId.indexOf("/");
     if (nextSlashIdx == -1) {
@@ -259,7 +260,6 @@ class Record {
     int? globalVersion,
     int? localVersion,
     String? name,
-    TextSpan? formattedName,
     String? description,
     List<String>? tags,
     RecordType? recordType,

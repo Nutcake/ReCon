@@ -20,7 +20,7 @@ class WorldList extends StatefulWidget {
 }
 
 class WorldListState extends State<WorldList> {
-  static const int _pageSize = 15;
+  static const int _pageSize = 16;
   final _dateFormat = DateFormat.yMd();
   final _scrollController = ScrollController();
   Future<List<Record>>? _recordsFuture;
@@ -118,9 +118,7 @@ class WorldListState extends State<WorldList> {
                           return Card(
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
+                              side: BorderSide(),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: InkWell(
@@ -134,7 +132,10 @@ class WorldListState extends State<WorldList> {
                                   Expanded(
                                     flex: 5,
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(16),
+                                        topRight: Radius.circular(16),
+                                      ),
                                       child: Hero(
                                         tag: world.id,
                                         child: CachedNetworkImage(
@@ -153,7 +154,10 @@ class WorldListState extends State<WorldList> {
                                   ),
                                   Expanded(
                                     flex: 2,
-                                    child: Padding(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(top: BorderSide()),
+                                      ),
                                       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,

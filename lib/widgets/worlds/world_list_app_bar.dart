@@ -29,17 +29,18 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () async {
+              final textController = TextEditingController();
               final result = await showDialog<String>(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text("Search"),
+                    title: const Text("Search for worlds"),
                     content: TextField(
-                      onChanged: (value) {
-                        setState(() {
-                          _needle = value;
-                        });
-                      },
+                      controller: textController,
+                      decoration: const InputDecoration(
+                        hintText: "Enter tags",
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     actions: [
                       TextButton(
@@ -50,7 +51,7 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pop(_needle);
+                          Navigator.of(context).pop(textController.text);
                         },
                         child: const Text("Search"),
                       ),

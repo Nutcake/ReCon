@@ -43,7 +43,7 @@ class RecordApi {
     final requestBody = {
       "requiredTags": requiredTags,
       "sortDirection": sortDirection.toString(),
-      "sortBy": sortParameter.toString(),
+      "sortBy": sortParameter.serialize(),
       "count": limit,
       "offset": offset,
       "recordType": "world",
