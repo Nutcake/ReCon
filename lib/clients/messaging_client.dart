@@ -94,7 +94,7 @@ class MessagingClient extends ChangeNotifier {
     }
   }
 
-  Future<void> refreshFriendsList() async {
+  Future<void> initFriendsList() async {
     _hubManager.send(
       "InitializeStatus",
       responseHandler: (data) async {
@@ -116,6 +116,12 @@ class MessagingClient extends ChangeNotifier {
       },
     );
 
+    _initStatus = "";
+    notifyListeners();
+  }
+
+  Future<void> refreshFriendsList() async {
+    _hubManager.send("RequestStatus", arguments: [null, false]);
     _initStatus = "";
     notifyListeners();
   }
@@ -323,7 +329,7 @@ class MessagingClient extends ChangeNotifier {
       ..setHandler(EventTarget.receiveStatusUpdate, _onReceiveStatusUpdate)
       ..setHandler(EventTarget.receiveSessionUpdate, _onReceiveSessionUpdate)
       ..setHandler(EventTarget.removeSession, _onRemoveSession)
-      ..onConnected = refreshFriendsList;
+      ..onConnected = initFriendsList;
     await _hubManager.start();
   }
 
