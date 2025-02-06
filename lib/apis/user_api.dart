@@ -21,7 +21,6 @@ class UserApi {
   }
 
   static Future<UserStatus> getUserStatus(ApiClient client, {required String userId}) async {
-    return UserStatus.empty();
     final response = await client.get("/users/$userId/status");
     client.checkResponse(response);
     final data = jsonDecode(response.body);

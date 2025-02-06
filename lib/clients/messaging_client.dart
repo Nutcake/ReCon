@@ -6,7 +6,6 @@ import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/apis/message_api.dart';
 import 'package:recon/apis/session_api.dart';
-import 'package:recon/apis/user_api.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/notification_client.dart';
 import 'package:recon/clients/settings_client.dart';
@@ -106,8 +105,8 @@ class MessagingClient extends ChangeNotifier {
         await _refreshUnreads();
         _unreadSafeguard?.cancel();
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
-        _hubManager.send("RequestStatus", arguments: [null, false]);
         final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
+        _hubManager.send("RequestStatus", arguments: [null, lastOnline == OnlineStatus.invisible]);
         await setOnlineStatus(lastOnline ?? OnlineStatus.online);
         _statusHeartbeat?.cancel();
         _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
@@ -121,9 +120,15 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> refreshFriendsList() async {
-    _hubManager.send("RequestStatus", arguments: [null, false]);
+    final self = getAsFriend(_apiClient.userId);
+    _hubManager.send("RequestStatus", arguments: [null, self?.userStatus.onlineStatus == OnlineStatus.invisible]);
     _initStatus = "";
     notifyListeners();
+  }
+
+  Future<void> requestUserStatus(String userId) async {
+    final self = getAsFriend(_apiClient.userId);
+    _hubManager.send("RequestStatus", arguments: [userId, self?.userStatus.onlineStatus == OnlineStatus.invisible]);
   }
 
   void sendMessage(Message message) {
@@ -211,14 +216,6 @@ class MessagingClient extends ChangeNotifier {
     final cache = getUserMessageCache(userId) ?? _createUserMessageCache(userId);
     await cache.loadMessages();
     _messageCache[userId] = cache;
-    notifyListeners();
-  }
-
-  Future<void> updateFriendStatus(String userId) async {
-    final friend = getAsFriend(userId);
-    if (friend == null) return;
-    final newStatus = await UserApi.getUserStatus(_apiClient, userId: userId);
-    await _updateContact(friend.copyWith(userStatus: newStatus));
     notifyListeners();
   }
 
@@ -350,7 +347,7 @@ class MessagingClient extends ChangeNotifier {
     (getUserMessageCache(message.senderId) ?? _createUserMessageCache(message.senderId)).addMessage(message);
     if (message.senderId != selectedFriend?.id) {
       addUnread(message);
-      updateFriendStatus(message.senderId);
+      requestUserStatus(message.senderId);
     } else {
       markMessagesRead(MarkReadBatch(senderId: message.senderId, ids: [message.id], readTime: DateTime.now()));
     }
