@@ -3,7 +3,6 @@ import 'package:recon/models/message.dart';
 import 'package:recon/models/records/asset_digest.dart';
 import 'package:recon/models/records/resonite_db_asset.dart';
 import 'package:recon/string_formatter.dart';
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 enum RecordType {
@@ -15,8 +14,7 @@ enum RecordType {
   audio;
 
   factory RecordType.fromName(String? name) {
-    return RecordType.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase().trim(),
-        orElse: () => RecordType.unknown);
+    return RecordType.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase().trim(), orElse: () => RecordType.unknown);
   }
 }
 
@@ -86,6 +84,7 @@ class Record {
   final String name;
   final FormatNode formattedName;
   final String description;
+  final FormatNode formattedDescription;
   final RecordType recordType;
   final List<String> tags;
   final String path;
@@ -134,7 +133,8 @@ class Record {
     required this.visits,
     required this.rating,
     required this.randomOrder,
-  }) : formattedName = FormatNode.fromText(name);
+  })  : formattedName = FormatNode.fromText(name),
+        formattedDescription = FormatNode.fromText(description);
 
   factory Record.fromRequiredData({
     required RecordType recordType,
@@ -152,8 +152,7 @@ class Record {
       combinedRecordId: combinedRecordId,
       assetUri: assetUri,
       name: filename,
-      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "recon"] + (extraTags ?? []))
-          .unique(),
+      tags: ([filename, "message_item", "message_id:${Message.generateId()}", "recon"] + (extraTags ?? [])).unique(),
       recordType: recordType,
       thumbnailUri: thumbnailUri,
       isPublic: false,
@@ -183,35 +182,36 @@ class Record {
 
   factory Record.fromMap(Map map) {
     return Record(
-        id: map["id"] ?? "0",
-        combinedRecordId: RecordId.fromMap(map["combinedRecordId"]),
-        ownerId: map["ownerId"] ?? "",
-        assetUri: map["assetUri"] ?? "",
-        globalVersion: map["globalVersion"] ?? 0,
-        localVersion: map["localVersion"] ?? 0,
-        name: map["name"] ?? "",
-        description: map["description"] ?? "",
-        tags: (map["tags"] as List? ?? []).map((e) => e.toString()).toList(),
-        recordType: RecordType.fromName(map["recordType"]),
-        thumbnailUri: map["thumbnailUri"] ?? "",
-        isPublic: map["isPublic"] ?? false,
-        isForPatreons: map["isForPatreons"] ?? false,
-        isListed: map["isListed"] ?? false,
-        lastModificationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
-        resoniteDBManifest: (map["resoniteDBManifest"] as List? ?? []).map((e) => ResoniteDBAsset.fromMap(e)).toList(),
-        lastModifyingUserId: map["lastModifyingUserId"] ?? "",
-        lastModifyingMachineId: map["lastModifyingMachineId"] ?? "",
-        creationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
-        isSynced: map["isSynced"] ?? false,
-        fetchedOn: DateTime.tryParse(map["fetchedOn"] ?? "") ?? DateTimeX.epoch,
-        path: map["path"] ?? "",
-        manifest: (map["resoniteDBManifest"] as List? ?? []).map((e) => e.toString()).toList(),
-        url: map["url"] ?? "",
-        isValidOwnerId: map["isValidOwnerId"] == "true",
-        isValidRecordId: map["isValidRecordId"] == "true",
-        visits: map["visits"] ?? 0,
-        rating: map["rating"] ?? 0,
-        randomOrder: map["randomOrder"] ?? 0);
+      id: map["id"] ?? "0",
+      combinedRecordId: RecordId.fromMap(map["combinedRecordId"]),
+      ownerId: map["ownerId"] ?? "",
+      assetUri: map["assetUri"] ?? "",
+      globalVersion: map["globalVersion"] ?? 0,
+      localVersion: map["localVersion"] ?? 0,
+      name: map["name"] ?? "",
+      description: map["description"] ?? "",
+      tags: (map["tags"] as List? ?? []).map((e) => e.toString()).toList(),
+      recordType: RecordType.fromName(map["recordType"]),
+      thumbnailUri: map["thumbnailUri"] ?? "",
+      isPublic: map["isPublic"] ?? false,
+      isForPatreons: map["isForPatreons"] ?? false,
+      isListed: map["isListed"] ?? false,
+      lastModificationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
+      resoniteDBManifest: (map["resoniteDBManifest"] as List? ?? []).map((e) => ResoniteDBAsset.fromMap(e)).toList(),
+      lastModifyingUserId: map["lastModifyingUserId"] ?? "",
+      lastModifyingMachineId: map["lastModifyingMachineId"] ?? "",
+      creationTime: DateTime.tryParse(map["lastModificationTime"]) ?? DateTimeX.epoch,
+      isSynced: map["isSynced"] ?? false,
+      fetchedOn: DateTime.tryParse(map["fetchedOn"] ?? "") ?? DateTimeX.epoch,
+      path: map["path"] ?? "",
+      manifest: (map["resoniteDBManifest"] as List? ?? []).map((e) => e.toString()).toList(),
+      url: map["url"] ?? "",
+      isValidOwnerId: map["isValidOwnerId"] == "true",
+      isValidRecordId: map["isValidRecordId"] == "true",
+      visits: map["visits"] ?? 0,
+      rating: map["rating"] ?? 0,
+      randomOrder: map["randomOrder"] ?? 0,
+    );
   }
 
   factory Record.inventoryRoot() => _rootRecord;
@@ -228,21 +228,21 @@ class Record {
     if (!isLink) {
       throw "Record is not a link.";
     }
-    
+
     final lastSlashIdx = assetUri.lastIndexOf("/");
     if (lastSlashIdx == -1) {
       throw "Record has invalid assetUri";
     }
-    
-    return assetUri.substring(lastSlashIdx+1);
+
+    return assetUri.substring(lastSlashIdx + 1);
   }
-  
+
   String get linkOwnerId {
     if (!assetUri.startsWith("resrec")) {
       throw "Record is not a link.";
     }
-    
-    String ownerId = assetUri.replaceFirst("resrec:///", "");
+
+    final ownerId = assetUri.replaceFirst("resrec:///", "");
 
     final nextSlashIdx = ownerId.indexOf("/");
     if (nextSlashIdx == -1) {
@@ -260,7 +260,6 @@ class Record {
     int? globalVersion,
     int? localVersion,
     String? name,
-    TextSpan? formattedName,
     String? description,
     List<String>? tags,
     RecordType? recordType,

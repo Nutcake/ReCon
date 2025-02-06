@@ -31,7 +31,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
     return ChangeNotifierProvider.value(
       value: Provider.of<SessionClient>(context),
       child: Consumer<SessionClient>(
-        builder: (BuildContext context, SessionClient sClient, Widget? child) {
+        builder: (context, sClient, child) {
           return FutureBuilder<List<Session>>(
             future: sClient.sessionsFuture,
             builder: (context, snapshot) {
@@ -71,15 +71,12 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                 return Card(
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                      color: Theme.of(context).colorScheme.outline,
-                                    ),
+                                    side: BorderSide(),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: InkWell(
                                     onTap: () {
-                                      Navigator.of(context)
-                                          .push(MaterialPageRoute(builder: (context) => SessionView(session: session)));
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SessionView(session: session)));
                                     },
                                     borderRadius: BorderRadius.circular(16),
                                     child: Column(
@@ -88,7 +85,10 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                         Expanded(
                                           flex: 5,
                                           child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(16),
+                                              topRight: Radius.circular(16),
+                                            ),
                                             child: Hero(
                                               tag: session.id,
                                               child: CachedNetworkImage(
@@ -100,15 +100,17 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                                     size: 64,
                                                   ),
                                                 ),
-                                                placeholder: (context, uri) =>
-                                                    const Center(child: CircularProgressIndicator()),
+                                                placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
                                               ),
                                             ),
                                           ),
                                         ),
                                         Expanded(
                                           flex: 2,
-                                          child: Padding(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border(top: BorderSide()),
+                                            ),
                                             padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                                             child: Column(
                                               mainAxisAlignment: MainAxisAlignment.center,
@@ -136,10 +138,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                                         maxLines: 1,
                                                         overflow: TextOverflow.ellipsis,
                                                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                              color: Theme.of(context)
-                                                                  .colorScheme
-                                                                  .onSurface
-                                                                  .withValues(alpha: .5),
+                                                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .5),
                                                             ),
                                                       ),
                                                     ),
@@ -148,7 +147,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                               ],
                                             ),
                                           ),
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -157,7 +156,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                             ),
                           ),
                   ),
-                  if (snapshot.connectionState == ConnectionState.waiting) const LinearProgressIndicator()
+                  if (snapshot.connectionState == ConnectionState.waiting) const LinearProgressIndicator(),
                 ],
               );
             },

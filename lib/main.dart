@@ -45,7 +45,7 @@ void main() async {
   final dateFormat = DateFormat.Hms();
   Logger.root.onRecord.listen(
       (event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
-
+  Logger.root.level = Level.WARNING;
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   final newSettings =
