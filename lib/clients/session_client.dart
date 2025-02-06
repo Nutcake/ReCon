@@ -1,9 +1,9 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:recon/apis/session_api.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/settings_client.dart';
 import 'package:recon/models/session.dart';
-import 'package:flutter/foundation.dart';
 
 class SessionClient extends ChangeNotifier {
   final ApiClient apiClient;
@@ -35,8 +35,8 @@ class SessionClient extends ChangeNotifier {
 
   void initSessions() {
     _sessionsFuture = SessionApi.getSessions(apiClient, filterSettings: _filterSettings).then(
-          (value) => value.sorted(
-            (a, b) => b.sessionUsers.length.compareTo(a.sessionUsers.length),
+      (value) => value.sorted(
+        (a, b) => b.sessionUsers.length.compareTo(a.sessionUsers.length),
       ),
     );
   }

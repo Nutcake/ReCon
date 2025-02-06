@@ -22,12 +22,14 @@ class NotificationClient {
   );
 
   final fln.FlutterLocalNotificationsPlugin _notifier = fln.FlutterLocalNotificationsPlugin()
-    ..initialize(const fln.InitializationSettings(
-      android: fln.AndroidInitializationSettings("ic_notification"),
-      iOS: fln.DarwinInitializationSettings(),
-      macOS: fln.DarwinInitializationSettings(),
-      linux: fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
-    ));
+    ..initialize(
+      const fln.InitializationSettings(
+        android: fln.AndroidInitializationSettings("ic_notification"),
+        iOS: fln.DarwinInitializationSettings(),
+        macOS: fln.DarwinInitializationSettings(),
+        linux: fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
+      ),
+    );
 
   Future<void> showUnreadMessagesNotification(Iterable<Message> messages) async {
     if (messages.isEmpty) return;
@@ -47,7 +49,8 @@ class NotificationClient {
             channelDescription: _messageChannel.description,
             importance: fln.Importance.high,
             priority: fln.Priority.max,
-            actions: [], //TODO: Make clicking message notification open chat of specified user.
+            actions: [],
+            //TODO: Make clicking message notification open chat of specified user.
             styleInformation: fln.MessagingStyleInformation(
               fln.Person(
                 name: uname,

@@ -1,7 +1,10 @@
-import 'package:recon/config.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' as htmlparser;
+import 'package:http/http.dart';
+import 'package:path/path.dart' as p;
+import 'package:recon/config.dart';
 
 class Aux {
   static String resdbToHttp(String? resdb) {
@@ -13,10 +16,10 @@ class Aux {
 }
 
 extension Unique<E, Id> on List<E> {
-  List<E> unique([Id Function(E element)? id, bool inplace = true]) {
+  List<E> unique({Id Function(E element)? id, bool inplace = true}) {
     final ids = <Id>{};
-    var list = inplace ? this : List<E>.from(this);
-    list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
+    final list = inplace ? this : List<E>.from(this)
+      ..retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
     return list;
   }
 }
@@ -60,4 +63,10 @@ extension ColorX on Color {
 
     return Color.fromARGB((a * 255).round(), (ir * 255).round(), (ig * 255).round(), (ib * 255).round());
   }
+}
+
+extension ResponseX on Response {
+  Map<String, dynamic> get json => body.isEmpty ? {} : jsonDecode(body) as Map<String, dynamic>;
+
+  List<Map<String, dynamic>> get jsonArray => body.isEmpty ? [] : jsonDecode(body) as List<Map<String, dynamic>>;
 }

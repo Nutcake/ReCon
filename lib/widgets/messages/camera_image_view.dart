@@ -33,25 +33,27 @@ class CameraImageView extends StatelessWidget {
                       Navigator.of(context).pop(false);
                     },
                     style: TextButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.onSurface,
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        side: BorderSide(width: 1, color: Theme.of(context).colorScheme.error)
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      side: BorderSide(width: 1, color: Theme.of(context).colorScheme.error),
                     ),
                     icon: const Icon(Icons.close),
-                    label: const Text("Cancel",),
+                    label: const Text(
+                      "Cancel",
+                    ),
                   ),
                   TextButton.icon(
                     onPressed: () {
                       Navigator.of(context).pop(true);
                     },
                     style: TextButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.onSurface,
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        side: BorderSide(width: 1, color: Theme.of(context).colorScheme.primary)
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      side: BorderSide(width: 1, color: Theme.of(context).colorScheme.primary),
                     ),
                     icon: const Icon(Icons.check),
                     label: const Text("Okay"),
-                  )
+                  ),
                 ],
               ),
             ),

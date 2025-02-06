@@ -1,12 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/sessions/session_view.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SessionList extends StatefulWidget {
   const SessionList({super.key});

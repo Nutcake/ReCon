@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -16,16 +18,14 @@ class FriendListTile extends StatelessWidget {
 
   final Friend friend;
   final int unreads;
-  final Function? onTap;
+  final void Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
     final imageUri = Aux.resdbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
     final mClient = Provider.of<MessagingClient>(context, listen: false);
-    final currentSession = friend.userStatus.currentSessionIndex == -1
-        ? null
-        : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
+    final currentSession = friend.userStatus.currentSessionIndex == -1 ? null : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -77,7 +77,7 @@ class FriendListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
-                )
+                ),
             ] else if (friend.userStatus.appVersion.isNotEmpty)
               Expanded(
                 child: Text(
@@ -103,12 +103,12 @@ class FriendListTile extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: const Color.fromARGB(255, 41, 77, 92),
               ),
-            )
+            ),
         ],
       ),
       onTap: () async {
         onTap?.call();
-        mClient.loadUserMessageCache(friend.id);
+        unawaited(mClient.loadUserMessageCache(friend.id));
         final unreads = mClient.getUnreadsForFriend(friend);
         if (unreads.isNotEmpty) {
           final readBatch = MarkReadBatch(

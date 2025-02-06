@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/widgets/messages/message_asset.dart';
 import 'package:recon/widgets/messages/message_audio_player.dart';
 import 'package:recon/widgets/messages/message_session_invite.dart';
 import 'package:recon/widgets/messages/message_text.dart';
-import 'package:flutter/material.dart';
 
 class MessageBubble extends StatelessWidget {
   const MessageBubble({required this.message, super.key});
@@ -13,7 +13,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool mine = message.senderId == ClientHolder.of(context).apiClient.userId;
+    final mine = message.senderId == ClientHolder.of(context).apiClient.userId;
     final colorScheme = Theme.of(context).colorScheme;
     final foregroundColor = mine ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant;
     final backgroundColor = mine ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest;
@@ -29,10 +29,22 @@ class MessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: switch (message.type) {
-                MessageType.sessionInvite => MessageSessionInvite(message: message, foregroundColor: foregroundColor,),
-                MessageType.object => MessageAsset(message: message, foregroundColor: foregroundColor,),
-                MessageType.sound => MessageAudioPlayer(message: message, foregroundColor: foregroundColor,),
-                MessageType.unknown || MessageType.text => MessageText(message: message, foregroundColor: foregroundColor,)
+                MessageType.sessionInvite => MessageSessionInvite(
+                    message: message,
+                    foregroundColor: foregroundColor,
+                  ),
+                MessageType.object => MessageAsset(
+                    message: message,
+                    foregroundColor: foregroundColor,
+                  ),
+                MessageType.sound => MessageAudioPlayer(
+                    message: message,
+                    foregroundColor: foregroundColor,
+                  ),
+                MessageType.unknown || MessageType.text => MessageText(
+                    message: message,
+                    foregroundColor: foregroundColor,
+                  )
               },
             ),
           ),

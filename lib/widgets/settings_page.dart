@@ -1,8 +1,8 @@
-import 'package:recon/client_holder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:recon/client_holder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -17,34 +17,37 @@ class SettingsPage extends StatelessWidget {
         BooleanSettingsTile(
           title: "Enable Notifications",
           initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
-          onChanged: (value) async =>
-              await sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
+          onChanged: (value) async => sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
         ),
         const ListSectionHeader(leadingText: "Appearance"),
         ListTile(
-          trailing: StatefulBuilder(builder: (context, setState) {
-            return DropdownButton<ThemeMode>(
-              items: ThemeMode.values
-                  .map((mode) => DropdownMenuItem<ThemeMode>(
+          trailing: StatefulBuilder(
+            builder: (context, setState) {
+              return DropdownButton<ThemeMode>(
+                items: ThemeMode.values
+                    .map(
+                      (mode) => DropdownMenuItem<ThemeMode>(
                         value: mode,
                         child: Text(
                           toBeginningOfSentenceCase(mode.name),
                         ),
-                      ))
-                  .toList(),
-              value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
-              onChanged: (ThemeMode? value) async {
-                final currentSetting = sClient.currentSettings.themeMode.value;
-                if (currentSetting != value?.index) {
-                  await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
-                  if (context.mounted) {
-                    Phoenix.rebirth(context);
+                      ),
+                    )
+                    .toList(),
+                value: ThemeMode.values[sClient.currentSettings.themeMode.valueOrDefault],
+                onChanged: (value) async {
+                  final currentSetting = sClient.currentSettings.themeMode.value;
+                  if (currentSetting != value?.index) {
+                    await sClient.changeSettings(sClient.currentSettings.copyWith(themeMode: value?.index));
+                    if (context.mounted) {
+                      Phoenix.rebirth(context);
+                    }
                   }
-                }
-                setState(() {});
-              },
-            );
-          }),
+                  setState(() {});
+                },
+              );
+            },
+          ),
           title: const Text("Theme Mode"),
         ),
         const ListSectionHeader(leadingText: "Other"),
@@ -83,11 +86,9 @@ class SettingsPage extends StatelessWidget {
                 applicationVersion: version,
                 applicationIcon: InkWell(
                   onTap: () async {
-                    if (!await launchUrl(Uri.parse("https://github.com/Nutcake/ReCon"),
-                        mode: LaunchMode.externalApplication)) {
+                    if (!await launchUrl(Uri.parse("https://github.com/Nutcake/ReCon"), mode: LaunchMode.externalApplication)) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(content: Text("Failed to open link.")));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to open link.")));
                       }
                     }
                   },
@@ -101,7 +102,7 @@ class SettingsPage extends StatelessWidget {
               );
             }
           },
-        )
+        ),
       ],
     );
   }

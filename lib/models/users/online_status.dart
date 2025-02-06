@@ -14,12 +14,11 @@ enum OnlineStatus {
     Colors.yellow,
     Colors.red,
     Colors.green,
-    Colors.blue
+    Colors.blue,
   ];
 
-  Color color(BuildContext context) => this == OnlineStatus.offline || this == OnlineStatus.invisible
-      ? Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150)
-      : _colors[index];
+  Color color(BuildContext context) =>
+      this == OnlineStatus.offline || this == OnlineStatus.invisible ? Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150) : _colors[index];
 
   factory OnlineStatus.fromString(String? text) {
     return OnlineStatus.values.firstWhere(

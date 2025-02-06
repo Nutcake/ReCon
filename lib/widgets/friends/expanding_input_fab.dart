@@ -39,18 +39,20 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
                 children: [
                   SizedBox(
                     width: _isExtended ? screenWidth * 0.75 : 0.0,
-                    child: _isExtended ? TextField(
-                      focusNode: _inputFocusNode,
-                      onChanged: widget.onInputChanged,
-                      controller: _inputController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                        ),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                      ),
-                    ) : null,
+                    child: _isExtended
+                        ? TextField(
+                            focusNode: _inputFocusNode,
+                            onChanged: widget.onInputChanged,
+                            controller: _inputController,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                              ),
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                            ),
+                          )
+                        : null,
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
@@ -68,7 +70,7 @@ class _ExpandingInputFabState extends State<ExpandingInputFab> {
                       iconSize: 28,
                       icon: _isExtended ? const Icon(Icons.close) : const Icon(Icons.search),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

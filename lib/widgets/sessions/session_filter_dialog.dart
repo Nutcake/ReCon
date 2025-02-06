@@ -1,10 +1,10 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/models/session.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SessionFilterDialog extends StatefulWidget {
   const SessionFilterDialog({required this.lastFilter, super.key});
@@ -47,12 +47,14 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
 
   Future<void> _updateSettings() async {
     final settingsClient = ClientHolder.of(context).settingsClient;
-    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(
-      sessionViewLastMinimumUsers: _currentFilter.minActiveUsers,
-      sessionViewLastIncludeEnded: _currentFilter.includeEnded,
-      sessionViewLastIncludeEmpty: _currentFilter.includeEmptyHeadless,
-      sessionViewLastIncludeIncompatible: _currentFilter.includeIncompatible,
-    ));
+    await settingsClient.changeSettings(
+      settingsClient.currentSettings.copyWith(
+        sessionViewLastMinimumUsers: _currentFilter.minActiveUsers,
+        sessionViewLastIncludeEnded: _currentFilter.includeEnded,
+        sessionViewLastIncludeEmpty: _currentFilter.includeEmptyHeadless,
+        sessionViewLastIncludeIncompatible: _currentFilter.includeIncompatible,
+      ),
+    );
   }
 
   @override
@@ -108,8 +110,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        _currentFilter =
-                            _currentFilter.copyWith(minActiveUsers: max(0, _currentFilter.minActiveUsers - 1));
+                        _currentFilter = _currentFilter.copyWith(minActiveUsers: max(0, _currentFilter.minActiveUsers - 1));
                       });
                     },
                     icon: const Icon(Icons.remove_circle_outline),
@@ -121,8 +122,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        _currentFilter = _currentFilter.copyWith(
-                            minActiveUsers: _currentFilter.minActiveUsers + 1, includeEmptyHeadless: false);
+                        _currentFilter = _currentFilter.copyWith(minActiveUsers: _currentFilter.minActiveUsers + 1, includeEmptyHeadless: false);
                       });
                     },
                     icon: const Icon(Icons.add_circle_outline),

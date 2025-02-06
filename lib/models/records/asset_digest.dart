@@ -1,8 +1,7 @@
-
 import 'dart:typed_data';
 
-import 'package:recon/models/records/resonite_db_asset.dart';
 import 'package:path/path.dart';
+import 'package:recon/models/records/resonite_db_asset.dart';
 
 class AssetDigest {
   final Uint8List data;

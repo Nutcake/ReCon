@@ -1,18 +1,17 @@
 import 'package:recon/models/records/asset_diff.dart';
 
-enum RecordPreprocessState
-{
+enum RecordPreprocessState {
   preprocessing,
   success,
   failed;
 
   factory RecordPreprocessState.fromString(String? text) {
-    return RecordPreprocessState.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
+    return RecordPreprocessState.values.firstWhere(
+      (element) => element.name.toLowerCase() == text?.toLowerCase(),
       orElse: () => RecordPreprocessState.failed,
     );
   }
 }
-
 
 class PreprocessStatus {
   final String id;
@@ -23,8 +22,14 @@ class PreprocessStatus {
   final String failReason;
   final List<AssetDiff> resultDiffs;
 
-  const PreprocessStatus({required this.id, required this.ownerId, required this.recordId, required this.state,
-    required this.progress, required this.failReason, required this.resultDiffs,
+  const PreprocessStatus({
+    required this.id,
+    required this.ownerId,
+    required this.recordId,
+    required this.state,
+    required this.progress,
+    required this.failReason,
+    required this.resultDiffs,
   });
 
   factory PreprocessStatus.fromMap(Map map) {

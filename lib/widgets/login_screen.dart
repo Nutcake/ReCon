@@ -79,12 +79,15 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e, s) {
       setState(() {
         if (e == ApiClient.totpKey) {
-          if (_needsTotp == false) {
+          if (!_needsTotp) {
             _error = "Please enter your 2FA-Code";
             _totpFocusNode.requestFocus();
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-                  duration: const Duration(milliseconds: 400), curve: Curves.easeOutCirc);
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutCirc,
+              );
             });
           } else {
             _error = "The given 2FA code is not valid.";
@@ -94,10 +97,12 @@ class _LoginScreenState extends State<LoginScreen> {
           _error = "Login unsuccessful: $e.";
         }
         if (kDebugMode) {
-          FlutterError.reportError(FlutterErrorDetails(
-            exception: e,
-            stack: s,
-          ));
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: e,
+              stack: s,
+            ),
+          );
         }
         _isLoading = false;
       });
@@ -119,8 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop();
-                    await settingsClient
-                        .changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: true));
+                    await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: true));
                   },
                   child: const Text("No"),
                 ),
@@ -128,9 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () async {
                     Navigator.of(context).pop();
                     final requestResult = switch (Platform.operatingSystem) {
-                      "android" => await notificationManager
-                          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-                          ?.requestNotificationsPermission(),
+                      "android" => await notificationManager.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission(),
                       "fuschia" => null, // "fuschia" is not supported by flutter_local_notifications
                       "ios" => await notificationManager
                           .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
@@ -142,11 +144,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       "windows" => null, // also don't want to deal with this right now
                       _ => null,
                     };
-                    await settingsClient.changeSettings(settingsClient.currentSettings
-                        .copyWith(notificationsDenied: requestResult == null ? false : !requestResult));
+                    await settingsClient.changeSettings(
+                      settingsClient.currentSettings.copyWith(notificationsDenied: !(requestResult ?? true)),
+                    );
                   },
                   child: const Text("Yes"),
-                )
+                ),
               ],
             );
           },
@@ -162,84 +165,86 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text("ReCon"),
       ),
-      body: Builder(builder: (context) {
-        return ListView(
-          controller: _scrollController,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 64),
-              child: Center(
-                child: Text("Sign In", style: Theme.of(context).textTheme.headlineMedium),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-              child: TextField(
-                controller: _usernameController,
-                onEditingComplete: () => _passwordFocusNode.requestFocus(),
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(32),
-                  ),
-                  labelText: 'Username',
+      body: Builder(
+        builder: (context) {
+          return ListView(
+            controller: _scrollController,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 64),
+                child: Center(
+                  child: Text("Sign In", style: Theme.of(context).textTheme.headlineMedium),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-              child: TextField(
-                controller: _passwordController,
-                focusNode: _passwordFocusNode,
-                onEditingComplete: submit,
-                obscureText: true,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(32)),
-                  labelText: 'Password',
-                ),
-              ),
-            ),
-            if (_needsTotp)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
                 child: TextField(
-                  controller: _totpController,
-                  focusNode: _totpFocusNode,
-                  onEditingComplete: submit,
-                  obscureText: false,
+                  controller: _usernameController,
+                  onEditingComplete: () => _passwordFocusNode.requestFocus(),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(32),
                     ),
-                    labelText: '2FA Code',
+                    labelText: 'Username',
                   ),
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : TextButton.icon(
-                      onPressed: submit,
-                      icon: const Icon(Icons.login),
-                      label: const Text("Login"),
-                    ),
-            ),
-            Center(
-              child: AnimatedOpacity(
-                opacity: _errorOpacity,
-                duration: const Duration(milliseconds: 200),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
-                  child: Text(_error, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.red)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                child: TextField(
+                  controller: _passwordController,
+                  focusNode: _passwordFocusNode,
+                  onEditingComplete: submit,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(32)),
+                    labelText: 'Password',
+                  ),
                 ),
               ),
-            )
-          ],
-        );
-      }),
+              if (_needsTotp)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                  child: TextField(
+                    controller: _totpController,
+                    focusNode: _totpFocusNode,
+                    onEditingComplete: submit,
+                    obscureText: false,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      labelText: '2FA Code',
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : TextButton.icon(
+                        onPressed: submit,
+                        icon: const Icon(Icons.login),
+                        label: const Text("Login"),
+                      ),
+              ),
+              Center(
+                child: AnimatedOpacity(
+                  opacity: _errorOpacity,
+                  duration: const Duration(milliseconds: 200),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 64),
+                    child: Text(_error, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.red)),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

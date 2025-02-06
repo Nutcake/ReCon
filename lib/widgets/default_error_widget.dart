@@ -18,32 +18,38 @@ class DefaultErrorWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(iconOverride ?? Icons.warning, size: 32,),
-            const SizedBox(height: 16,),
-            Text(title ?? "Something went wrong: ",
+            Icon(
+              iconOverride ?? Icons.warning,
+              size: 32,
+            ),
+            const SizedBox(
+              height: 16,
+            ),
+            Text(
+              title ?? "Something went wrong: ",
               textAlign: TextAlign.center,
-              style: Theme
-                .of(context)
-                .textTheme
-                .titleMedium,),
-            if (message != null) Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(message ?? "",
-                textAlign: TextAlign.center,
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
-            if (onRetry != null) TextButton.icon(
-              onPressed: onRetry,
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            if (message != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  message ?? "",
+                  textAlign: TextAlign.center,
+                ),
               ),
-              icon: const Icon(Icons.refresh),
-              label: const Text("Retry"),
-            ),
+            if (onRetry != null)
+              TextButton.icon(
+                onPressed: onRetry,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                ),
+                icon: const Icon(Icons.refresh),
+                label: const Text("Retry"),
+              ),
           ],
         ),
       ),
     );
   }
-
 }

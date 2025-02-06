@@ -36,8 +36,9 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Consumer<InventoryClient>(builder: (BuildContext context, InventoryClient iClient, Widget? child) {
-      return FutureBuilder<ResoniteDirectory>(
+    return Consumer<InventoryClient>(
+      builder: (context, iClient, child) {
+        return FutureBuilder<ResoniteDirectory>(
           future: iClient.directoryFuture,
           builder: (context, snapshot) {
             final currentDir = snapshot.data;
@@ -63,29 +64,23 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                 child: Builder(
                   builder: (context) {
                     if (snapshot.hasError) {
-                      FlutterError.reportError(
-                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+                      FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                       return DefaultErrorWidget(
                         message: snapshot.error.toString(),
                         onRetry: () {
-                          iClient.loadInventoryRoot();
-                          iClient.forceNotify();
+                          iClient
+                            ..loadInventoryRoot()
+                            ..forceNotify();
                         },
                       );
                     }
                     final directory = snapshot.data;
-                    final records = directory?.records ?? [];
-                    records.sort(
-                      (Record a, Record b) => iClient.sortMode.sortFunction(a, b, reverse: iClient.sortReverse),
-                    );
-                    final paths = records
-                        .where((element) =>
-                            element.recordType == RecordType.link || element.recordType == RecordType.directory)
-                        .toList();
-                    final objects = records
-                        .where((element) =>
-                            element.recordType != RecordType.link && element.recordType != RecordType.directory)
-                        .toList();
+                    final records = directory?.records ?? []
+                      ..sort(
+                        (a, b) => iClient.sortMode.sortFunction(a, b, reverse: iClient.sortReverse),
+                      );
+                    final paths = records.where((element) => element.recordType == RecordType.link || element.recordType == RecordType.directory).toList();
+                    final objects = records.where((element) => element.recordType != RecordType.link && element.recordType != RecordType.directory).toList();
                     final pathSegments = directory?.absolutePathSegments ?? [];
                     return Stack(
                       children: [
@@ -104,9 +99,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                             padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                             child: TextButton(
                                               style: TextButton.styleFrom(
-                                                foregroundColor: idx == pathSegments.length - 1
-                                                    ? Theme.of(context).colorScheme.primary
-                                                    : Theme.of(context).colorScheme.onSurface,
+                                                foregroundColor: idx == pathSegments.length - 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                               ),
                                               onPressed: () {
                                                 iClient.navigateUp(times: pathSegments.length - 1 - idx);
@@ -193,8 +186,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                             MaterialPageRoute(
                                               builder: (context) => PhotoView(
                                                 minScale: PhotoViewComputedScale.contained,
-                                                imageProvider:
-                                                    CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
+                                                imageProvider: CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
                                                 heroAttributes: PhotoViewHeroAttributes(tag: record.id),
                                               ),
                                             ),
@@ -212,9 +204,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                           alignment: Alignment.topCenter,
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),
-                            child: snapshot.connectionState == ConnectionState.waiting
-                                ? const LinearProgressIndicator()
-                                : null,
+                            child: snapshot.connectionState == ConnectionState.waiting ? const LinearProgressIndicator() : null,
                           ),
                         ),
                         Align(
@@ -229,15 +219,17 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                   )
                                 : null,
                           ),
-                        )
+                        ),
                       ],
                     );
                   },
                 ),
               ),
             );
-          });
-    });
+          },
+        );
+      },
+    );
   }
 
   @override

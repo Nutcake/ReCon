@@ -1,15 +1,8 @@
-import 'package:recon/string_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:recon/string_formatter.dart';
 
 class FormattedText extends StatelessWidget {
-  const FormattedText(this.formatTree, {
-    this.style,
-    this.textAlign,
-    this.overflow,
-    this.softWrap,
-    this.maxLines,
-    super.key
-  });
+  const FormattedText(this.formatTree, {this.style, this.textAlign, this.overflow, this.softWrap, this.maxLines, super.key});
 
   final FormatNode formatTree;
   final TextStyle? style;
@@ -31,12 +24,7 @@ class FormattedText extends StatelessWidget {
       );
     } else {
       return RichText(
-        text: formatTree.toTextSpan(
-            baseStyle: style ?? Theme
-            .of(context)
-            .textTheme
-            .bodyMedium!
-        ),
+        text: formatTree.toTextSpan(baseStyle: style ?? Theme.of(context).textTheme.bodyMedium!),
         textAlign: textAlign ?? TextAlign.start,
         overflow: overflow ?? TextOverflow.clip,
         softWrap: softWrap ?? true,

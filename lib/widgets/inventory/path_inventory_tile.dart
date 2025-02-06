@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:recon/widgets/formatted_text.dart';
-import 'package:flutter/material.dart';
 
 class PathInventoryTile extends StatelessWidget {
   const PathInventoryTile({required this.record, this.selected = false, this.onTap, this.onLongPress, super.key});
@@ -28,7 +28,7 @@ class PathInventoryTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
           child: Row(
             children: [
-              record.recordType == RecordType.directory ? const Icon(Icons.folder) : const Icon(Icons.link),
+              if (record.recordType == RecordType.directory) const Icon(Icons.folder) else const Icon(Icons.link),
               const SizedBox(
                 width: 4,
               ),

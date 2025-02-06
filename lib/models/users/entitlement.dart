@@ -4,7 +4,7 @@ class Entitlement {
   Entitlement();
 
   factory Entitlement.fromMap(Map map) {
-    final type = map["\$type"];
+    final type = map[r"$type"];
 
     return switch (type) {
       "storageSpace" => StorageSpace.fromMap(map),
@@ -51,10 +51,7 @@ class StorageSpace extends Entitlement {
   }
 }
 
-enum BadgeType {
-  static2D,
-  model
-}
+enum BadgeType { static2D, model }
 
 enum StorageShareLevel {
   none,
@@ -62,7 +59,8 @@ enum StorageShareLevel {
   groupsAndUsers;
 
   factory StorageShareLevel.fromString(String text) {
-    return StorageShareLevel.values.firstWhere((element) => element.name.toLowerCase() == text.toLowerCase(),
+    return StorageShareLevel.values.firstWhere(
+      (element) => element.name.toLowerCase() == text.toLowerCase(),
       orElse: () => StorageShareLevel.none,
     );
   }
@@ -105,12 +103,7 @@ class ShoutOut extends Entitlement {
   }
 }
 
-enum CreditType {
-  basic,
-  prominent,
-  spoken,
-  sponsor
-}
+enum CreditType { basic, prominent, spoken, sponsor }
 
 class Credits extends Entitlement {
   final CreditType creditType;

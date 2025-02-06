@@ -32,14 +32,11 @@ class SessionTile extends StatelessWidget {
                 FormattedText(session.formattedName),
                 Text(
                   "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} active users",
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
-                )
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

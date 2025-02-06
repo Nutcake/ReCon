@@ -51,9 +51,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
     super.didUpdateWidget(oldWidget);
     if (oldWidget.message.id == widget.message.id) return;
     final audioCache = Provider.of<AudioCacheClient>(context);
-    _audioFileFuture = audioCache
-        .cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content)))
-        .then((value) async {
+    _audioFileFuture = audioCache.cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content))).then((value) async {
       final path = _audioPlayer.setFilePath(value.path);
       await _audioPlayer.setLoopMode(LoopMode.off);
       await _audioPlayer.pause();
@@ -117,8 +115,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                     future: _audioFileFuture,
                     builder: (context, fileSnapshot) {
                       if (fileSnapshot.hasError) {
-                        FlutterError.reportError(
-                            FlutterErrorDetails(exception: fileSnapshot.error!, stack: fileSnapshot.stackTrace));
+                        FlutterError.reportError(FlutterErrorDetails(exception: fileSnapshot.error!, stack: fileSnapshot.stackTrace));
                         return const IconButton(
                           icon: Icon(Icons.warning),
                           tooltip: "Failed to load audio-message.",
@@ -126,10 +123,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                         );
                       }
                       return IconButton(
-                        onPressed: fileSnapshot.hasData &&
-                                snapshot.hasData &&
-                                playerState != null &&
-                                playerState.processingState != ProcessingState.loading
+                        onPressed: fileSnapshot.hasData && snapshot.hasData && playerState != null && playerState.processingState != ProcessingState.loading
                             ? () {
                                 switch (playerState.processingState) {
                                   case ProcessingState.idle:
@@ -152,9 +146,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                             : null,
                         color: widget.foregroundColor,
                         icon: Icon(
-                          ((_audioPlayer.duration ?? const Duration(days: 9999)) - _audioPlayer.position)
-                                      .inMilliseconds <
-                                  10
+                          ((_audioPlayer.duration ?? const Duration(days: 9999)) - _audioPlayer.position).inMilliseconds < 10
                               ? Icons.replay
                               : ((playerState?.playing ?? false) ? Icons.pause : Icons.play_arrow),
                         ),
@@ -164,10 +156,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                   StreamBuilder(
                     stream: _audioPlayer.positionStream,
                     builder: (context, snapshot) {
-                      _sliderValue = _audioPlayer.duration == null
-                          ? 0
-                          : (_audioPlayer.position.inMilliseconds / (_audioPlayer.duration!.inMilliseconds))
-                              .clamp(0, 1);
+                      _sliderValue = _audioPlayer.duration == null ? 0 : (_audioPlayer.position.inMilliseconds / (_audioPlayer.duration!.inMilliseconds)).clamp(0, 1);
                       return StatefulBuilder(
                         // Not sure if this makes sense here...
                         builder: (context, setState) {
@@ -181,11 +170,11 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                               min: 0.0,
                               max: 1.0,
                               onChanged: (value) async {
-                                _audioPlayer.pause();
+                                await _audioPlayer.pause();
                                 setState(() {
                                   _sliderValue = value;
                                 });
-                                _audioPlayer.seek(
+                                await _audioPlayer.seek(
                                   Duration(
                                     milliseconds: (value * (_audioPlayer.duration?.inMilliseconds ?? 0)).round(),
                                   ),
@@ -196,7 +185,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                         },
                       );
                     },
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -211,10 +200,7 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                     builder: (context, snapshot) {
                       return Text(
                         "${snapshot.data?.format() ?? "??"}/${_audioPlayer.duration?.format() ?? "??"}",
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: widget.foregroundColor?.withAlpha(150)),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: widget.foregroundColor?.withAlpha(150)),
                       );
                     },
                   ),

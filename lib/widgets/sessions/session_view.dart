@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:recon/apis/session_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
@@ -6,7 +7,6 @@ import 'package:recon/models/session.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/panorama.dart';
 import 'package:recon/widgets/settings_page.dart';
-import 'package:flutter/material.dart';
 
 class SessionView extends StatefulWidget {
   const SessionView({required this.session, super.key});
@@ -99,7 +99,7 @@ class _SessionViewState extends State<SessionView> {
                                       padding: EdgeInsets.all(16),
                                       child: Icon(Icons.panorama_photosphere),
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -185,17 +185,19 @@ class _SessionViewState extends State<SessionView> {
                     ),
                   ] +
                   session.sessionUsers
-                      .map((user) => ListTile(
-                            dense: true,
-                            title: Text(
-                              user.username,
-                              textAlign: TextAlign.start,
-                            ),
-                            subtitle: Text(
-                              user.isPresent ? "Active" : "Inactive",
-                              textAlign: TextAlign.start,
-                            ),
-                          ))
+                      .map(
+                        (user) => ListTile(
+                          dense: true,
+                          title: Text(
+                            user.username,
+                            textAlign: TextAlign.start,
+                          ),
+                          subtitle: Text(
+                            user.isPresent ? "Active" : "Inactive",
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                      )
                       .toList(),
             ),
           ),

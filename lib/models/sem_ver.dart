@@ -1,7 +1,7 @@
 
 class SemVer {
   static final RegExp _versionMatcher = RegExp(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$");
-  static final RegExp _characterFilter = RegExp(r"^[a-zA-Z]+");
+  static final RegExp _characterFilter = RegExp("^[a-zA-Z]+");
   final int major;
   final int minor;
   final int patch;

@@ -29,20 +29,14 @@ class Friend implements Comparable {
 
   bool get isBot => userStatus.sessionType == UserSessionType.bot || id == _resoniteBotId;
 
-  bool get isSociable =>
-      (userStatus.onlineStatus == OnlineStatus.sociable) &&
-      !isBot &&
-      !isHeadless;
+  bool get isSociable => (userStatus.onlineStatus == OnlineStatus.sociable) && !isBot && !isHeadless;
 
-  bool get isOffline =>
-      (userStatus.onlineStatus == OnlineStatus.offline || userStatus.onlineStatus == OnlineStatus.invisible) &&
-      !isBot &&
-      !isHeadless;
+  bool get isOffline => (userStatus.onlineStatus == OnlineStatus.offline || userStatus.onlineStatus == OnlineStatus.invisible) && !isBot && !isHeadless;
 
   bool get isOnline => !isOffline;
 
   factory Friend.fromMap(Map map) {
-    var userStatus = map["userStatus"] == null ? UserStatus.empty() : UserStatus.fromMap(map["userStatus"]);
+    final userStatus = map["userStatus"] == null ? UserStatus.empty() : UserStatus.fromMap(map["userStatus"]);
     return Friend(
       id: map["id"],
       username: map["contactUsername"],
@@ -51,9 +45,7 @@ class Friend implements Comparable {
       userStatus: map["id"] == _resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
       contactStatus: FriendStatus.fromString(map["contactStatus"]),
-      latestMessageTime: map["latestMessageTime"] == null
-          ? DateTime.fromMillisecondsSinceEpoch(0)
-          : DateTime.parse(map["latestMessageTime"]),
+      latestMessageTime: map["latestMessageTime"] == null ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
     );
   }
 
@@ -76,14 +68,7 @@ class Friend implements Comparable {
 
   bool get isEmpty => id == _emptyId;
 
-  Friend copyWith(
-      {String? id,
-      String? username,
-      String? ownerId,
-      UserStatus? userStatus,
-      UserProfile? userProfile,
-      FriendStatus? contactStatus,
-      DateTime? latestMessageTime}) {
+  Friend copyWith({String? id, String? username, String? ownerId, UserStatus? userStatus, UserProfile? userProfile, FriendStatus? contactStatus, DateTime? latestMessageTime}) {
     return Friend(
       id: id ?? this.id,
       username: username ?? this.username,

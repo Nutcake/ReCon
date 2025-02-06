@@ -1,7 +1,6 @@
-
 import 'package:recon/models/records/resonite_db_asset.dart';
 
-class AssetDiff extends ResoniteDBAsset{
+class AssetDiff extends ResoniteDBAsset {
   final Diff state;
   final bool isUploaded;
 
@@ -27,7 +26,8 @@ enum Diff {
   }
 
   factory Diff.fromString(String? text) {
-    return Diff.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
+    return Diff.values.firstWhere(
+      (element) => element.name.toLowerCase() == text?.toLowerCase(),
       orElse: () => Diff.unchanged,
     );
   }

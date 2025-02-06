@@ -1,15 +1,14 @@
-
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:recon/auxiliary.dart';
-import 'package:recon/models/photo_asset.dart';
 import 'package:recon/models/message.dart';
+import 'package:recon/models/photo_asset.dart';
 import 'package:recon/string_formatter.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/messages/message_state_indicator.dart';
-import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
 
 class MessageAsset extends StatelessWidget {
   const MessageAsset({required this.message, this.foregroundColor, super.key});
@@ -19,7 +18,7 @@ class MessageAsset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = jsonDecode(message.content);
+    final content = jsonDecode(message.content) as Map<String, dynamic>;
     final formattedName = FormatNode.fromText(content["name"]);
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
@@ -38,30 +37,38 @@ class MessageAsset extends StatelessWidget {
                       photoAsset = PhotoAsset.fromTags((content["tags"] as List).map((e) => "$e").toList());
                     } catch (_) {}
                     await Navigator.push(
-                      context, MaterialPageRoute(builder: (context) =>
-                        PhotoView(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PhotoView(
                           minScale: PhotoViewComputedScale.contained,
-                          imageProvider: photoAsset == null
-                              ? image
-                              : CachedNetworkImageProvider(Aux.resdbToHttp(photoAsset.imageUri)),
+                          imageProvider: photoAsset == null ? image : CachedNetworkImageProvider(Aux.resdbToHttp(photoAsset.imageUri)),
                           heroAttributes: PhotoViewHeroAttributes(tag: message.id),
                         ),
-                    ),);
+                      ),
+                    );
                   },
                   child: Hero(
                     tag: message.id,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: Image(image: image, fit: BoxFit.cover,),
+                      child: Image(
+                        image: image,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 );
               },
-              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 64,),
+              errorWidget: (context, url, error) => const Icon(
+                Icons.broken_image,
+                size: 64,
+              ),
               placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
             ),
           ),
-          const SizedBox(height: 8,),
+          const SizedBox(
+            height: 8,
+          ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
@@ -72,15 +79,14 @@ class MessageAsset extends StatelessWidget {
                   child: FormattedText(
                     formattedName,
                     maxLines: null,
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: foregroundColor),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: foregroundColor),
                   ),
                 ),
               ),
-             MessageStateIndicator(message: message, foregroundColor: foregroundColor,),
+              MessageStateIndicator(
+                message: message,
+                foregroundColor: foregroundColor,
+              ),
             ],
           ),
         ],

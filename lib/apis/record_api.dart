@@ -2,19 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:collection/collection.dart';
-import 'package:recon/models/records/asset_digest.dart';
-import 'package:recon/models/records/json_template.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart';
 
-import 'package:recon/clients/api_client.dart';
-import 'package:recon/models/records/asset_upload_data.dart';
-import 'package:recon/models/records/resonite_db_asset.dart';
-import 'package:recon/models/records/preprocess_status.dart';
-import 'package:recon/models/records/record.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
+import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/records/asset_digest.dart';
+import 'package:recon/models/records/asset_upload_data.dart';
+import 'package:recon/models/records/json_template.dart';
+import 'package:recon/models/records/preprocess_status.dart';
+import 'package:recon/models/records/record.dart';
+import 'package:recon/models/records/resonite_db_asset.dart';
 import 'package:recon/models/records/search_sort.dart';
 
 class RecordApi {
@@ -116,13 +116,15 @@ class RecordApi {
     client.checkResponse(response);
   }
 
-  static Future<void> uploadAsset(ApiClient client,
-      {required AssetUploadData uploadData,
-      required String filename,
-      required ResoniteDBAsset asset,
-      required Uint8List data,
-      void Function(double number)? progressCallback}) async {
-    for (int i = 0; i < uploadData.totalChunks; i++) {
+  static Future<void> uploadAsset(
+    ApiClient client, {
+    required AssetUploadData uploadData,
+    required String filename,
+    required ResoniteDBAsset asset,
+    required Uint8List data,
+    void Function(double number)? progressCallback,
+  }) async {
+    for (var i = 0; i < uploadData.totalChunks; i++) {
       progressCallback?.call(i / uploadData.totalChunks);
       final offset = i * uploadData.chunkSize;
       final end = (i + 1) * uploadData.chunkSize;
@@ -131,7 +133,8 @@ class RecordApi {
         ApiClient.buildFullUri("/users/${client.userId}/assets/${asset.hash}/chunks/$i"),
       )
         ..files.add(
-            http.MultipartFile.fromBytes("file", data.getRange(offset, min(end, data.length)).toList(), filename: filename, contentType: MediaType.parse("multipart/form-data")))
+          http.MultipartFile.fromBytes("file", data.getRange(offset, min(end, data.length)).toList(), filename: filename, contentType: MediaType.parse("multipart/form-data")),
+        )
         ..headers.addAll(client.authorizationHeader);
       final response = await request.send();
       final bodyBytes = await response.stream.toBytes();
@@ -147,7 +150,7 @@ class RecordApi {
 
   static Future<void> uploadAssets(ApiClient client, {required List<AssetDigest> assets, void Function(double progress)? progressCallback}) async {
     progressCallback?.call(0);
-    for (int i = 0; i < assets.length; i++) {
+    for (var i = 0; i < assets.length; i++) {
       final totalProgress = i / assets.length;
       progressCallback?.call(totalProgress);
       final entry = assets[i];
@@ -196,9 +199,11 @@ class RecordApi {
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
     progressCallback?.call(.2);
 
-    await uploadAssets(client,
-        assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
-        progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await uploadAssets(
+      client,
+      assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+      progressCallback: (progress) => progressCallback?.call(.2 + progress * .6),
+    );
     await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;
@@ -226,9 +231,11 @@ class RecordApi {
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
     progressCallback?.call(.2);
 
-    await uploadAssets(client,
-        assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
-        progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await uploadAssets(
+      client,
+      assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+      progressCallback: (progress) => progressCallback?.call(.2 + progress * .6),
+    );
     await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;
@@ -260,9 +267,11 @@ class RecordApi {
     final toUpload = status.resultDiffs.whereNot((element) => element.isUploaded);
     progressCallback?.call(.2);
 
-    await uploadAssets(client,
-        assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
-        progressCallback: (progress) => progressCallback?.call(.2 + progress * .6));
+    await uploadAssets(
+      client,
+      assets: digests.where((digest) => toUpload.any((diff) => digest.asset.hash == diff.hash)).toList(),
+      progressCallback: (progress) => progressCallback?.call(.2 + progress * .6),
+    );
     await upsertRecord(client, record: record);
     progressCallback?.call(1);
     return record;

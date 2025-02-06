@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:recon/models/settings.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:recon/models/settings.dart';
 
 class SettingsClient {
   static const String _settingsKey = "settings";

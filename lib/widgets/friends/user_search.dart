@@ -1,13 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/user.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/friends/user_list_tile.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SearchError {
   final String message;
@@ -28,10 +28,11 @@ class _UserSearchState extends State<UserSearch> {
   Timer? _searchDebouncer;
   late Future<List<User>?>? _usersFuture = _emptySearch;
 
-  Future<List<User>> get _emptySearch =>
-      Future(() =>
-      throw const SearchError(
-          message: "Start typing to search for users", icon: Icons.search)
+  Future<List<User>> get _emptySearch => Future(
+        () => throw const SearchError(
+          message: "Start typing to search for users",
+          icon: Icons.search,
+        ),
       );
 
   void _querySearch(BuildContext context, String needle) {
@@ -39,13 +40,14 @@ class _UserSearchState extends State<UserSearch> {
       _usersFuture = _emptySearch;
       return;
     }
-    _usersFuture = UserApi.searchUsers(ClientHolder
-        .of(context)
-        .apiClient, needle: needle).then((value) {
+    _usersFuture = UserApi.searchUsers(
+      ClientHolder.of(context).apiClient,
+      needle: needle,
+    ).then((value) {
       final res = value.toList();
       if (res.isEmpty) throw SearchError(message: "No user found with username '$needle'", icon: Icons.search_off);
       res.sort(
-              (a, b) => a.username.length.compareTo(b.username.length)
+        (a, b) => a.username.length.compareTo(b.username.length),
       );
       return res;
     });
@@ -67,14 +69,18 @@ class _UserSearchState extends State<UserSearch> {
                 future: _usersFuture,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    final users = snapshot.data as List<User>;
+                    final users = snapshot.data!;
                     return ListView.builder(
                       itemCount: users.length,
                       itemBuilder: (context, index) {
                         final user = users[index];
-                        return UserListTile(user: user, onChanged: () {
-                          mClient.refreshFriendsList();
-                        }, isFriend: mClient.getAsFriend(user.id) != null,);
+                        return UserListTile(
+                          user: user,
+                          onChanged: () {
+                            mClient.refreshFriendsList();
+                          },
+                          isFriend: mClient.getAsFriend(user.id) != null,
+                        );
                       },
                     );
                   } else if (snapshot.hasError) {
@@ -86,8 +92,11 @@ class _UserSearchState extends State<UserSearch> {
                       );
                     } else {
                       FlutterError.reportError(
-                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
-                      return DefaultErrorWidget(title: "${snapshot.error}",);
+                        FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace),
+                      );
+                      return DefaultErrorWidget(
+                        title: "${snapshot.error}",
+                      );
                     }
                   } else {
                     return const Column(
@@ -103,16 +112,16 @@ class _UserSearchState extends State<UserSearch> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               child: TextField(
                 decoration: InputDecoration(
-                    isDense: true,
-                    hintText: "Search for users...",
-                    contentPadding: const EdgeInsets.all(16),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24)
-                    )
+                  isDense: true,
+                  hintText: "Search for users...",
+                  contentPadding: const EdgeInsets.all(16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                 ),
                 autocorrect: false,
                 controller: _searchInputController,
-                onChanged: (String value) {
+                onChanged: (value) {
                   _searchDebouncer?.cancel();
                   if (value.isEmpty) {
                     setState(() {

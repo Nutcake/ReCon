@@ -16,7 +16,7 @@ class AudioCacheClient {
     final directory = await _directoryFuture;
     final fileName = basenameWithoutExtension(clip.assetUri);
     final file = File("${directory.path}/$fileName.ogg");
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       await file.create(recursive: true);
       final response = await http.get(Uri.parse(Aux.resdbToHttp(clip.assetUri)));
       ApiClient.checkResponseCode(response);
@@ -24,8 +24,8 @@ class AudioCacheClient {
     }
     if (_isDarwin) {
       final wavFile = File("${directory.path}/$fileName.wav");
-      final wavFileExists = await wavFile.exists();
-      if (wavFileExists && await wavFile.length() == 0) {
+      final wavFileExists = wavFile.existsSync();
+      if (wavFileExists && wavFile.lengthSync() == 0) {
         await wavFile.delete();
       }
       if (!wavFileExists) {

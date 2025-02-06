@@ -18,7 +18,7 @@ class FormatNode {
 
   factory FormatNode.fromText(String? text) {
     if (text == null) return FormatNode.unformatted(text);
-    var tags = FormatTag.parseTags(text);
+    final tags = FormatTag.parseTags(text);
     if (tags.isEmpty) return FormatNode.unformatted(text);
     final root = FormatNode(
       format: FormatData.unformatted(),
@@ -28,7 +28,7 @@ class FormatNode {
 
     final activeTags = <FormatData>[];
 
-    for (int i = 0; i < tags.length; i++) {
+    for (var i = 0; i < tags.length; i++) {
       final tag = tags[i];
       final substr = text.substring(tag.endIndex, (i + 1 < tags.length) ? tags[i + 1].startIndex : null);
       if (tag.format.isAdditive) {
@@ -60,7 +60,7 @@ class FormatNode {
     return text + children.join();
   }
 
-  static FormatNode buildFromStyles(List<FormatData> styles, String text) {
+  factory FormatNode.buildFromStyles(List<FormatData> styles, String text) {
     if (styles.isEmpty) return FormatNode(format: FormatData.unformatted(), children: [], text: text);
     final root = FormatNode(text: "", format: styles.first, children: []);
     var current = root;
@@ -85,7 +85,7 @@ class FormatTag {
     required this.format,
   });
 
-  static final _tagRegExp = RegExp(r"<(.+?)>");
+  static final _tagRegExp = RegExp("<(.+?)>");
 
   static List<FormatTag> parseTags(String text) {
     final startMatches = _tagRegExp.allMatches(text);
@@ -96,11 +96,13 @@ class FormatTag {
       final fullTag = startMatch.group(1);
       if (fullTag == null) continue;
       final tag = FormatData.parse(fullTag);
-      spans.add(FormatTag(
-        startIndex: startMatch.start,
-        endIndex: startMatch.end,
-        format: tag,
-      ));
+      spans.add(
+        FormatTag(
+          startIndex: startMatch.start,
+          endIndex: startMatch.end,
+          format: tag,
+        ),
+      );
     }
     return spans;
   }
@@ -189,18 +191,22 @@ class FormatData {
 
   static final Map<String, FormatAction> _richTextTags = {
     "align": FormatAction(),
-    "alpha": FormatAction(style: (param, baseStyle) {
-      if (param == null || !param.startsWith("#")) return baseStyle;
-      final alpha = int.tryParse(param.substring(1), radix: 16);
-      if (alpha == null) return baseStyle;
-      return baseStyle.copyWith(color: baseStyle.color?.withAlpha(alpha));
-    }),
-    "color": FormatAction(style: (param, baseStyle) {
-      if (param == null) return baseStyle;
-      final color = tryParseColor(param);
-      if (color == null) return baseStyle;
-      return baseStyle.copyWith(color: color);
-    }),
+    "alpha": FormatAction(
+      style: (param, baseStyle) {
+        if (param == null || !param.startsWith("#")) return baseStyle;
+        final alpha = int.tryParse(param.substring(1), radix: 16);
+        if (alpha == null) return baseStyle;
+        return baseStyle.copyWith(color: baseStyle.color?.withAlpha(alpha));
+      },
+    ),
+    "color": FormatAction(
+      style: (param, baseStyle) {
+        if (param == null) return baseStyle;
+        final color = tryParseColor(param);
+        if (color == null) return baseStyle;
+        return baseStyle.copyWith(color: color);
+      },
+    ),
     "b": FormatAction(style: (param, baseStyle) => baseStyle.copyWith(fontWeight: FontWeight.bold)),
     "br": FormatAction(transform: (text, param) => "\n$text"),
     "i": FormatAction(style: (param, baseStyle) => baseStyle.copyWith(fontStyle: FontStyle.italic)),
@@ -218,31 +224,35 @@ class FormatData {
     ),
     "smallcaps": FormatAction(),
     "margin": FormatAction(),
-    "mark": FormatAction(style: (param, baseStyle) {
-      if (param == null) return baseStyle;
-      final color = tryParseColor(param);
-      if (color == null) return baseStyle;
-      return baseStyle.copyWith(backgroundColor: color);
-    }),
+    "mark": FormatAction(
+      style: (param, baseStyle) {
+        if (param == null) return baseStyle;
+        final color = tryParseColor(param);
+        if (color == null) return baseStyle;
+        return baseStyle.copyWith(backgroundColor: color);
+      },
+    ),
     "mspace": FormatAction(),
     "noparse": FormatAction(),
     "nobr": FormatAction(),
     "page": FormatAction(),
     "pos": FormatAction(),
-    "size": FormatAction(style: (param, baseStyle) {
-      if (param == null) return baseStyle;
-      final baseSize = baseStyle.fontSize ?? 12;
-      if (param.endsWith("%")) {
-        final percentage = int.tryParse(param.replaceAll("%", ""));
-        if (percentage == null || percentage <= 0) return baseStyle;
-        return baseStyle.copyWith(fontSize: baseSize * (percentage / 100));
-      } else {
-        final size = num.tryParse(param);
-        if (size == null || size <= 0) return baseStyle;
-        final realSize = baseSize * (size / 1000);
-        return baseStyle.copyWith(fontSize: realSize.toDouble().clamp(8, 400));
-      }
-    }),
+    "size": FormatAction(
+      style: (param, baseStyle) {
+        if (param == null) return baseStyle;
+        final baseSize = baseStyle.fontSize ?? 12;
+        if (param.endsWith("%")) {
+          final percentage = int.tryParse(param.replaceAll("%", ""));
+          if (percentage == null || percentage <= 0) return baseStyle;
+          return baseStyle.copyWith(fontSize: baseSize * (percentage / 100));
+        } else {
+          final size = num.tryParse(param);
+          if (size == null || size <= 0) return baseStyle;
+          final realSize = baseSize * (size / 1000);
+          return baseStyle.copyWith(fontSize: realSize.clamp(8, 400));
+        }
+      },
+    ),
     "space": FormatAction(),
     "sprite": FormatAction(),
     "s": FormatAction(style: (param, baseStyle) => baseStyle.copyWith(decoration: TextDecoration.lineThrough)),

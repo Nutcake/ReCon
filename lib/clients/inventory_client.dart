@@ -13,12 +13,10 @@ enum SortMode {
 
   int sortFunction(Record a, Record b, {bool reverse = false}) {
     final func = switch (this) {
-      SortMode.name => (Record x, Record y) =>
-          x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
+      SortMode.name => (Record x, Record y) => x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
       SortMode.date => (Record x, Record y) => x.creationTime.compareTo(y.creationTime),
-      SortMode.resonite => (Record x, Record y) => x.isItem
-          ? x.creationTime.compareTo(y.creationTime)
-          : x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
+      SortMode.resonite => (Record x, Record y) =>
+          x.isItem ? x.creationTime.compareTo(y.creationTime) : x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
     };
     if (reverse) {
       return func(b, a);
@@ -66,10 +64,9 @@ class InventoryClient extends ChangeNotifier {
   List<Record> get selectedRecords => _selectedRecords.values.toList();
 
   Future<ResoniteDirectory>? get directoryFuture => _currentDirectory?.then(
-        (ResoniteDirectory value) {
+        (value) {
           value.children.sort(
-            (ResoniteDirectory a, ResoniteDirectory b) =>
-                _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
+            (a, b) => _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
           );
           return value;
         },
@@ -81,8 +78,7 @@ class InventoryClient extends ChangeNotifier {
 
   int get selectedRecordCount => _selectedRecords.length;
 
-  bool get onlyFilesSelected => _selectedRecords.values
-      .every((element) => element.recordType != RecordType.link && element.recordType != RecordType.directory);
+  bool get onlyFilesSelected => _selectedRecords.values.every((element) => element.recordType != RecordType.link && element.recordType != RecordType.directory);
 
   void clearSelectedRecords() {
     _selectedRecords.clear();
@@ -94,7 +90,7 @@ class InventoryClient extends ChangeNotifier {
       await RecordApi.deleteRecord(apiClient, recordId: recordId);
     }
     _selectedRecords.clear();
-    reloadCurrentDirectory();
+    unawaited(reloadCurrentDirectory());
   }
 
   void toggleRecordSelected(Record record) {
@@ -143,8 +139,7 @@ class InventoryClient extends ChangeNotifier {
           );
         }
       } else {
-        records =
-            await RecordApi.getUserRecordsAt(apiClient, path: "${record.path}\\${record.name}", user: record.ownerId);
+        records = await RecordApi.getUserRecordsAt(apiClient, path: "${record.path}\\${record.name}", user: record.ownerId);
       }
     }
     return records;
@@ -217,8 +212,7 @@ class InventoryClient extends ChangeNotifier {
       _currentDirectory = _getDirectory(record).then(
         (records) {
           childDir.children.clear();
-          childDir.children
-              .addAll(records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: childDir)));
+          childDir.children.addAll(records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: childDir)));
           return childDir;
         },
       ).onError((error, stackTrace) {
@@ -246,7 +240,7 @@ class InventoryClient extends ChangeNotifier {
       throw "Failed navigate up: Already at root";
     }
 
-    for (int i = 0; i < times; i++) {
+    for (var i = 0; i < times; i++) {
       dir = dir?.parent;
     }
 

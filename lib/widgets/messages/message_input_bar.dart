@@ -39,7 +39,9 @@ class _MessageInputBarState extends State<MessageInputBar> {
   bool _attachmentPickerOpen = false;
   String _currentText = "";
   double? _sendProgress;
+
   bool get _isRecording => _recordingStartTime != null;
+
   set _isRecording(value) => _recordingStartTime = value ? DateTime.now() : null;
   bool _recordingCancelled = false;
 
@@ -64,8 +66,13 @@ class _MessageInputBarState extends State<MessageInputBar> {
     mClient.sendMessage(message);
   }
 
-  Future<void> sendImageMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
-      void Function(double progress) progressCallback) async {
+  Future<void> sendImageMessage(
+    ApiClient client,
+    MessagingClient mClient,
+    File file,
+    String machineId,
+    void Function(double progress) progressCallback,
+  ) async {
     final record = await RecordApi.uploadImage(
       client,
       image: file,
@@ -73,18 +80,24 @@ class _MessageInputBarState extends State<MessageInputBar> {
       progressCallback: progressCallback,
     );
     final message = Message(
-        id: record.extractMessageId() ?? Message.generateId(),
-        recipientId: widget.recipient.id,
-        senderId: client.userId,
-        type: MessageType.object,
-        content: jsonEncode(record.toMap()),
-        sendTime: DateTime.now().toUtc(),
-        state: MessageState.local);
+      id: record.extractMessageId() ?? Message.generateId(),
+      recipientId: widget.recipient.id,
+      senderId: client.userId,
+      type: MessageType.object,
+      content: jsonEncode(record.toMap()),
+      sendTime: DateTime.now().toUtc(),
+      state: MessageState.local,
+    );
     mClient.sendMessage(message);
   }
 
-  Future<void> sendVoiceMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
-      void Function(double progress) progressCallback) async {
+  Future<void> sendVoiceMessage(
+    ApiClient client,
+    MessagingClient mClient,
+    File file,
+    String machineId,
+    void Function(double progress) progressCallback,
+  ) async {
     final record = await RecordApi.uploadVoiceClip(
       client,
       voiceClip: file,
@@ -103,8 +116,13 @@ class _MessageInputBarState extends State<MessageInputBar> {
     mClient.sendMessage(message);
   }
 
-  Future<void> sendRawFileMessage(ApiClient client, MessagingClient mClient, File file, String machineId,
-      void Function(double progress) progressCallback) async {
+  Future<void> sendRawFileMessage(
+    ApiClient client,
+    MessagingClient mClient,
+    File file,
+    String machineId,
+    void Function(double progress) progressCallback,
+  ) async {
     final record = await RecordApi.uploadRawFile(
       client,
       file: file,
@@ -167,7 +185,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
             final recording = await _recorder.stop();
             if (recording == null) return;
             final file = File(recording);
-            if (await file.exists()) {
+            if (file.existsSync()) {
               await file.delete();
             }
           }
@@ -186,8 +204,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
               _sendProgress = 0;
             });
             final apiClient = cHolder.apiClient;
-            await sendVoiceMessage(
-                apiClient, mClient, file, cHolder.settingsClient.currentSettings.machineId.valueOrDefault, (progress) {
+            await sendVoiceMessage(apiClient, mClient, file, cHolder.settingsClient.currentSettings.machineId.valueOrDefault, (progress) {
               setState(() {
                 _sendProgress = progress;
               });
@@ -210,7 +227,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
           child: Column(
             children: [
               if (_isSending && _sendProgress != null) LinearProgressIndicator(value: _sendProgress),
-              Container(
+              DecoratedBox(
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
@@ -218,7 +235,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                   duration: const Duration(milliseconds: 200),
                   switchInCurve: Curves.easeOut,
                   switchOutCurve: Curves.easeOut,
-                  transitionBuilder: (Widget child, animation) => SizeTransition(
+                  transitionBuilder: (child, animation) => SizeTransition(
                     sizeFactor: animation,
                     child: child,
                   ),
@@ -230,13 +247,12 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             onPressed: _isSending
                                 ? null
                                 : () async {
-                                    final result =
-                                        await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
+                                    final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
                                     if (result != null) {
                                       setState(() {
-                                        _loadedFiles.addAll(result.files
-                                            .map((e) => e.path != null ? (FileType.image, File(e.path!)) : null)
-                                            .nonNulls);
+                                        _loadedFiles.addAll(
+                                          result.files.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null).nonNulls,
+                                        );
                                       });
                                     }
                                   },
@@ -250,20 +266,18 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                     final picture = await _imagePicker.pickImage(source: ImageSource.camera);
                                     if (picture == null) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(content: Text("Failed to get image path")));
+                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to get image path")));
                                       }
                                       return;
                                     }
                                     final file = File(picture.path);
-                                    if (await file.exists()) {
+                                    if (file.existsSync()) {
                                       setState(() {
                                         _loadedFiles.add((FileType.image, file));
                                       });
                                     } else {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(content: Text("Failed to load image file")));
+                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to load image file")));
                                       }
                                     }
                                   },
@@ -274,13 +288,12 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             onPressed: _isSending
                                 ? null
                                 : () async {
-                                    final result =
-                                        await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
+                                    final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
                                     if (result != null) {
                                       setState(() {
-                                        _loadedFiles.addAll(result.files
-                                            .map((e) => e.path != null ? (FileType.any, File(e.path!)) : null)
-                                            .nonNulls);
+                                        _loadedFiles.addAll(
+                                          result.files.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null).nonNulls,
+                                        );
                                       });
                                     }
                                   },
@@ -293,9 +306,10 @@ class _MessageInputBarState extends State<MessageInputBar> {
                     (_, _) => MessageAttachmentList(
                         disabled: _isSending,
                         initialFiles: _loadedFiles,
-                        onChange: (List<(FileType, File)> loadedFiles) => setState(() {
-                          _loadedFiles.clear();
-                          _loadedFiles.addAll(loadedFiles);
+                        onChange: (loadedFiles) => setState(() {
+                          _loadedFiles
+                            ..clear()
+                            ..addAll(loadedFiles);
                         }),
                       ),
                   },
@@ -305,7 +319,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                 children: [
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
+                    transitionBuilder: (child, animation) => FadeTransition(
                       opacity: animation,
                       child: RotationTransition(
                         turns: Tween<double>(begin: 0.6, end: 1).animate(animation),
@@ -326,7 +340,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               ? null
                               : () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Sorry, this feature is not yet available")));
+                                    const SnackBar(content: Text("Sorry, this feature is not yet available")),
+                                  );
                                   return;
                                   // setState(() {
                                   //   _attachmentPickerOpen = true;
@@ -343,29 +358,30 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               : () async {
                                   if (_loadedFiles.isNotEmpty) {
                                     await showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                              title: const Text("Remove all attachments"),
-                                              content: const Text("This will remove all attachments, are you sure?"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: const Text("No"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _loadedFiles.clear();
-                                                      _attachmentPickerOpen = false;
-                                                    });
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: const Text("Yes"),
-                                                )
-                                              ],
-                                            ));
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text("Remove all attachments"),
+                                        content: const Text("This will remove all attachments, are you sure?"),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("No"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _loadedFiles.clear();
+                                                _attachmentPickerOpen = false;
+                                              });
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: const Text("Yes"),
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   } else {
                                     setState(() {
                                       _attachmentPickerOpen = false;
@@ -401,25 +417,26 @@ class _MessageInputBarState extends State<MessageInputBar> {
                             },
                             style: Theme.of(context).textTheme.bodyLarge,
                             decoration: InputDecoration(
-                                isDense: true,
-                                hintText: _isRecording ? "" : "Message ${widget.recipient.username}...",
-                                hintMaxLines: 1,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                fillColor: Colors.black26,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide.none,
-                                  borderRadius: BorderRadius.circular(24),
-                                )),
+                              isDense: true,
+                              hintText: _isRecording ? "" : "Message ${widget.recipient.username}...",
+                              hintMaxLines: 1,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              fillColor: Colors.black26,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ),
                           ),
                           AnimatedSwitcher(
                             duration: const Duration(milliseconds: 200),
-                            transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
+                            transitionBuilder: (child, animation) => FadeTransition(
                               opacity: animation,
                               child: SlideTransition(
                                 position: Tween<Offset>(
                                   begin: const Offset(0, .2),
-                                  end: const Offset(0, 0),
+                                  end: Offset.zero,
                                 ).animate(animation),
                                 child: child,
                               ),
@@ -460,11 +477,14 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                                 ),
                                               ),
                                               StreamBuilder<Duration>(
-                                                  stream: _recordingDurationStream(),
-                                                  builder: (context, snapshot) {
-                                                    return Text("Recording: ${snapshot.data?.format()}",
-                                                        style: Theme.of(context).textTheme.titleMedium);
-                                                  }),
+                                                stream: _recordingDurationStream(),
+                                                builder: (context, snapshot) {
+                                                  return Text(
+                                                    "Recording: ${snapshot.data?.format()}",
+                                                    style: Theme.of(context).textTheme.titleMedium,
+                                                  );
+                                                },
+                                              ),
                                             ],
                                           ),
                                   )
@@ -476,7 +496,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                   ),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(
+                    transitionBuilder: (child, animation) => FadeTransition(
                       opacity: animation,
                       child: RotationTransition(
                         turns: Tween<double>(begin: 0.5, end: 1).animate(animation),
@@ -502,7 +522,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                       _loadedFiles.clear();
                                     });
                                     try {
-                                      for (int i = 0; i < toSend.length; i++) {
+                                      for (var i = 0; i < toSend.length; i++) {
                                         final totalProgress = i / toSend.length;
                                         final file = toSend[i];
                                         if (file.$1 == FileType.image) {
@@ -517,12 +537,14 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                           );
                                         } else {
                                           await sendRawFileMessage(
-                                              cHolder.apiClient,
-                                              mClient,
-                                              file.$2,
-                                              settings.machineId.valueOrDefault,
-                                              (progress) => setState(
-                                                  () => _sendProgress = totalProgress + progress * 1 / toSend.length));
+                                            cHolder.apiClient,
+                                            mClient,
+                                            file.$2,
+                                            settings.machineId.valueOrDefault,
+                                            (progress) => setState(
+                                              () => _sendProgress = totalProgress + progress * 1 / toSend.length,
+                                            ),
+                                          );
                                         }
                                       }
                                       setState(() {
@@ -556,7 +578,8 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                 ? null
                                 : (_) async {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text("Sorry, this feature is not yet available")));
+                                      const SnackBar(content: Text("Sorry, this feature is not yet available")),
+                                    );
                                     return;
                                     // HapticFeedback.vibrate();
                                     // final hadToAsk =

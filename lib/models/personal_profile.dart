@@ -38,7 +38,7 @@ class PersonalProfile {
       supporterMetadata: ((map["supporterMetadata"] ?? []) as List).map((e) => SupporterMetadata.fromMap(e)).toList(),
     );
   }
-  
+
   /// Has supported anywhere
   bool get isSupporter => supporterMetadata.whereType<SubscriptionSupporter>().any((element) => element.totalSupportMonths > 0);
 
@@ -79,12 +79,8 @@ class SupporterMetadata {
   SupporterMetadata();
 
   factory SupporterMetadata.fromMap(Map map) {
-    final type = map["\$type"];
-    return switch (type) {
-      "patreon" => PatreonSupporter.fromMap(map),
-      "stripe" => StripeSupporter.fromMap(map),
-      _ => SupporterMetadata()
-    };
+    final type = map[r"$type"];
+    return switch (type) { "patreon" => PatreonSupporter.fromMap(map), "stripe" => StripeSupporter.fromMap(map), _ => SupporterMetadata() };
   }
 }
 
@@ -134,7 +130,6 @@ class PatreonSupporter extends SubscriptionSupporter {
     required super.firstSupportTimestamp,
     required super.lastSupportTimestamp,
   });
-
 
   factory PatreonSupporter.fromMap(Map map) {
     return PatreonSupporter(

@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:recon/auxiliary.dart';
-import 'package:recon/models/records/record.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:recon/auxiliary.dart';
+import 'package:recon/models/records/record.dart';
 
 import '../formatted_text.dart';
 
 class ObjectInventoryTile extends StatelessWidget {
-  ObjectInventoryTile({required this.record, this.onTap, this.onLongPress, this.selected=false, super.key});
+  ObjectInventoryTile({required this.record, this.onTap, this.onLongPress, this.selected = false, super.key});
 
   final bool selected;
   final Record record;
@@ -50,8 +50,7 @@ class ObjectInventoryTile extends StatelessWidget {
                           size: 64,
                         ),
                       ),
-                      placeholder: (context, uri) =>
-                      const Center(child: CircularProgressIndicator()),
+                      placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ),
@@ -98,7 +97,7 @@ class ObjectInventoryTile extends StatelessWidget {
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

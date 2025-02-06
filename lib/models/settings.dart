@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:recon/models/sem_ver.dart';
 import 'package:recon/models/users/online_status.dart';
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class SettingsEntry<T> {
@@ -63,8 +63,7 @@ class Settings {
         sessionViewLastMinimumUsers = sessionViewLastMinimumUsers ?? const SettingsEntry<int>(deflt: 0),
         sessionViewLastIncludeEnded = sessionViewLastIncludeEnded ?? const SettingsEntry<bool>(deflt: false),
         sessionViewLastIncludeEmpty = sessionViewLastIncludeEmpty ?? const SettingsEntry<bool>(deflt: true),
-        sessionViewLastIncludeIncompatible =
-            sessionViewLastIncludeIncompatible ?? const SettingsEntry<bool>(deflt: false);
+        sessionViewLastIncludeIncompatible = sessionViewLastIncludeIncompatible ?? const SettingsEntry<bool>(deflt: false);
 
   factory Settings.fromMap(Map map) {
     return Settings(
@@ -125,8 +124,7 @@ class Settings {
       sessionViewLastMinimumUsers: this.sessionViewLastMinimumUsers.passThrough(sessionViewLastMinimumUsers),
       sessionViewLastIncludeEnded: this.sessionViewLastIncludeEnded.passThrough(sessionViewLastIncludeEnded),
       sessionViewLastIncludeEmpty: this.sessionViewLastIncludeEmpty.passThrough(sessionViewLastIncludeEmpty),
-      sessionViewLastIncludeIncompatible:
-          this.sessionViewLastIncludeIncompatible.passThrough(sessionViewLastIncludeIncompatible),
+      sessionViewLastIncludeIncompatible: this.sessionViewLastIncludeIncompatible.passThrough(sessionViewLastIncludeIncompatible),
     );
   }
 }

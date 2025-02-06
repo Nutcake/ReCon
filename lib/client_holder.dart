@@ -1,9 +1,8 @@
-
+import 'package:flutter/material.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/notification_client.dart';
 import 'package:recon/clients/settings_client.dart';
 import 'package:recon/models/authentication_data.dart';
-import 'package:flutter/material.dart';
 
 class ClientHolder extends InheritedWidget {
   final ApiClient apiClient;
@@ -23,14 +22,12 @@ class ClientHolder extends InheritedWidget {
   }
 
   static ClientHolder of(BuildContext context) {
-    final ClientHolder? result = maybeOf(context);
+    final result = maybeOf(context);
     assert(result != null, 'No AuthenticatedClient found in context');
     return result!;
   }
 
   @override
   bool updateShouldNotify(covariant ClientHolder oldWidget) =>
-      oldWidget.apiClient != apiClient
-          || oldWidget.settingsClient != settingsClient
-          || oldWidget.notificationClient != notificationClient;
+      oldWidget.apiClient != apiClient || oldWidget.settingsClient != settingsClient || oldWidget.notificationClient != notificationClient;
 }

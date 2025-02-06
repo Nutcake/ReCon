@@ -1,7 +1,7 @@
-import 'package:recon/client_holder.dart';
-import 'package:recon/models/message.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:recon/client_holder.dart';
+import 'package:recon/models/message.dart';
 
 class MessageStateIndicator extends StatelessWidget {
   MessageStateIndicator({required this.message, this.foregroundColor, super.key});
@@ -19,17 +19,10 @@ class MessageStateIndicator extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: Text(
             _dateFormat.format(message.sendTime.toLocal()),
-            style: Theme
-                .of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(color: color),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color),
           ),
         ),
-        if (message.senderId == ClientHolder
-            .of(context)
-            .apiClient
-            .userId)
+        if (message.senderId == ClientHolder.of(context).apiClient.userId)
           Icon(
             switch (message.state) {
               MessageState.local => Icons.alarm,

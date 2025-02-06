@@ -6,8 +6,7 @@ import 'package:recon/models/session_metadata.dart';
 import 'package:recon/models/users/online_status.dart';
 import 'package:uuid/uuid.dart';
 
-enum UserSessionType
-{
+enum UserSessionType {
   unknown,
   graphicalClient,
   chatClient,
@@ -15,7 +14,8 @@ enum UserSessionType
   bot;
 
   factory UserSessionType.fromString(String? text) {
-    return UserSessionType.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
+    return UserSessionType.values.firstWhere(
+      (element) => element.name.toLowerCase() == text?.toLowerCase(),
       orElse: () => UserSessionType.unknown,
     );
   }
@@ -53,22 +53,20 @@ class UserStatus {
     required this.compatibilityHash,
     required this.hashSalt,
     required this.sessionType,
-    this.decodedSessions = const []
+    this.decodedSessions = const [],
   });
 
-  factory UserStatus.initial() =>
-      UserStatus.empty().copyWith(
+  factory UserStatus.initial() => UserStatus.empty().copyWith(
         compatibilityHash: Config.latestCompatHash,
         onlineStatus: OnlineStatus.online,
         hashSalt: CryptoHelper.cryptoToken(),
         outputDevice: "Unknown",
-        userSessionId: const Uuid().v4().toString(),
+        userSessionId: const Uuid().v4(),
         sessionType: UserSessionType.chatClient,
         isPresent: true,
       );
 
-  factory UserStatus.empty() =>
-      UserStatus(
+  factory UserStatus.empty() => UserStatus(
         userId: "",
         onlineStatus: OnlineStatus.offline,
         lastStatusChange: DateTime.now(),
@@ -82,7 +80,7 @@ class UserStatus {
         isPresent: false,
         compatibilityHash: "",
         hashSalt: "",
-        sessionType: UserSessionType.unknown
+        sessionType: UserSessionType.unknown,
       );
 
   factory UserStatus.fromMap(Map map) {
@@ -102,7 +100,7 @@ class UserStatus {
       isMobile: map["isMobile"] ?? false,
       compatibilityHash: map["compatibilityHash"] ?? "",
       hashSalt: map["hashSalt"] ?? "",
-      sessionType: UserSessionType.fromString(map["sessionType"])
+      sessionType: UserSessionType.fromString(map["sessionType"]),
     );
   }
 
@@ -118,15 +116,15 @@ class UserStatus {
       "sessions": shallow
           ? []
           : sessions
-          .map(
-            (e) => e.toMap(),
-      )
-          .toList(),
+              .map(
+                (e) => e.toMap(),
+              )
+              .toList(),
       "appVersion": appVersion,
       "outputDevice": outputDevice,
       "isMobile": isMobile,
       "compatibilityHash": compatibilityHash,
-      "sessionType": toBeginningOfSentenceCase(sessionType.name)
+      "sessionType": toBeginningOfSentenceCase(sessionType.name),
     };
   }
 

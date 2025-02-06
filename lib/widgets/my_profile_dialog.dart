@@ -20,7 +20,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
   Future<StorageQuota>? _storageQuotaFuture;
 
   @override
-  void didChangeDependencies() async {
+  void didChangeDependencies() {
     super.didChangeDependencies();
     final clientHolder = ClientHolder.of(context);
     if (_clientHolder != clientHolder) {
@@ -34,13 +34,13 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    DateFormat dateFormat = DateFormat.yMd();
+    final dateFormat = DateFormat.yMd();
     return Dialog(
       child: FutureBuilder(
         future: _personalProfileFuture,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            final profile = snapshot.data as PersonalProfile;
+            final profile = snapshot.data!;
             return Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -57,15 +57,14 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                           Text(profile.username, style: tt.titleLarge),
                           Text(
                             profile.email,
-                            style:
-                                tt.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
-                          )
+                            style: tt.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150)),
+                          ),
                         ],
                       ),
                       GenericAvatar(
                         imageUri: Aux.resdbToHttp(profile.userProfile.iconUrl),
                         radius: 24,
-                      )
+                      ),
                     ],
                   ),
                   const SizedBox(
@@ -78,7 +77,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "User ID: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.id)
+                      Text(profile.id),
                     ],
                   ),
                   Row(
@@ -88,7 +87,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "2FA: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.twoFactor ? "Enabled" : "Disabled")
+                      Text(profile.twoFactor ? "Enabled" : "Disabled"),
                     ],
                   ),
                   Row(
@@ -98,7 +97,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "Patreon Supporter: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.isPatreonSupporter ? "Yes" : "No")
+                      Text(profile.isPatreonSupporter ? "Yes" : "No"),
                     ],
                   ),
                   Row(
@@ -108,7 +107,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "Stripe Supporter: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.isStripeSupporter ? "Yes" : "No")
+                      Text(profile.isStripeSupporter ? "Yes" : "No"),
                     ],
                   ),
                   if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)
@@ -119,18 +118,19 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                           "Ban Expiration: ",
                           style: tt.labelLarge,
                         ),
-                        Text(dateFormat.format(profile.publicBanExpiration!))
+                        Text(dateFormat.format(profile.publicBanExpiration!)),
                       ],
                     ),
                   FutureBuilder(
-                      future: _storageQuotaFuture,
-                      builder: (context, snapshot) {
-                        final storage = snapshot.data;
-                        return StorageIndicator(
-                          usedBytes: storage?.usedBytes ?? 0,
-                          maxBytes: storage?.fullQuotaBytes ?? 1,
-                        );
-                      }),
+                    future: _storageQuotaFuture,
+                    builder: (context, snapshot) {
+                      final storage = snapshot.data;
+                      return StorageIndicator(
+                        usedBytes: storage?.usedBytes ?? 0,
+                        maxBytes: storage?.fullQuotaBytes ?? 1,
+                      );
+                    },
+                  ),
                   const SizedBox(
                     height: 12,
                   ),
@@ -186,8 +186,10 @@ class StorageIndicator extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Storage:", style: Theme.of(context).textTheme.titleMedium),
-              Text(// Displayed in GiB instead of GB for consistency with Resonite
-                  "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)}/${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB"),
+              Text(
+                // Displayed in GiB instead of GB for consistency with Resonite
+                "${(usedBytes * 9.3132257461548e-10).toStringAsFixed(2)}/${(maxBytes * 9.3132257461548e-10).toStringAsFixed(2)} GB",
+              ),
             ],
           ),
           const SizedBox(
@@ -200,7 +202,7 @@ class StorageIndicator extends StatelessWidget {
               color: value > 0.95 ? Theme.of(context).colorScheme.error : null,
               value: value,
             ),
-          )
+          ),
         ],
       ),
     );

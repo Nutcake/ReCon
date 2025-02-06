@@ -7,7 +7,8 @@ enum FriendStatus {
   accepted;
 
   factory FriendStatus.fromString(String text) {
-    return FriendStatus.values.firstWhere((element) => element.name.toLowerCase() == text.toLowerCase(),
+    return FriendStatus.values.firstWhere(
+      (element) => element.name.toLowerCase() == text.toLowerCase(),
       orElse: () => FriendStatus.none,
     );
   }

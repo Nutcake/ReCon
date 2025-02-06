@@ -21,7 +21,7 @@ enum EventTarget {
   factory EventTarget.parse(String? text) {
     if (text == null) return EventTarget.unknown;
     return EventTarget.values.firstWhere(
-          (element) => element.name.toLowerCase() == text.toLowerCase(),
+      (element) => element.name.toLowerCase() == text.toLowerCase(),
       orElse: () => EventTarget.unknown,
     );
   }

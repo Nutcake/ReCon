@@ -1,4 +1,3 @@
-
 enum UploadState {
   uploadingChunks,
   finalizing,
@@ -7,7 +6,8 @@ enum UploadState {
   unknown;
 
   factory UploadState.fromString(String? text) {
-    return UploadState.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
+    return UploadState.values.firstWhere(
+      (element) => element.name.toLowerCase() == text?.toLowerCase(),
       orElse: () => UploadState.unknown,
     );
   }
@@ -23,13 +23,13 @@ class AssetUploadData {
   final UploadState uploadState;
 
   const AssetUploadData({
-      required this.signature,
-      required this.variant,
-      required this.ownerId,
-      required this.totalBytes,
-      required this.chunkSize,
-      required this.totalChunks,
-      required this.uploadState,
+    required this.signature,
+    required this.variant,
+    required this.ownerId,
+    required this.totalBytes,
+    required this.chunkSize,
+    required this.totalChunks,
+    required this.uploadState,
   });
 
   factory AssetUploadData.fromMap(Map map) {
