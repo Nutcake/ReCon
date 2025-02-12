@@ -14,12 +14,22 @@ class NotificationChannel {
   const NotificationChannel({required this.name, required this.id, required this.description});
 }
 
+
 class NotificationClient {
   static const NotificationChannel _messageChannel = NotificationChannel(
     id: "messages",
     name: "Messages",
     description: "Messages received from your friends",
   );
+
+  String removeColorTags(String text) {
+    return text.replaceAllMapped(
+      RegExp(r'<color=#([0-9A-Fa-f]{6})>(.*?)</color>'),
+          (match) {
+        return match.group(2) ?? '';
+      },
+    );
+  }
 
   final fln.FlutterLocalNotificationsPlugin _notifier = fln.FlutterLocalNotificationsPlugin()
     ..initialize(const fln.InitializationSettings(
@@ -61,7 +71,7 @@ class NotificationClient {
                     content = "Unknown Message Type";
                     break;
                   case MessageType.text:
-                    content = message.content;
+                    content = removeColorTags(message.content);
                     break;
                   case MessageType.sound:
                     content = "Audio Message";
@@ -69,7 +79,7 @@ class NotificationClient {
                   case MessageType.sessionInvite:
                     try {
                       final session = Session.fromMap(jsonDecode(message.content));
-                      content = "Session Invite to ${session.name}";
+                      content = "Session Invite to ${removeColorTags(session.name)}";
                     } catch (e) {
                       content = "Session Invite";
                     }
