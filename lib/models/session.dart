@@ -291,6 +291,7 @@ class SessionFilterSettings {
   final bool includeEnded;
   final bool includeIncompatible;
   final String hostName;
+  final String hostId;
   final int minActiveUsers;
   final bool includeEmptyHeadless;
 
@@ -299,6 +300,7 @@ class SessionFilterSettings {
     required this.includeEnded,
     required this.includeIncompatible,
     required this.hostName,
+    required this.hostId,
     required this.minActiveUsers,
     required this.includeEmptyHeadless,
   });
@@ -308,6 +310,7 @@ class SessionFilterSettings {
         includeEnded: false,
         includeIncompatible: false,
         hostName: "",
+        hostId: "",
         minActiveUsers: 0,
         includeEmptyHeadless: true,
       );
@@ -316,6 +319,7 @@ class SessionFilterSettings {
       "${"&includeEnded=$includeEnded"}"
       "${name.isNotEmpty ? "&name=$name" : ""}"
       "${hostName.isNotEmpty ? "&hostName=$hostName" : ""}"
+      "${hostId.isNotEmpty ? "&hostId=$hostId" : ""}"
       "${minActiveUsers > 0 ? "&minActiveUsers=$minActiveUsers" : ""}";
 
   SessionFilterSettings copyWith({
@@ -323,6 +327,7 @@ class SessionFilterSettings {
     bool? includeEnded,
     bool? includeIncompatible,
     String? hostName,
+    String? hostId,
     int? minActiveUsers,
     bool? includeEmptyHeadless,
   }) {
@@ -331,6 +336,7 @@ class SessionFilterSettings {
       includeEnded: includeEnded ?? this.includeEnded,
       includeIncompatible: includeIncompatible ?? this.includeIncompatible,
       hostName: hostName ?? this.hostName,
+      hostId: hostId ?? this.hostId,
       minActiveUsers: minActiveUsers ?? this.minActiveUsers,
       includeEmptyHeadless: includeEmptyHeadless ?? this.includeEmptyHeadless,
     );

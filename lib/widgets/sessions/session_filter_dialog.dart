@@ -18,6 +18,7 @@ class SessionFilterDialog extends StatefulWidget {
 class _SessionFilterDialogState extends State<SessionFilterDialog> {
   final TextEditingController _sessionNameController = TextEditingController();
   final TextEditingController _hostNameController = TextEditingController();
+  final TextEditingController _hostIdController = TextEditingController();
   late SessionFilterSettings _currentFilter;
 
   @override
@@ -27,6 +28,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
     if (oldWidget.lastFilter != widget.lastFilter) {
       _sessionNameController.text = widget.lastFilter.name;
       _hostNameController.text = widget.lastFilter.hostName;
+      _hostIdController.text = widget.lastFilter.hostId;
     }
   }
 
@@ -36,12 +38,14 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
     _currentFilter = widget.lastFilter;
     _sessionNameController.text = widget.lastFilter.name;
     _hostNameController.text = widget.lastFilter.hostName;
+    _hostIdController.text = widget.lastFilter.hostId;
   }
 
   @override
   void dispose() {
     _sessionNameController.dispose();
     _hostNameController.dispose();
+    _hostIdController.dispose();
     super.dispose();
   }
 
@@ -97,6 +101,22 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                       borderRadius: BorderRadius.circular(32),
                     ),
                     labelText: 'Host Name',
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: TextField(
+                  controller: _hostIdController,
+                  onChanged: (value) {
+                    _currentFilter = _currentFilter.copyWith(hostId: value);
+                  },
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    labelText: 'Host Id',
                   ),
                 ),
               ),
