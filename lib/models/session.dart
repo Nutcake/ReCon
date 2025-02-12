@@ -160,7 +160,6 @@ class Session {
       "awayKickEnabled": awayKickEnabled,
       "hasEnded": hasEnded,
       "isValid": isValid,
-      //"thumbnail": thumbnailUrl,
     };
   }
 
