@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 import 'package:recon/auxiliary.dart';
+import 'package:recon/models/invite_request.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
 
@@ -76,6 +77,14 @@ class NotificationClient {
                     break;
                   case MessageType.object:
                     content = "Asset";
+                    break;
+                  case MessageType.inviteRequest:
+                    try {
+                      final request = InviteRequest.fromMap(jsonDecode(message.content));
+                      content = "${request.usernameToInvite} Requested an Invite";
+                    } catch (e) {
+                      content = "Invite Request";
+                    }
                     break;
                 }
                 return fln.Message(
