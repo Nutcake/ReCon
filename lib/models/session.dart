@@ -99,7 +99,6 @@ class Session {
     FormatNode? formattedDescription,
     List<String>? tags,
     bool? headlessHost,
-    String? hostUserId,
     String? hostUsername,
     SessionAccessLevel? accessLevel,
   }) {
