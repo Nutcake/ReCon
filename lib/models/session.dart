@@ -13,6 +13,7 @@ class Session {
   final FormatNode formattedDescription;
   final List<String> tags;
   final bool headlessHost;
+  final String hostUserId;
   final String hostUsername;
   final SessionAccessLevel accessLevel;
 
@@ -27,6 +28,7 @@ class Session {
     required this.description,
     required this.tags,
     required this.headlessHost,
+    required this.hostUserId,
     required this.hostUsername,
     required this.accessLevel,
   })  : formattedName = FormatNode.fromText(name),
@@ -44,6 +46,7 @@ class Session {
       description: "",
       tags: const [],
       headlessHost: false,
+      hostUserId: "",
       hostUsername: "",
       accessLevel: SessionAccessLevel.unknown,
     );
@@ -64,6 +67,7 @@ class Session {
       description: map["description"] ?? "",
       tags: ((map["tags"] as List?) ?? []).map((e) => e.toString()).toList(),
       headlessHost: map["headlessHost"] ?? false,
+      hostUserId: map["hostUserId"] ?? "",
       hostUsername: map["hostUsername"] ?? "",
       accessLevel: SessionAccessLevel.fromName(map["accessLevel"]),
     );
@@ -81,6 +85,7 @@ class Session {
       "description": description,
       "tags": shallow ? [] : tags,
       "headlessHost": headlessHost,
+      "hostUserId": hostUserId,
       "hostUsername": hostUsername,
       "accessLevel": accessLevel.name, // This probably wont work, the API usually expects integers.
     };
@@ -99,6 +104,7 @@ class Session {
     FormatNode? formattedDescription,
     List<String>? tags,
     bool? headlessHost,
+    String? hostUserId,
     String? hostUsername,
     SessionAccessLevel? accessLevel,
   }) {
@@ -113,6 +119,7 @@ class Session {
       description: description ?? this.description,
       tags: tags ?? this.tags,
       headlessHost: headlessHost ?? this.headlessHost,
+      hostUserId: hostUserId ?? this.hostUserId,
       hostUsername: hostUsername ?? this.hostUsername,
       accessLevel: accessLevel ?? this.accessLevel,
     );
