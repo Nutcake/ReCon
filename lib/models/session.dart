@@ -315,7 +315,7 @@ class SessionFilterSettings {
   String buildRequestString() => "?includeEmptyHeadless=$includeEmptyHeadless"
       "${"&includeEnded=$includeEnded"}"
       "${name.isNotEmpty ? "&name=$name" : ""}"
-      "${hostName.isNotEmpty ? "&hostName=$hostName" : ""}"
+      "${hostName.isNotEmpty ? (hostName.startsWith("U-") ? "&hostId=$hostName" : "&hostName=$hostName") : ""}"
       "${minActiveUsers > 0 ? "&minActiveUsers=$minActiveUsers" : ""}";
 
   SessionFilterSettings copyWith({
