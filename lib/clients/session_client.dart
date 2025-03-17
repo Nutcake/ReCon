@@ -17,7 +17,6 @@ class SessionClient extends ChangeNotifier {
     _filterSettings = SessionFilterSettings(
       name: "",
       hostName: "",
-      hostId: "",
       includeEnded: settingsClient.currentSettings.sessionViewLastIncludeEnded.valueOrDefault,
       includeIncompatible: settingsClient.currentSettings.sessionViewLastIncludeIncompatible.valueOrDefault,
       minActiveUsers: settingsClient.currentSettings.sessionViewLastMinimumUsers.valueOrDefault,
