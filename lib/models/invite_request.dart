@@ -1,3 +1,5 @@
+import 'package:recon/models/session.dart';
+
 class InviteRequest {
   final String inviteRequestId;
   final String userIdToInvite;
@@ -8,7 +10,7 @@ class InviteRequest {
   final String? forSessionName;
   final bool? isContactOfHost;
   final String? response;
-  final String? invite;
+  final Session? invite;
 
   InviteRequest({
     required this.inviteRequestId,
@@ -51,7 +53,7 @@ class InviteRequest {
       forSessionName: map["forSessionName"],
       isContactOfHost: map["isContactOfHost"],
       response: map["response"],
-      invite: map["invite"],
+      invite: Session.fromMap(map["invite"]),
     );
   }
 
@@ -80,7 +82,7 @@ class InviteRequest {
     String? forSessionName,
     bool? isContactOfHost,
     String? response,
-    String? invite,
+    Session? invite,
   }) {
     return InviteRequest(
       inviteRequestId: inviteRequestId ?? this.inviteRequestId,
