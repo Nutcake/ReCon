@@ -12,13 +12,15 @@ enum MessageType {
   text,
   sound,
   sessionInvite,
-  object;
+  object,
+  inviteRequest;
 
   static const Map<MessageType, String> _mapper = {
     MessageType.text: "Text",
     MessageType.sound: "Sound",
     MessageType.sessionInvite: "SessionInvite",
     MessageType.object: "Object",
+    MessageType.inviteRequest: "InviteRequest",
   };
 
   factory MessageType.fromName(String name) {
