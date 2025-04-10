@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/apis/message_api.dart';
 import 'package:recon/auxiliary.dart';
+import 'package:recon/models/invite_request.dart';
 import 'package:recon/string_formatter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,7 +26,8 @@ enum MessageType {
   };
 
   factory MessageType.fromName(String name) {
-    return MessageType.values.firstWhere((element) => element.name.toLowerCase() == name.toLowerCase(),
+    return MessageType.values.firstWhere(
+      (element) => element.name.toLowerCase() == name.toLowerCase(),
       orElse: () => MessageType.unknown,
     );
   }
@@ -50,9 +53,16 @@ class Message implements Comparable {
   final DateTime sendTime;
   final MessageState state;
 
-  Message({required this.id, required this.recipientId, required this.senderId, required this.type,
-    required this.content, required DateTime sendTime, required this.state})
-      : formattedContent = FormatNode.fromText(content), sendTime = sendTime.toUtc();
+  Message({
+    required this.id,
+    required this.recipientId,
+    required this.senderId,
+    required this.type,
+    required this.content,
+    required DateTime sendTime,
+    required this.state,
+  })  : formattedContent = FormatNode.fromText(content),
+        sendTime = sendTime.toUtc();
 
   factory Message.fromMap(Map map, {MessageState? withState}) {
     final typeString = (map["messageType"] as String?) ?? "";
@@ -67,7 +77,34 @@ class Message implements Comparable {
       type: type,
       content: map["content"],
       sendTime: DateTime.parse(map["sendTime"]),
-      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.sent)
+      state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.sent),
+    );
+  }
+
+  factory Message.inviteRequest({
+    required String senderId,
+    required String recipientId,
+    required String senderName,
+    required String recipientName,
+  }) {
+    return Message(
+      id: generateId(),
+      recipientId: recipientId,
+      senderId: senderId,
+      type: MessageType.inviteRequest,
+      content: jsonEncode(
+        InviteRequest.none()
+            .copyWith(
+              inviteRequestId: Uuid().v4(),
+              userIdToInvite: senderId,
+              usernameToInvite: senderName,
+              requestingFromUserId: senderId,
+              requestingFromUsername: recipientName,
+            )
+            .toMap(),
+      ),
+      sendTime: DateTime.now(),
+      state: MessageState.local,
     );
   }
 
@@ -80,27 +117,28 @@ class Message implements Comparable {
     MessageType? type,
     String? content,
     DateTime? sendTime,
-    MessageState? state}) {
+    MessageState? state,
+  }) {
     return Message(
-        id: id ?? this.id,
-        recipientId: recipientId ?? this.recipientId,
-        senderId: senderId ?? this.senderId,
-        type: type ?? this.type,
-        content: content ?? this.content,
-        sendTime: sendTime ?? this.sendTime,
-        state: state ?? this.state
+      id: id ?? this.id,
+      recipientId: recipientId ?? this.recipientId,
+      senderId: senderId ?? this.senderId,
+      type: type ?? this.type,
+      content: content ?? this.content,
+      sendTime: sendTime ?? this.sendTime,
+      state: state ?? this.state,
     );
   }
 
   Map toMap() => {
-    "id": id,
-    "recipientId": recipientId,
-    "senderId": senderId,
-    "ownerId": senderId,
-    "messageType": type.toName(),
-    "content": content,
-    "sendTime": sendTime.toIso8601String(),
-  };
+        "id": id,
+        "recipientId": recipientId,
+        "senderId": senderId,
+        "ownerId": senderId,
+        "messageType": type.toName(),
+        "content": content,
+        "sendTime": sendTime.toIso8601String(),
+      };
 
   static String generateId() {
     return "MSG-${const Uuid().v4()}";
@@ -120,7 +158,9 @@ class MessageCache {
 
   List<Message> get messages => _messages;
 
-  MessageCache({required ApiClient apiClient, required String userId}) : _apiClient = apiClient, _userId = userId;
+  MessageCache({required ApiClient apiClient, required String userId})
+      : _apiClient = apiClient,
+        _userId = userId;
 
   /// Adds a message to the cache, ensuring integrity of the message cache.
   /// Returns true if the message was inserted into the cache and false if an existing message was overwritten.
