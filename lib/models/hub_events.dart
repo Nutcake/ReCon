@@ -11,11 +11,13 @@ enum EventType {
 
 enum EventTarget {
   unknown,
+  debug,
   messageSent,
   receiveMessage,
   messagesRead,
   receiveSessionUpdate,
   removeSession,
+  sendStatusToUser,
   receiveStatusUpdate;
 
   factory EventTarget.parse(String? text) {
