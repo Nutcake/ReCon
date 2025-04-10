@@ -48,7 +48,8 @@ class NotificationClient {
             channelDescription: _messageChannel.description,
             importance: fln.Importance.high,
             priority: fln.Priority.max,
-            actions: [], //TODO: Make clicking message notification open chat of specified user.
+            actions: [],
+            //TODO: Make clicking message notification open chat of specified user.
             styleInformation: fln.MessagingStyleInformation(
               fln.Person(
                 name: uname,
@@ -62,7 +63,7 @@ class NotificationClient {
                     content = "Unknown Message Type";
                     break;
                   case MessageType.text:
-                    content = message.content;
+                    content = message.formattedContent.toString();
                     break;
                   case MessageType.sound:
                     content = "Audio Message";
@@ -70,7 +71,7 @@ class NotificationClient {
                   case MessageType.sessionInvite:
                     try {
                       final session = Session.fromMap(jsonDecode(message.content));
-                      content = "Session Invite to ${session.name}";
+                      content = "Session Invite to ${session.formattedName}";
                     } catch (e) {
                       content = "Session Invite";
                     }
