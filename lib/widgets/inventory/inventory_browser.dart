@@ -191,13 +191,26 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                           await Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => PhotoView(
-                                                minScale: PhotoViewComputedScale.contained,
-                                                imageProvider:
+                                              builder: (context) => Scaffold(
+                                                appBar: AppBar(
+                                                  title: Text(record.name),
+                                                  leading: IconButton(
+                                                    icon: Icon(
+                                                        Icons.arrow_back),
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                  ),
+                                                ),
+                                                body: Container(
+                                                  child: PhotoView(
+                                                  minScale: PhotoViewComputedScale.contained,
+                                                  imageProvider:
                                                     CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
-                                                heroAttributes: PhotoViewHeroAttributes(tag: record.id),
+                                                  heroAttributes: PhotoViewHeroAttributes(tag: record.id),
+                                                )),
                                               ),
-                                            ),
+                                            )
                                           );
                                         },
                                   onLongPress: () async {
