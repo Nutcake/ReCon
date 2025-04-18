@@ -1,0 +1,45 @@
+name: Bug Report
+description: Report a feature is not working as expected.
+labels: [bug]
+body:
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe the bug?
+      description: A clear and consice description of the issue?
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add screenshots to illustrate your issue
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: ReCon Version Number
+      placeholder: v0.11.4-beta
+    validations:
+      required: true
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: What Platforms does this occur on?
+      multiple: true
+      options:
+        - "Android"
+        - "IOS"
+        - "Windows"
+        - "Linux"
+        - "MacOS"
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here.
+    validations:
+      required: false
