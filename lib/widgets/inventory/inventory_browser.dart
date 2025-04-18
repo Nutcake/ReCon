@@ -195,20 +195,17 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                                 appBar: AppBar(
                                                   title: Text(record.name),
                                                   leading: IconButton(
-                                                    icon: Icon(
-                                                        Icons.arrow_back),
+                                                    icon: Icon(Icons.arrow_back),
                                                     onPressed: () {
                                                       Navigator.pop(context);
                                                     },
                                                   ),
                                                 ),
-                                                body: Container(
-                                                  child: PhotoView(
+                                                body: PhotoView(
                                                   minScale: PhotoViewComputedScale.contained,
-                                                  imageProvider:
-                                                    CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
+                                                  imageProvider: CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
                                                   heroAttributes: PhotoViewHeroAttributes(tag: record.id),
-                                                )),
+                                                ),
                                               ),
                                             )
                                           );
