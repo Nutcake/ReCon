@@ -105,7 +105,6 @@ class Record {
   })  : formattedName = FormatNode.fromText(name),
         formattedDescription = FormatNode.fromText(description);
 
-
   factory Record.fromMap(Map map) {
     return Record(
       id: map["id"] ?? "0",
@@ -140,6 +139,7 @@ class Record {
     required String ownerId,
     required List<AssetManifest> assetManifest,
     String assetUri = "",
+    List<String> tags = const [],
   }) {
     final now = DateTime.now();
     return Record(
@@ -149,7 +149,7 @@ class Record {
       assetUri: assetUri,
       name: name,
       description: null,
-      tags: [],
+      tags: tags,
       recordType: recordType,
       thumbnailUri: null,
       isPublic: true,
