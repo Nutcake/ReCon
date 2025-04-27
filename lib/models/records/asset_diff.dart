@@ -1,9 +1,8 @@
+import 'package:recon/models/records/asset_manifest.dart';
 
-import 'package:recon/models/records/resonite_db_asset.dart';
-
-class AssetDiff extends ResoniteDBAsset{
+class AssetDiff extends AssetManifest {
   final Diff state;
-  final bool isUploaded;
+  final bool? isUploaded;
 
   const AssetDiff({required super.hash, required super.bytes, required this.state, required this.isUploaded});
 
@@ -15,6 +14,12 @@ class AssetDiff extends ResoniteDBAsset{
       isUploaded: map["isUploaded"],
     );
   }
+
+  @override
+  bool operator ==(Object other) => identical(this, other) || super == other;
+
+  @override
+  int get hashCode => hash.hashCode;
 }
 
 enum Diff {
@@ -27,7 +32,8 @@ enum Diff {
   }
 
   factory Diff.fromString(String? text) {
-    return Diff.values.firstWhere((element) => element.name.toLowerCase() == text?.toLowerCase(),
+    return Diff.values.firstWhere(
+      (element) => element.name.toLowerCase() == text?.toLowerCase(),
       orElse: () => Diff.unchanged,
     );
   }

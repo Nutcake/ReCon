@@ -114,10 +114,10 @@ class _WorldViewState extends State<WorldView> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
-                  child: widget.world.formattedDescription.isEmpty
+                  child: widget.world.formattedDescription?.isEmpty ?? true
                       ? Text("No description", style: Theme.of(context).textTheme.labelLarge)
                       : FormattedText(
-                          widget.world.formattedDescription,
+                          widget.world.formattedDescription!,
                           style: Theme.of(context).textTheme.labelLarge?.apply(fontStyle: FontStyle.italic),
                         ),
                 ),
