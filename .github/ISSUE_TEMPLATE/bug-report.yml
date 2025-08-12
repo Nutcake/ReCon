@@ -1,19 +1,19 @@
 name: Bug Report
-description: Report a feature is not working as expected.
+description: Report a feature that is not working as expected.
 labels: [bug]
 body:
   - type: textarea
     id: describe
     attributes:
-      label: Describe the bug?
-      description: A clear and consice description of the issue?
+      label: Describe the bug
+      description: A clear and consice description of the issue.
     validations:
       required: true
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots
-      description: Add screenshots to illustrate your issue
+      description: Add screenshots to illustrate your issue.
     validations:
       required: false
   - type: input
