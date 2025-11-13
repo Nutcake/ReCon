@@ -55,7 +55,8 @@ class RecordApi {
   }
 
   static Future<List<Record>> getUserRecordsAt(ApiClient client, {required String path, String? user}) async {
-    final response = await client.get(Uri.encodeFull("/users/${user ?? client.userId}/records?path=$path"));
+    final encodedPath = Uri.encodeComponent(path);
+    final response = await client.get("/users/${user ?? client.userId}/records?path=$encodedPath");
     client.checkResponse(response);
     final body = jsonDecode(response.body) as List;
     return body.map((e) => Record.fromMap(e)).toList();
