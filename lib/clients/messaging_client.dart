@@ -107,10 +107,10 @@ class MessagingClient extends ChangeNotifier {
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
         final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
         _hubManager.send("RequestStatus", arguments: [null, lastOnline == OnlineStatus.invisible]);
-        await setOnlineStatus(lastOnline ?? OnlineStatus.online);
+        await setOnlineStatus(lastOnline ?? OnlineStatus.online, broadcast: lastOnline != OnlineStatus.invisible);
         _statusHeartbeat?.cancel();
-        _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
-          setOnlineStatus(_userStatus.onlineStatus);
+        _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) async {
+          await setOnlineStatus(_userStatus.onlineStatus, broadcast: _userStatus.onlineStatus != OnlineStatus.invisible && _userStatus.onlineStatus != OnlineStatus.offline);
         });
       },
     );
@@ -145,7 +145,7 @@ class MessagingClient extends ChangeNotifier {
     clearUnreadsForUser(batch.senderId);
   }
 
-  Future<void> setOnlineStatus(OnlineStatus status) async {
+  Future<void> setOnlineStatus(OnlineStatus status, {bool broadcast = true}) async {
     final pkginfo = await PackageInfo.fromPlatform();
     final now = DateTime.now();
     _userStatus = _userStatus.copyWith(
@@ -156,18 +156,18 @@ class MessagingClient extends ChangeNotifier {
       onlineStatus: status,
       isPresent: true,
     );
-
-    _hubManager.send(
-      "BroadcastStatus",
-      arguments: [
-        _userStatus.toMap(),
-        {
-          "group": 1,
-          "targetIds": null,
-        }
-      ],
-    );
-
+    if (broadcast) {
+      _hubManager.send(
+        "BroadcastStatus",
+        arguments: [
+          _userStatus.toMap(),
+          {
+            "group": 1,
+            "targetIds": null,
+          }
+        ],
+      );
+    }
     final self = getAsFriend(_apiClient.userId);
     if (self != null) {
       await _updateContact(self.copyWith(userStatus: _userStatus));
