@@ -103,7 +103,7 @@ class Friend implements Comparable {
       "userStatus": userStatus.toMap(shallow: shallow),
       "profile": userProfile.toMap(),
       "contactStatus": contactStatus.name,
-      "latestMessageTime": latestMessageTime.toIso8601String(),
+      "latestMessageTime": latestMessageTime.toUtc().toIso8601String(),
     };
   }
 

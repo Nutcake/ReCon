@@ -27,7 +27,7 @@ class User {
     return {
       "id": id,
       "username": username,
-      "registrationDate": registrationDate.toIso8601String(),
+      "registrationDate": registrationDate.toUtc().toIso8601String(),
       "profile": userProfile?.toMap(),
     };
   }
