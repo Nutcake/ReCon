@@ -137,7 +137,7 @@ class Message implements Comparable {
         "ownerId": senderId,
         "messageType": type.toName(),
         "content": content,
-        "sendTime": sendTime.toIso8601String(),
+        "sendTime": sendTime.toUtc().toIso8601String(),
       };
 
   static String generateId() {
