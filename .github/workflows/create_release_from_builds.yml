@@ -5,6 +5,7 @@ on:
     branches: [ "release" ]
   pull_request:
     branches: [ "release" ]
+  workflow_dispatch
 
 jobs:
   build_windows:
@@ -36,6 +37,39 @@ jobs:
         with:
           name: windows-build
           path: windows-build.zip
+
+  build_linux_appimage:
+    name: Build Linux (AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: 3.35.7
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows binary
+        run: flutter build linux --release
+
+      - name: Prepare for AppImage build
+        run: |
+          cp -r build/linux/x64/release/bundle AppDir
+          mkdir -p AppDir/usr/share/icons
+          cp assets/images/logo.png AppDir/usr/share/icons
+
+      - uses: AppImageCrafters/build-appimage@master
+        with:
+          recipe: "./AppImageBuilder.yml"
+
+      - name: Upload Linux AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReCon-latest-x86_64.AppImage
 
   build_android:
     name: Build Android
