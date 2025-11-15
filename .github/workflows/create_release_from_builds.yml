@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ "release" ]
   workflow_dispatch:
+    branches: [ "feature/add-github-linux-appimage-action" ]
 
 jobs:
   build_windows:
