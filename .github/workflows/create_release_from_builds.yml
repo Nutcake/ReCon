@@ -4,9 +4,8 @@ on:
   push:
     branches: [ "release" ]
   pull_request:
-    branches: [ "release" ]
+    branches: [ "release", "feature/add-github-linux-appimage-action" ]
   workflow_dispatch:
-    branches: [ "feature/add-github-linux-appimage-action" ]
 
 jobs:
   build_windows:
@@ -54,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Windows binary
+      - name: Build Linux binary
         run: flutter build linux --release
 
       - name: Prepare for AppImage build
