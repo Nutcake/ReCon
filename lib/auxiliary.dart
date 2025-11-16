@@ -1,7 +1,9 @@
-import 'package:recon/config.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 import 'package:html/parser.dart' as htmlparser;
+import 'package:path/path.dart' as p;
+import 'package:recon/config.dart';
 
 class Aux {
   static String resdbToHttp(String? resdb) {
@@ -15,8 +17,8 @@ class Aux {
 extension Unique<E, Id> on List<E> {
   List<E> unique([Id Function(E element)? id, bool inplace = true]) {
     final ids = <Id>{};
-    var list = inplace ? this : List<E>.from(this);
-    list.retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
+    final list = inplace ? this : List<E>.from(this)
+      ..retainWhere((x) => ids.add(id != null ? id(x) : x as Id));
     return list;
   }
 }
