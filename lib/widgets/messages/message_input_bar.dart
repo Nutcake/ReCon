@@ -40,6 +40,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
   bool _attachmentPickerOpen = false;
   String _currentText = "";
   double? _sendProgress;
+  bool _shiftHeld = false;
 
   bool get _isRecording => _recordingStartTime != null;
 
@@ -280,7 +281,17 @@ class _MessageInputBarState extends State<MessageInputBar> {
       child: Focus(
         onKeyEvent: Config.isDesktop
             ? (node, event) {
-                if (event.logicalKey == LogicalKeyboardKey.enter && !_isSending) {
+                if (_isSending || _currentText.trim().isEmpty) return KeyEventResult.ignored;
+                if (event.logicalKey.synonyms.contains(LogicalKeyboardKey.shift)) {
+                  _shiftHeld = event is KeyDownEvent;
+                  return KeyEventResult.handled;
+                }
+
+                if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+                  if (_shiftHeld) {
+                    _messageTextController.text = "${_messageTextController.text}\n";
+                    return KeyEventResult.handled;
+                  }
                   _isSending = true; // set this early just to be extra sure
                   _sendCurrentMessage();
                   return KeyEventResult.handled;
@@ -575,7 +586,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                           child: child,
                         ),
                       ),
-                      child: _currentText.isNotEmpty || _loadedFiles.isNotEmpty
+                      child: _currentText.trim().isNotEmpty || _loadedFiles.isNotEmpty
                           ? IconButton(
                               key: const ValueKey("send-button"),
                               splashRadius: 24,
