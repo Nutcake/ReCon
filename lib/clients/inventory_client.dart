@@ -15,7 +15,11 @@ enum SortMode {
     final func = switch (this) {
       SortMode.name => (Record x, Record y) => x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
       SortMode.date => (Record x, Record y) => x.creationTime.compareTo(y.creationTime),
-      SortMode.resonite => (Record x, Record y) => x.isItem ? x.creationTime.compareTo(y.creationTime) : x.name.toLowerCase().compareTo(y.name.toLowerCase()),
+      SortMode.resonite => (Record x, Record y) {
+          if (x.isItem && !y.isItem) return 1;
+          if (!x.isItem && y.isItem) return -1;
+          return x.isItem ? x.creationTime.compareTo(y.creationTime) : x.name.toLowerCase().compareTo(y.name.toLowerCase());
+        },
     };
     if (reverse) {
       return func(b, a);
