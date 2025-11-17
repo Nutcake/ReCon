@@ -25,6 +25,8 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+# In case flutter is in the project directory
+/flutter
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
@@ -43,3 +45,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/key.properties
+
+# AppimageBuilder will create this for building, exclude
+/AppDir
