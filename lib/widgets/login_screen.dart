@@ -189,6 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(32),
                       ),
                       labelText: 'Username',
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                     ),
                   ),
                 ),
@@ -204,6 +206,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(32)),
                       labelText: 'Password',
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                     ),
                   ),
                 ),
@@ -221,18 +225,50 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(32),
                         ),
                         labelText: '2FA Code',
+                        filled: true,
+                        fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                       ),
                     ),
                   ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : TextButton.icon(
-                          onPressed: submit,
-                          icon: const Icon(Icons.login),
-                          label: const Text("Login"),
+                const SizedBox(
+                  height: 24,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      Material(
+                        color: Theme.of(context).colorScheme.surfaceContainerLow,
+                        elevation: 4,
+                        borderRadius: BorderRadius.all(Radius.circular(64)),
+                        child: InkWell(
+                          onTap: submit,
+                          borderRadius: BorderRadius.all(Radius.circular(64)),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.login,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  "Login",
+                                  style: Theme.of(context).textTheme.bodyLarge?.apply(
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                ),
+                                const SizedBox(width: 4),
+                              ],
+                            ),
+                          ),
                         ),
+                      ),
+                  ],
                 ),
                 Center(
                   child: AnimatedOpacity(
