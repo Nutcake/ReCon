@@ -152,8 +152,8 @@ class Session {
       "totalActiveUsers": totalActiveUsers,
       "maxUsers": maxUsers,
       "mobileFriendly": mobileFriendly,
-      "sessionBeginTime": sessionBeginTime.toIso8601String(),
-      "lastUpdate": lastUpdate.toIso8601String(),
+      "sessionBeginTime": sessionBeginTime.toUtc().toIso8601String(),
+      "lastUpdate": lastUpdate.toUtc().toIso8601String(),
       "accessLevel": accessLevel.name, // This probably wont work, the API usually expects integers.
       "hideFromListing": hideFromListing,
       "broadcastKey": broadcastKey,

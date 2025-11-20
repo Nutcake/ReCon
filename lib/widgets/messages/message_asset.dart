@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,30 +37,43 @@ class MessageAsset extends StatelessWidget {
                       photoAsset = PhotoAsset.fromTags((content["tags"] as List).map((e) => "$e").toList());
                     } catch (_) {}
                     await Navigator.push(
-                      context, MaterialPageRoute(builder: (context) =>
-                        PhotoView(
-                          minScale: PhotoViewComputedScale.contained,
-                          imageProvider: photoAsset == null
-                              ? image
-                              : CachedNetworkImageProvider(Aux.resdbToHttp(photoAsset.imageUri)),
-                          heroAttributes: PhotoViewHeroAttributes(tag: message.id),
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Scaffold(
+                          appBar: AppBar(
+                            title: Text(formattedName.toString()),
+                          ),
+                          body: PhotoView(
+                            minScale: PhotoViewComputedScale.contained,
+                            imageProvider: photoAsset == null ? image : CachedNetworkImageProvider(Aux.resdbToHttp(photoAsset.imageUri)),
+                            heroAttributes: PhotoViewHeroAttributes(tag: message.id),
+                          ),
                         ),
-                    ),);
+                      ),
+                    );
                   },
                   child: Hero(
                     tag: message.id,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: Image(image: image, fit: BoxFit.cover,),
+                      child: Image(
+                        image: image,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 );
               },
-              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 64,),
+              errorWidget: (context, url, error) => const Icon(
+                Icons.broken_image,
+                size: 64,
+              ),
               placeholder: (context, uri) => const Center(child: CircularProgressIndicator()),
             ),
           ),
-          const SizedBox(height: 8,),
+          const SizedBox(
+            height: 8,
+          ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
@@ -72,15 +84,14 @@ class MessageAsset extends StatelessWidget {
                   child: FormattedText(
                     formattedName,
                     maxLines: null,
-                    style: Theme
-                        .of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: foregroundColor),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: foregroundColor),
                   ),
                 ),
               ),
-             MessageStateIndicator(message: message, foregroundColor: foregroundColor,),
+              MessageStateIndicator(
+                message: message,
+                foregroundColor: foregroundColor,
+              ),
             ],
           ),
         ],

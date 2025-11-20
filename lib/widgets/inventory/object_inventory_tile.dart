@@ -13,7 +13,7 @@ class ObjectInventoryTile extends StatelessWidget {
   final Record record;
   final void Function()? onTap;
   final void Function()? onLongPress;
-  final DateFormat _dateFormat = DateFormat.yMd();
+  final DateFormat _dateFormat = DateFormat.yMMMMd();
 
   @override
   Widget build(BuildContext context) {
@@ -89,9 +89,13 @@ class ObjectInventoryTile extends StatelessWidget {
                         const SizedBox(
                           width: 4,
                         ),
-                        Text(
-                          _dateFormat.format(record.creationTime),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white54),
+                        Expanded(
+                          child: Text(
+                            _dateFormat.format(record.creationTime),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white54),
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                          ),
                         ),
                       ],
                     ),

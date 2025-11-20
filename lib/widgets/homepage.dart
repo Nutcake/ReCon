@@ -55,11 +55,8 @@ class _HomeState extends State<Home> {
         children: [
           const FriendsList(),
           const SessionList(),
-          WorldList(
-            key: _worldListKey,
-          ),
+          WorldList(key: _worldListKey),
           const InventoryBrowser(),
-          const SettingsPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -90,10 +87,6 @@ class _HomeState extends State<Home> {
           NavigationDestination(
             icon: Icon(Icons.inventory),
             label: "Inventory",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings),
-            label: "Settings",
           ),
         ],
       ),

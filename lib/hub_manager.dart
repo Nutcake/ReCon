@@ -18,6 +18,7 @@ class HubManager {
   final Map<String, dynamic> _headers = {};
   final Map<EventTarget, dynamic Function(List arguments)> _handlers = {};
   final Map<String, dynamic Function(Map result)> _responseHandlers = {};
+  bool _disposed = false;
   FutureOr<void> Function() onConnected = () {};
   WebSocket? _wsChannel;
   bool _isConnecting = false;
@@ -38,7 +39,7 @@ class HubManager {
   }
 
   Future<void> start() async {
-    if (_isConnecting) {
+    if (_isConnecting || _disposed) {
       return;
     }
     _isConnecting = true;
@@ -69,6 +70,7 @@ class HubManager {
   }
 
   void _handleEvent(event) {
+    if (_disposed) return;
     final bodies = event.toString().split(_eofChar);
     final eventBodies = bodies.whereNot((element) => element.isEmpty).map(jsonDecode);
     for (final Map body in eventBodies) {
@@ -137,5 +139,6 @@ class HubManager {
 
   void dispose() {
     _wsChannel?.close();
+    _disposed = true;
   }
 }

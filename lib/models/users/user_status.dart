@@ -110,9 +110,9 @@ class UserStatus {
     return {
       "userId": userId,
       "onlineStatus": onlineStatus.index,
-      "lastStatusChange": lastStatusChange.toIso8601String(),
+      "lastStatusChange": lastStatusChange.toUtc().toIso8601String(),
       "isPresent": isPresent,
-      "lastPresenceTimestamp": lastPresenceTimestamp.toIso8601String(),
+      "lastPresenceTimestamp": lastPresenceTimestamp.toUtc().toIso8601String(),
       "userSessionId": userSessionId,
       "currentSessionIndex": currentSessionIndex,
       "sessions": shallow
