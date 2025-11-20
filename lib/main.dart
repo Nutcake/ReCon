@@ -194,15 +194,18 @@ class _ReConState extends State<ReCon> {
     return Phoenix(
       child: Builder(
         builder: (context) {
+          final apiClient = ApiClient(authenticationData: _authData)
+            ..addLogoutListener(
+              () {
+                setState(() {
+                  _authData = AuthenticationData.unauthenticated();
+                });
+                Phoenix.rebirth(context);
+              },
+            );
           return ClientHolder(
             settingsClient: widget.settingsClient,
-            authenticationData: _authData,
-            onLogout: () {
-              setState(() {
-                _authData = AuthenticationData.unauthenticated();
-              });
-              Phoenix.rebirth(context);
-            },
+            apiClient: apiClient,
             child: DynamicColorBuilder(
               builder: (lightDynamic, darkDynamic) {
                 if (lightDynamic != null && darkDynamic != null) {

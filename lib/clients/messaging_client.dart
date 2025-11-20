@@ -51,6 +51,7 @@ class MessagingClient extends ChangeNotifier {
         _notificationClient = notificationClient,
         _settingsClient = settingsClient {
     debugPrint("mClient created: $hashCode");
+    _apiClient.addLogoutListener(dispose);
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
       final sessions = await SessionApi.getSessions(_apiClient);

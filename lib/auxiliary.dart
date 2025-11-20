@@ -63,3 +63,7 @@ extension ColorX on Color {
     return Color.fromARGB((a * 255).round(), (ir * 255).round(), (ig * 255).round(), (ib * 255).round());
   }
 }
+
+class EventNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
