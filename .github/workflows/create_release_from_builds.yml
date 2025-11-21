@@ -26,17 +26,17 @@ jobs:
       - name: Flutter Build Windows
         run: flutter build windows --release
 
-      - name: Zip Windows build for release
+      - name: Zip Windows build
         # Compress the entire Release folder into a single zip for attaching to the GitHub Release.
         run: |
-          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'windows-build.zip' -Force
+          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'recon-windows.zip' -Force
         shell: powershell
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: windows-build.zip
+          name: recon-windows
+          path: recon-windows.zip
 
   build_linux_appimage:
     name: Build Linux (AppImage)
