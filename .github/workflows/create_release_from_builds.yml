@@ -159,7 +159,7 @@ jobs:
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | sed 's/version: //')
           echo "Project version: $VERSION"
-          echo "::set-output name=version::$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create release
         id: create_release
