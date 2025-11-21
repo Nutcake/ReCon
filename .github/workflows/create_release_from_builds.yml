@@ -20,7 +20,7 @@ jobs:
           channel: stable
           version: 3.35.7
 
-      - name: Install dependencies
+      - name: Install flutter dependencies
         run: flutter pub get
 
       - name: Flutter Build Windows
@@ -82,7 +82,7 @@ jobs:
       - name: Install flutter dependencies
         run: flutter pub get
 
-      - name: Build Linux binary
+      - name: Flutter Build Linux 
         run: flutter build linux --release
 
       - name: Prepare for AppImage build
@@ -100,8 +100,8 @@ jobs:
       - name: Upload Linux AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReCon-latest-x86_64.AppImage
-          path: ReCon-latest-x86_64.AppImage
+          name: recon-linux.AppImage
+          path: recon-linux.AppImage
 
   build_android:
     name: Build Android
@@ -132,13 +132,13 @@ jobs:
         run: |
             flutter build apk --release
             cd ../build/app/outputs/flutter-apk
-            mv app-release.apk recon-build.apk
+            mv app-release.apk recon-android.apk
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: recon-build
-          path: build/app/outputs/flutter-apk/recon-build.apk
+          name: recon-android
+          path: build/app/outputs/flutter-apk/recon-android.apk
 
   release:
     name: Create Release and attach artifacts
