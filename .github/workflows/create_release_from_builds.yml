@@ -20,23 +20,23 @@ jobs:
           channel: stable
           version: 3.35.7
 
-      - name: Install dependencies
+      - name: Install flutter dependencies
         run: flutter pub get
 
-      - name: Build Windows package
-        run: flutter build windows
+      - name: Flutter Build Windows
+        run: flutter build windows --release
 
-      - name: Zip Windows build for release
+      - name: Zip Windows build
         # Compress the entire Release folder into a single zip for attaching to the GitHub Release.
         run: |
-          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'windows-build.zip' -Force
+          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'recon-windows.zip' -Force
         shell: powershell
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: windows-build.zip
+          name: recon-windows
+          path: recon-windows.zip
 
   build_linux_appimage:
     name: Build Linux (AppImage)
@@ -82,7 +82,7 @@ jobs:
       - name: Install flutter dependencies
         run: flutter pub get
 
-      - name: Build Linux binary
+      - name: Flutter Build Linux 
         run: flutter build linux --release
 
       - name: Prepare for AppImage build
@@ -100,8 +100,8 @@ jobs:
       - name: Upload Linux AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReCon-latest-x86_64.AppImage
-          path: ReCon-latest-x86_64.AppImage
+          name: recon-linux.AppImage
+          path: recon-linux.AppImage
 
   build_android:
     name: Build Android
@@ -132,13 +132,13 @@ jobs:
         run: |
             flutter build apk --release
             cd ../build/app/outputs/flutter-apk
-            mv app-release.apk recon-build.apk
+            mv app-release.apk recon-android.apk
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
         with:
-          name: recon-build
-          path: build/app/outputs/flutter-apk/recon-build.apk
+          name: recon-android
+          path: build/app/outputs/flutter-apk/recon-android.apk
 
   release:
     name: Create Release and attach artifacts
@@ -159,7 +159,7 @@ jobs:
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | sed 's/version: //')
           echo "Project version: $VERSION"
-          echo "::set-output name=version::$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create release
         id: create_release
@@ -174,14 +174,14 @@ jobs:
           prerelease: false
 
       - name: Upload Windows Build to Release
-        id: upload-release-asset 
+        id: upload-release-asset-windows
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: release_artifacts/windows-build/windows-build.zip
-          asset_name: ReConRunner-Windows-${{ steps.get_version.outputs.version }}.zip
+          asset_path: release_artifacts/recon-windows/recon-windows.zip
+          asset_name: ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
           asset_content_type: application/zip
       
       - name: Upload Android APK to Release
@@ -191,6 +191,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release_artifacts/recon-build/recon-build.apk
-          asset_name: ReConRunner-Android-${{ steps.get_version.outputs.version }}.apk
+          asset_path: release_artifacts/recon-android/recon-android.apk
+          asset_name: ReCon-Android-${{ steps.get_version.outputs.version }}.apk
           asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload Linux AppImage to Release
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: release_artifacts/recon-linux/recon-linux.AppImage
+          asset_name: ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
+          asset_content_type: application/x-executable
