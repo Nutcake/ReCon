@@ -45,8 +45,8 @@ class _FriendsListState extends State<FriendsList> with AutomaticKeepAliveClient
                 } else {
                   var friends = List<Friend>.from(mClient.cachedFriends); // Explicit copy.
                   if (_searchFilter.isNotEmpty) {
-                    friends = friends.where((element) => element.username.toLowerCase().contains(_searchFilter.toLowerCase())).toList()
-                      ..sort((a, b) => a.username.length.compareTo(b.username.length));
+                    friends = friends.where((element) => element.contactUsername.toLowerCase().contains(_searchFilter.toLowerCase())).toList()
+                      ..sort((a, b) => a.contactUsername.length.compareTo(b.contactUsername.length));
                   }
                   return RefreshIndicator(
                     onRefresh: () async {
