@@ -24,7 +24,6 @@ class ApiClient {
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
 
-  // Saving the context here feels kinda cringe ngl
   final _logoutNotifier = EventNotifier();
   final http.Client _client = http.Client();
 
