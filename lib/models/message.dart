@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
-import 'package:recon/clients/api_client.dart';
 import 'package:recon/apis/message_api.dart';
 import 'package:recon/auxiliary.dart';
+import 'package:recon/clients/api_client.dart';
 import 'package:recon/models/invite_request.dart';
 import 'package:recon/string_formatter.dart';
 import 'package:uuid/uuid.dart';
@@ -51,6 +51,7 @@ class Message implements Comparable {
   final String content;
   final FormatNode formattedContent;
   final DateTime sendTime;
+  final DateTime lastUpdateTime;
   final MessageState state;
 
   Message({
@@ -60,9 +61,11 @@ class Message implements Comparable {
     required this.type,
     required this.content,
     required DateTime sendTime,
+    DateTime? lastUpdateTime,
     required this.state,
   })  : formattedContent = FormatNode.fromText(content),
-        sendTime = sendTime.toUtc();
+        sendTime = sendTime.toUtc(),
+        lastUpdateTime = lastUpdateTime?.toUtc() ?? sendTime.toUtc();
 
   factory Message.fromMap(Map map, {MessageState? withState}) {
     final typeString = (map["messageType"] as String?) ?? "";
@@ -77,6 +80,7 @@ class Message implements Comparable {
       type: type,
       content: map["content"],
       sendTime: DateTime.parse(map["sendTime"]),
+      lastUpdateTime: DateTime.parse(map["lastUpdateTime"]),
       state: withState ?? (map["readTime"] != null ? MessageState.read : MessageState.sent),
     );
   }
@@ -146,7 +150,7 @@ class Message implements Comparable {
 
   @override
   int compareTo(covariant Message other) {
-    return other.sendTime.compareTo(sendTime);
+    return other.lastUpdateTime.compareTo(lastUpdateTime);
   }
 }
 
@@ -208,8 +212,9 @@ class MessageCache {
   }
 
   void _ensureIntegrity() {
-    _messages.sort();
-    _messages.unique((element) => element.id);
+    _messages
+      ..sort()
+      ..unique((element) => element.id);
   }
 }
 
