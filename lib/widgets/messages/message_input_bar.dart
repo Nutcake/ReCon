@@ -44,7 +44,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
 
   bool get _isRecording => _recordingStartTime != null;
 
-  set _isRecording(value) => _recordingStartTime = value ? DateTime.now() : null;
+  set _isRecording(bool value) => _recordingStartTime = value ? DateTime.now() : null;
   bool _recordingCancelled = false;
 
   @override
@@ -58,7 +58,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     if (content.isEmpty) return;
     final message = Message(
       id: Message.generateId(),
-      recipientId: widget.recipient.id,
+      recipientId: widget.recipient.contactUserId,
       senderId: client.userId,
       type: MessageType.text,
       content: content,
@@ -83,7 +83,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     );
     final message = Message(
       id: record.extractMessageId() ?? Message.generateId(),
-      recipientId: widget.recipient.id,
+      recipientId: widget.recipient.contactUserId,
       senderId: client.userId,
       type: MessageType.object,
       content: jsonEncode(record.toMap()),
@@ -108,7 +108,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     );
     final message = Message(
       id: record.extractMessageId() ?? Message.generateId(),
-      recipientId: widget.recipient.id,
+      recipientId: widget.recipient.contactUserId,
       senderId: client.userId,
       type: MessageType.sound,
       content: jsonEncode(record.toMap()),
@@ -133,7 +133,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
     );
     final message = Message(
       id: record.extractMessageId() ?? Message.generateId(),
-      recipientId: widget.recipient.id,
+      recipientId: widget.recipient.contactUserId,
       senderId: client.userId,
       type: MessageType.object,
       content: jsonEncode(record.toMap()),
@@ -501,7 +501,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               style: Theme.of(context).textTheme.bodyLarge,
                               decoration: InputDecoration(
                                 isDense: true,
-                                hintText: _isRecording ? "" : "Message ${widget.recipient.username}...",
+                                hintText: _isRecording ? "" : "Message ${widget.recipient.contactUsername}...",
                                 hintMaxLines: 1,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 fillColor: Colors.black26,

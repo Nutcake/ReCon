@@ -7,27 +7,29 @@ import 'package:recon/models/users/user_status.dart';
 class Friend implements Comparable {
   static const _emptyId = "-1";
   static const _resoniteBotId = "U-Resonite";
-  final String id;
-  final String username;
+  final String contactUserId;
+  final String contactUsername;
   final String ownerId;
   final UserStatus userStatus;
   final UserProfile userProfile;
-  final FriendStatus contactStatus;
+  final ContactStatus contactStatus;
   final DateTime latestMessageTime;
+  final bool isAccepted;
 
   const Friend({
-    required this.id,
-    required this.username,
+    required this.contactUserId,
+    required this.contactUsername,
     required this.ownerId,
     required this.userStatus,
     required this.userProfile,
     required this.contactStatus,
     required this.latestMessageTime,
+    required this.isAccepted,
   });
 
   bool get isHeadless => userStatus.sessionType == UserSessionType.headless;
 
-  bool get isBot => userStatus.sessionType == UserSessionType.bot || id == _resoniteBotId;
+  bool get isBot => userStatus.sessionType == UserSessionType.bot || contactUserId == _resoniteBotId;
 
   bool get isSociable => (userStatus.onlineStatus == OnlineStatus.sociable) && !isBot && !isHeadless;
 
@@ -38,14 +40,15 @@ class Friend implements Comparable {
   factory Friend.fromMap(Map map) {
     final userStatus = map["userStatus"] == null ? UserStatus.empty() : UserStatus.fromMap(map["userStatus"]);
     return Friend(
-      id: map["id"],
-      username: map["contactUsername"],
+      contactUserId: map["id"],
+      contactUsername: map["contactUsername"],
       ownerId: map["ownerId"] ?? map["id"],
       // Resonite bot status is always offline but should be displayed as online
       userStatus: map["id"] == _resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
-      contactStatus: FriendStatus.fromString(map["contactStatus"]),
+      contactStatus: ContactStatus.fromString(map["contactStatus"]),
       latestMessageTime: map["latestMessageTime"] == null ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
+      isAccepted: map["isAccepted"] ?? false,
     );
   }
 
@@ -56,52 +59,56 @@ class Friend implements Comparable {
 
   factory Friend.empty() {
     return Friend(
-      id: _emptyId,
-      username: "",
+      contactUserId: _emptyId,
+      contactUsername: "",
       ownerId: "",
       userStatus: UserStatus.empty(),
       userProfile: UserProfile.empty(),
-      contactStatus: FriendStatus.none,
+      contactStatus: ContactStatus.none,
       latestMessageTime: DateTimeX.epoch,
+      isAccepted: false,
     );
   }
 
-  bool get isEmpty => id == _emptyId;
+  bool get isEmpty => contactUserId == _emptyId;
 
   Friend copyWith({
-    String? id,
-    String? username,
+    String? contactUserId,
+    String? contactUsername,
     String? ownerId,
     UserStatus? userStatus,
     UserProfile? userProfile,
-    FriendStatus? contactStatus,
+    ContactStatus? contactStatus,
     DateTime? latestMessageTime,
+    bool? isAccepted,
   }) {
     return Friend(
-      id: id ?? this.id,
-      username: username ?? this.username,
+      contactUserId: contactUserId ?? this.contactUserId,
+      contactUsername: contactUsername ?? this.contactUsername,
       ownerId: ownerId ?? this.ownerId,
       userStatus: userStatus ?? this.userStatus,
       userProfile: userProfile ?? this.userProfile,
       contactStatus: contactStatus ?? this.contactStatus,
       latestMessageTime: latestMessageTime ?? this.latestMessageTime,
+      isAccepted: isAccepted ?? this.isAccepted,
     );
   }
 
   Map toMap({bool shallow = false}) {
     return {
-      "id": id,
-      "contactUsername": username,
+      "id": contactUserId,
+      "contactUsername": contactUsername,
       "ownerId": ownerId,
       "userStatus": userStatus.toMap(shallow: shallow),
       "profile": userProfile.toMap(),
       "contactStatus": contactStatus.name,
       "latestMessageTime": latestMessageTime.toUtc().toIso8601String(),
+      "isAccepted": isAccepted,
     };
   }
 
   @override
   int compareTo(covariant Friend other) {
-    return username.compareTo(other.username);
+    return contactUsername.compareTo(other.contactUsername);
   }
 }

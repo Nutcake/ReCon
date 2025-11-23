@@ -57,7 +57,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
     return Consumer<MessagingClient>(
       builder: (context, mClient, _) {
         final friend = mClient.selectedFriend ?? Friend.empty();
-        final cache = mClient.getUserMessageCache(friend.id);
+        final cache = mClient.getUserMessageCache(friend.contactUserId);
         final sessions = friend.userStatus.decodedSessions.where((element) => element.isVisible).toList();
         return Scaffold(
           appBar: AppBar(
@@ -68,7 +68,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                 const SizedBox(
                   width: 8,
                 ),
-                Text(friend.username),
+                Text(friend.contactUsername),
                 if (friend.isHeadless)
                   Padding(
                     padding: const EdgeInsets.only(left: 12),
@@ -88,7 +88,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         builder: (context) {
                           return AlertDialog(
                             title: const Text("Ask for session invite"),
-                            content: Text("Do you want to ask ${friend.username} for a session invite?"),
+                            content: Text("Do you want to ask ${friend.contactUsername} for a session invite?"),
                             actionsAlignment: MainAxisAlignment.spaceBetween,
                             actions: [
                               TextButton(
@@ -110,9 +110,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                       final self = await UserApi.getUser(clientHolder.apiClient, userId: clientHolder.apiClient.userId);
                       final message = Message.inviteRequest(
                         senderId: clientHolder.apiClient.userId,
-                        recipientId: friend.id,
+                        recipientId: friend.contactUserId,
                         senderName: self.username,
-                        recipientName: friend.username,
+                        recipientName: friend.contactUsername,
                       );
                       mClient.sendMessage(message);
                     } catch (e) {
@@ -212,9 +212,9 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             message: cache.error.toString(),
                             onRetry: () {
                               setState(() {
-                                mClient.deleteUserMessageCache(friend.id);
+                                mClient.deleteUserMessageCache(friend.contactUserId);
                               });
-                              mClient.loadUserMessageCache(friend.id);
+                              mClient.loadUserMessageCache(friend.contactUserId);
                             },
                           );
                         }
