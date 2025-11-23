@@ -19,6 +19,7 @@ jobs:
         with:
           channel: stable
           version: 3.35.7
+          cache: true
 
       - name: Install flutter dependencies
         run: flutter pub get
@@ -78,6 +79,7 @@ jobs:
         with:
           channel: stable
           version: 3.35.7
+          cache: true
 
       - name: Install flutter dependencies
         run: flutter pub get
@@ -114,6 +116,7 @@ jobs:
         with:
           channel: stable
           version: 3.35.7
+          cache: true
 
       - name: Decode Keystore
         run: |
