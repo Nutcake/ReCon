@@ -20,10 +20,13 @@ class InventoryBrowserAppBar extends StatefulWidget {
   State<InventoryBrowserAppBar> createState() => _InventoryBrowserAppBarState();
 }
 
+enum MoveDialogMode { move, copy }
+
 class _MoveRecordsDialog extends StatefulWidget {
-  const _MoveRecordsDialog({required this.inventoryClient});
+  const _MoveRecordsDialog({required this.inventoryClient, required this.mode});
 
   final InventoryClient inventoryClient;
+  final MoveDialogMode mode;
 
   @override
   State<_MoveRecordsDialog> createState() => _MoveRecordsDialogState();
@@ -67,6 +70,14 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
           widget.inventoryClient.getDirectoryRecords(_currentDirectory);
     });
   }
+
+  String get _dialogTitle => widget.mode == MoveDialogMode.move
+      ? "Move selected records"
+      : "Copy selected records";
+
+  String get _confirmLabel => widget.mode == MoveDialogMode.move
+      ? "Move here (${_currentDirectory.name})"
+      : "Copy here (${_currentDirectory.name})";
 
   Future<void> _promptCreateFolder() async {
     final name = await showDialog<String>(
@@ -136,6 +147,7 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
     try {
       await widget.inventoryClient
           .createDirectory(parent: _currentDirectory, name: name);
+      await widget.inventoryClient.reloadCurrentDirectory();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Created '$name'.")),
@@ -161,7 +173,7 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Move selected records"),
+      title: Text(_dialogTitle),
       content: SizedBox(
         width: 420,
         child: Column(
@@ -276,7 +288,7 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _currentDirectory),
-          child: Text("Move here (${_currentDirectory.name})"),
+          child: Text(_confirmLabel),
         ),
       ],
     );
@@ -581,8 +593,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                         onPressed: () async {
                           final target = await showDialog<Record?>(
                             context: context,
-                            builder: (context) =>
-                                _MoveRecordsDialog(inventoryClient: iClient),
+                            builder: (context) => _MoveRecordsDialog(
+                                inventoryClient: iClient,
+                                mode: MoveDialogMode.copy),
                           );
                           if (target == null) {
                             return;
@@ -620,8 +633,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                         onPressed: () async {
                           final target = await showDialog<Record?>(
                             context: context,
-                            builder: (context) =>
-                                _MoveRecordsDialog(inventoryClient: iClient),
+                            builder: (context) => _MoveRecordsDialog(
+                                inventoryClient: iClient,
+                                mode: MoveDialogMode.move),
                           );
                           if (target == null) {
                             return;
