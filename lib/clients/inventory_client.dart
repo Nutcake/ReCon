@@ -200,8 +200,25 @@ class InventoryClient extends ChangeNotifier {
     return "${record.path}\\${record.name}";
   }
 
+  Future<void> copySelectedRecordsTo(Record targetDirectory) async {
+    final selected = _selectedRecords.values.toList();
+    await _copyRecords(selected, targetDirectory);
+    await reloadCurrentDirectory();
+  }
+
   Future<void> moveSelectedRecordsTo(Record targetDirectory) async {
-    if (_selectedRecords.isEmpty) {
+    final selected = _selectedRecords.values.toList();
+    await _copyRecords(selected, targetDirectory);
+    for (final record in selected) {
+      await RecordApi.deleteRecord(apiClient, recordId: record.id);
+    }
+    _selectedRecords.clear();
+    await reloadCurrentDirectory();
+  }
+
+  Future<void> _copyRecords(
+      List<Record> records, Record targetDirectory) async {
+    if (records.isEmpty) {
       return;
     }
     if (!targetDirectory.isRoot &&
@@ -209,23 +226,30 @@ class InventoryClient extends ChangeNotifier {
       throw "Target is not a directory.";
     }
     final targetPath = _recordFullPath(targetDirectory);
-    for (final record in _selectedRecords.values) {
-      if (record.recordType == RecordType.directory) {
-        final sourcePath = _recordFullPath(record);
-        if (targetPath == sourcePath ||
-            targetPath.startsWith("$sourcePath\\")) {
-          throw "Cannot move '${record.name}' into itself.";
-        }
+    final now = DateTime.now().toUtc();
+    for (final record in records) {
+      if (record.recordType == RecordType.directory ||
+          record.recordType == RecordType.link) {
+        throw "Copying directories or links is not supported yet.";
       }
-      final updatedRecord = record.copyWith(
+      final newId = Record.generateId();
+      final duplicate = record.copyWith(
+        id: newId,
+        combinedRecordId:
+            RecordId(id: newId, ownerId: apiClient.userId, isValid: true),
+        ownerId: apiClient.userId,
         path: targetPath,
-        lastModificationTime: DateTime.now().toUtc(),
+        url: "resrec:///${apiClient.userId}/$newId",
+        lastModificationTime: now,
+        creationTime: now,
+        fetchedOn: now,
         lastModifyingUserId: apiClient.userId,
+        isSynced: false,
+        globalVersion: 0,
+        localVersion: 1,
       );
-      await RecordApi.upsertRecord(apiClient, record: updatedRecord);
+      await RecordApi.upsertRecord(apiClient, record: duplicate);
     }
-    _selectedRecords.clear();
-    await reloadCurrentDirectory();
   }
 
   Future<void> reloadCurrentDirectory() async {

@@ -334,7 +334,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                         },
                         icon: const Icon(Icons.share),
                       ),
-                    if (iClient.onlyFilesSelected)
+                    if (iClient.onlyFilesSelected) ...[
                       IconButton(
                         onPressed: () async {
                           final selectedRecords = iClient.selectedRecords;
@@ -464,43 +464,88 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                         },
                         icon: const Icon(Icons.download),
                       ),
-                    const SizedBox(
-                      width: 4,
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        final target = await showDialog<Record?>(
-                          context: context,
-                          builder: (context) =>
-                              _MoveRecordsDialog(inventoryClient: iClient),
-                        );
-                        if (target == null) {
-                          return;
-                        }
-                        final movedCount = iClient.selectedRecordCount;
-                        try {
-                          await iClient.moveSelectedRecordsTo(target);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final target = await showDialog<Record?>(
+                            context: context,
+                            builder: (context) =>
+                                _MoveRecordsDialog(inventoryClient: iClient),
+                          );
+                          if (target == null) {
+                            return;
+                          }
+                          final copyCount = iClient.selectedRecordCount;
+                          try {
+                            await iClient.copySelectedRecordsTo(target);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
                                   content: Text(
-                                      "Moved $movedCount item${movedCount == 1 ? "" : "s"}.")),
-                            );
+                                      "Copied $copyCount item${copyCount == 1 ? "" : "s"}."),
+                                ),
+                              );
+                            }
+                          } catch (e, s) {
+                            FlutterError.reportError(
+                                FlutterErrorDetails(exception: e, stack: s));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Failed to copy records: $e"),
+                                ),
+                              );
+                            }
                           }
-                        } catch (e, s) {
-                          FlutterError.reportError(
-                              FlutterErrorDetails(exception: e, stack: s));
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text("Failed to move records: $e")),
-                            );
+                        },
+                        icon: const Icon(Icons.copy_all_outlined),
+                        tooltip: "Copy to...",
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final target = await showDialog<Record?>(
+                            context: context,
+                            builder: (context) =>
+                                _MoveRecordsDialog(inventoryClient: iClient),
+                          );
+                          if (target == null) {
+                            return;
                           }
-                        }
-                      },
-                      icon: const Icon(Icons.drive_file_move_outline),
-                      tooltip: "Move to...",
-                    ),
+                          final movedCount = iClient.selectedRecordCount;
+                          try {
+                            await iClient.moveSelectedRecordsTo(target);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      "Moved $movedCount item${movedCount == 1 ? "" : "s"}."),
+                                ),
+                              );
+                            }
+                          } catch (e, s) {
+                            FlutterError.reportError(
+                                FlutterErrorDetails(exception: e, stack: s));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text("Failed to move records: $e")),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.drive_file_move_outline),
+                        tooltip: "Move to...",
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                    ],
                     IconButton(
                       onPressed: () async {
                         var loading = false;
