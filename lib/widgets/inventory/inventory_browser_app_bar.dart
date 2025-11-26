@@ -5,7 +5,7 @@ import 'package:background_downloader/background_downloader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
@@ -71,11 +71,11 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
   Future<void> _promptCreateFolder() async {
     final name = await showDialog<String>(
       context: context,
-      builder: (context) {
+      builder: (BuildContext dialogContext) {
         final controller = TextEditingController();
         String? errorText;
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (BuildContext stateContext, StateSetter setDialogState) {
             return AlertDialog(
               title: const Text("New folder"),
               content: TextField(
@@ -100,12 +100,12 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
                     });
                     return;
                   }
-                  Navigator.pop(context, trimmed);
+                  Navigator.pop(dialogContext, trimmed);
                 },
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(dialogContext),
                   child: const Text("Cancel"),
                 ),
                 FilledButton(
@@ -117,7 +117,7 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
                       });
                       return;
                     }
-                    Navigator.pop(context, trimmed);
+                    Navigator.pop(dialogContext, trimmed);
                   },
                   child: const Text("Create"),
                 ),
@@ -474,7 +474,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       },
                                       leading: const Icon(Icons.data_object),
                                       title: Text(
-                                        "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(extension).toList().unique().join(", ")})",
+                                        "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(p.extension).toList().unique().join(", ")})",
                                       ),
                                     ),
                                     ListTile(
@@ -483,7 +483,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       },
                                       leading: const Icon(Icons.image),
                                       title: Text(
-                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.map(extension).toList().unique().join(", ")})",
+                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.map(p.extension).toList().unique().join(", ")})",
                                       ),
                                     ),
                                   ],
@@ -522,7 +522,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 ? record.thumbnailUri
                                 : record.assetUri;
                             final filename =
-                                "${record.id.split("-")[1]}-${record.formattedName}${extension(uri)}";
+                                "${record.id.split("-")[1]}-${record.formattedName}${p.extension(uri)}";
                             try {
                               final downloadTask = DownloadTask(
                                 url: Aux.resdbToHttp(uri),
@@ -538,7 +538,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 final tempDirectory =
                                     await _tempDirectoryFuture;
                                 final file = File(
-                                    "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${extension(uri)}");
+                                    "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${p.extension(uri)}");
                                 if (file.existsSync()) {
                                   final newFile = File("$directory/$filename");
                                   await file.copy(newFile.absolute.path);
