@@ -13,12 +13,18 @@ enum SortMode {
 
   int sortFunction(Record a, Record b, {bool reverse = false}) {
     final func = switch (this) {
-      SortMode.name => (Record x, Record y) => x.formattedName.toString().toLowerCase().compareTo(y.formattedName.toString().toLowerCase()),
-      SortMode.date => (Record x, Record y) => x.creationTime.compareTo(y.creationTime),
+      SortMode.name => (Record x, Record y) => x.formattedName
+          .toString()
+          .toLowerCase()
+          .compareTo(y.formattedName.toString().toLowerCase()),
+      SortMode.date => (Record x, Record y) =>
+          x.creationTime.compareTo(y.creationTime),
       SortMode.resonite => (Record x, Record y) {
           if (x.isItem && !y.isItem) return 1;
           if (!x.isItem && y.isItem) return -1;
-          return x.isItem ? x.creationTime.compareTo(y.creationTime) : x.name.toLowerCase().compareTo(y.name.toLowerCase());
+          return x.isItem
+              ? x.creationTime.compareTo(y.creationTime)
+              : x.name.toLowerCase().compareTo(y.name.toLowerCase());
         },
     };
     if (reverse) {
@@ -73,7 +79,8 @@ class InventoryClient extends ChangeNotifier {
     _currentDirectory = _currentDirectory?.then(
       (value) {
         value.children.sort(
-          (a, b) => _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
+          (a, b) =>
+              _sortMode.sortFunction(a.record, b.record, reverse: _sortReverse),
         );
         return value;
       },
@@ -82,11 +89,14 @@ class InventoryClient extends ChangeNotifier {
 
   bool get isAnyRecordSelected => _selectedRecords.isNotEmpty;
 
-  bool isRecordSelected(Record record) => _selectedRecords.containsKey(record.id);
+  bool isRecordSelected(Record record) =>
+      _selectedRecords.containsKey(record.id);
 
   int get selectedRecordCount => _selectedRecords.length;
 
-  bool get onlyFilesSelected => _selectedRecords.values.every((element) => element.recordType != RecordType.link && element.recordType != RecordType.directory);
+  bool get onlyFilesSelected => _selectedRecords.values.every((element) =>
+      element.recordType != RecordType.link &&
+      element.recordType != RecordType.directory);
 
   void clearSelectedRecords() {
     _selectedRecords.clear();
@@ -147,7 +157,8 @@ class InventoryClient extends ChangeNotifier {
           );
         }
       } else {
-        records = await RecordApi.getUserRecordsAt(apiClient, path: "${record.path}\\${record.name}", user: record.ownerId);
+        records = await RecordApi.getUserRecordsAt(apiClient,
+            path: "${record.path}\\${record.name}", user: record.ownerId);
       }
     }
     return records;
@@ -162,7 +173,10 @@ class InventoryClient extends ChangeNotifier {
           children: [],
         );
         rootDir.children.addAll(
-          records.map((e) => ResoniteDirectory.fromRecord(record: e, parent: rootDir)).toList(),
+          records
+              .map((e) =>
+                  ResoniteDirectory.fromRecord(record: e, parent: rootDir))
+              .toList(),
         );
         return rootDir;
       },
@@ -173,6 +187,47 @@ class InventoryClient extends ChangeNotifier {
 
   void forceNotify() => notifyListeners();
 
+  Future<List<Record>> getDirectoryRecords(Record record) =>
+      _getDirectory(record);
+
+  String _recordFullPath(Record record) {
+    if (record.isRoot) {
+      return ResoniteDirectory.rootName;
+    }
+    if (record.path.isEmpty) {
+      return record.name;
+    }
+    return "${record.path}\\${record.name}";
+  }
+
+  Future<void> moveSelectedRecordsTo(Record targetDirectory) async {
+    if (_selectedRecords.isEmpty) {
+      return;
+    }
+    if (!targetDirectory.isRoot &&
+        targetDirectory.recordType != RecordType.directory) {
+      throw "Target is not a directory.";
+    }
+    final targetPath = _recordFullPath(targetDirectory);
+    for (final record in _selectedRecords.values) {
+      if (record.recordType == RecordType.directory) {
+        final sourcePath = _recordFullPath(record);
+        if (targetPath == sourcePath ||
+            targetPath.startsWith("$sourcePath\\")) {
+          throw "Cannot move '${record.name}' into itself.";
+        }
+      }
+      final updatedRecord = record.copyWith(
+        path: targetPath,
+        lastModificationTime: DateTime.now().toUtc(),
+        lastModifyingUserId: apiClient.userId,
+      );
+      await RecordApi.upsertRecord(apiClient, record: updatedRecord);
+    }
+    _selectedRecords.clear();
+    await reloadCurrentDirectory();
+  }
+
   Future<void> reloadCurrentDirectory() async {
     final dir = await _currentDirectory;
 
@@ -182,8 +237,12 @@ class InventoryClient extends ChangeNotifier {
 
     _currentDirectory = _getDirectory(dir.record).then(
       (records) {
-        final children = records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: dir)).toList();
-        final newDir = ResoniteDirectory(record: dir.record, children: children, parent: dir.parent);
+        final children = records
+            .map((record) =>
+                ResoniteDirectory.fromRecord(record: record, parent: dir))
+            .toList();
+        final newDir = ResoniteDirectory(
+            record: dir.record, children: children, parent: dir.parent);
 
         final parentIdx = dir.parent?.children.indexOf(dir) ?? -1;
         if (parentIdx != -1) {
@@ -205,7 +264,8 @@ class InventoryClient extends ChangeNotifier {
       throw "Failed to open: No directory loaded.";
     }
 
-    if (record.recordType != RecordType.directory && record.recordType != RecordType.link) {
+    if (record.recordType != RecordType.directory &&
+        record.recordType != RecordType.link) {
       throw "Failed to open: Record is not a directory.";
     }
 
@@ -222,7 +282,8 @@ class InventoryClient extends ChangeNotifier {
       _currentDirectory = _getDirectory(record).then(
         (records) {
           childDir.children.clear();
-          childDir.children.addAll(records.map((record) => ResoniteDirectory.fromRecord(record: record, parent: childDir)));
+          childDir.children.addAll(records.map((record) =>
+              ResoniteDirectory.fromRecord(record: record, parent: childDir)));
           return childDir;
         },
       ).onError((error, stackTrace) {
