@@ -20,6 +20,67 @@ class InventoryBrowserAppBar extends StatefulWidget {
   State<InventoryBrowserAppBar> createState() => _InventoryBrowserAppBarState();
 }
 
+Future<String?> _showFolderNameDialog(BuildContext context) async {
+  final controller = TextEditingController();
+  String? errorText;
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (stateContext, setDialogState) {
+          return AlertDialog(
+            title: const Text("New folder"),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: "Folder name",
+                errorText: errorText,
+              ),
+              onChanged: (_) {
+                if (errorText != null) {
+                  setDialogState(() {
+                    errorText = null;
+                  });
+                }
+              },
+              onSubmitted: (value) {
+                final trimmed = value.trim();
+                if (trimmed.isEmpty) {
+                  setDialogState(() {
+                    errorText = "Name cannot be empty.";
+                  });
+                  return;
+                }
+                Navigator.pop(dialogContext, trimmed);
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final trimmed = controller.text.trim();
+                  if (trimmed.isEmpty) {
+                    setDialogState(() {
+                      errorText = "Name cannot be empty.";
+                    });
+                    return;
+                  }
+                  Navigator.pop(dialogContext, trimmed);
+                },
+                child: const Text("Create"),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 enum MoveDialogMode { move, copy }
 
 class _MoveRecordsDialog extends StatefulWidget {
@@ -80,64 +141,7 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
       : "Copy here (${_currentDirectory.name})";
 
   Future<void> _promptCreateFolder() async {
-    final name = await showDialog<String>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        final controller = TextEditingController();
-        String? errorText;
-        return StatefulBuilder(
-          builder: (BuildContext stateContext, StateSetter setDialogState) {
-            return AlertDialog(
-              title: const Text("New folder"),
-              content: TextField(
-                controller: controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: "Folder name",
-                  errorText: errorText,
-                ),
-                onChanged: (_) {
-                  if (errorText != null) {
-                    setDialogState(() {
-                      errorText = null;
-                    });
-                  }
-                },
-                onSubmitted: (value) {
-                  final trimmed = value.trim();
-                  if (trimmed.isEmpty) {
-                    setDialogState(() {
-                      errorText = "Name cannot be empty.";
-                    });
-                    return;
-                  }
-                  Navigator.pop(dialogContext, trimmed);
-                },
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text("Cancel"),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final trimmed = controller.text.trim();
-                    if (trimmed.isEmpty) {
-                      setDialogState(() {
-                        errorText = "Name cannot be empty.";
-                      });
-                      return;
-                    }
-                    Navigator.pop(dialogContext, trimmed);
-                  },
-                  child: const Text("Create"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+    final name = await _showFolderNameDialog(context);
     if (name == null) {
       return;
     }
@@ -297,6 +301,49 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
 
 class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
   final Future<Directory> _tempDirectoryFuture = getTemporaryDirectory();
+  bool _creatingRootFolder = false;
+
+  Future<void> _createFolderInCurrentDirectory(
+    InventoryClient iClient,
+  ) async {
+    final currentDir = await iClient.directoryFuture;
+    if (!mounted) return;
+    if (currentDir == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Inventory not loaded yet.")),
+        );
+      }
+      return;
+    }
+    final name = await _showFolderNameDialog(context);
+    if (!mounted || name == null) return;
+    setState(() {
+      _creatingRootFolder = true;
+    });
+    try {
+      await iClient.createDirectory(parent: currentDir.record, name: name);
+      await iClient.reloadCurrentDirectory();
+      if (!mounted) return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Created '$name'.")),
+        );
+      }
+    } catch (e, s) {
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to create folder: $e")),
+        );
+      }
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _creatingRootFolder = false;
+      });
+    }
+  }
 
   @pragma('vm:entry-point')
   static void downloadCallback(TaskUpdate event) {
@@ -323,6 +370,20 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                   key: const ValueKey("default-appbar"),
                   title: const Text("Inventory"),
                   actions: [
+                    IconButton(
+                      onPressed: _creatingRootFolder
+                          ? null
+                          : () => _createFolderInCurrentDirectory(iClient),
+                      icon: _creatingRootFolder
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.create_new_folder_outlined),
+                      tooltip: "New folder",
+                    ),
+                    const SizedBox(width: 4),
                     PopupMenuButton(
                       icon: const Icon(Icons.swap_vert),
                       onSelected: (value) {
