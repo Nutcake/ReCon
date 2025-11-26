@@ -34,6 +34,7 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
   late Record _currentDirectory = _rootRecord;
   late List<Record> _breadcrumbs = [_rootRecord];
   late Future<List<Record>> _recordsFuture;
+  bool _creatingFolder = false;
 
   @override
   void initState() {
@@ -67,6 +68,96 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
     });
   }
 
+  Future<void> _promptCreateFolder() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("New folder"),
+              content: TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: "Folder name",
+                  errorText: errorText,
+                ),
+                onChanged: (_) {
+                  if (errorText != null) {
+                    setDialogState(() {
+                      errorText = null;
+                    });
+                  }
+                },
+                onSubmitted: (value) {
+                  final trimmed = value.trim();
+                  if (trimmed.isEmpty) {
+                    setDialogState(() {
+                      errorText = "Name cannot be empty.";
+                    });
+                    return;
+                  }
+                  Navigator.pop(context, trimmed);
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final trimmed = controller.text.trim();
+                    if (trimmed.isEmpty) {
+                      setDialogState(() {
+                        errorText = "Name cannot be empty.";
+                      });
+                      return;
+                    }
+                    Navigator.pop(context, trimmed);
+                  },
+                  child: const Text("Create"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (name == null) {
+      return;
+    }
+    setState(() {
+      _creatingFolder = true;
+    });
+    try {
+      await widget.inventoryClient
+          .createDirectory(parent: _currentDirectory, name: name);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Created '$name'.")),
+        );
+      }
+      _reloadCurrentDirectory();
+    } catch (e, s) {
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to create folder: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _creatingFolder = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -76,28 +167,47 @@ class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                  _breadcrumbs.length,
-                  (index) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (index != 0) const Icon(Icons.chevron_right, size: 16),
-                      TextButton(
-                        onPressed: index == _breadcrumbs.length - 1
-                            ? null
-                            : () => _navigateToBreadcrumb(index),
-                        child: Text(
-                          _breadcrumbs[index].name,
-                          overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(
+                        _breadcrumbs.length,
+                        (index) => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (index != 0)
+                              const Icon(Icons.chevron_right, size: 16),
+                            TextButton(
+                              onPressed: index == _breadcrumbs.length - 1
+                                  ? null
+                                  : () => _navigateToBreadcrumb(index),
+                              child: Text(
+                                _breadcrumbs[index].name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: _creatingFolder ? null : _promptCreateFolder,
+                  icon: _creatingFolder
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.create_new_folder_outlined),
+                  label: const Text("New folder"),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             SizedBox(

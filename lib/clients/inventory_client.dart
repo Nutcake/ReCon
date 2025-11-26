@@ -252,6 +252,60 @@ class InventoryClient extends ChangeNotifier {
     }
   }
 
+  Future<Record> createDirectory(
+      {required Record parent, required String name}) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) {
+      throw "Folder name cannot be empty.";
+    }
+    if (trimmedName.length > 128) {
+      throw "Folder name is too long.";
+    }
+    if (RegExp(r'[\\/:*?"<>|]').hasMatch(trimmedName)) {
+      throw "Folder name contains invalid characters.";
+    }
+    if (!parent.isRoot && parent.recordType != RecordType.directory) {
+      throw "Cannot create a folder here.";
+    }
+    final newId = Record.generateId();
+    final timestamp = DateTime.now().toUtc();
+    final path = _recordFullPath(parent);
+    final newDirectory = Record(
+      id: newId,
+      combinedRecordId:
+          RecordId(id: newId, ownerId: apiClient.userId, isValid: true),
+      ownerId: apiClient.userId,
+      assetUri: "",
+      globalVersion: 0,
+      localVersion: 1,
+      name: trimmedName,
+      description: '',
+      tags: [trimmedName],
+      recordType: RecordType.directory,
+      thumbnailUri: '',
+      isPublic: false,
+      isForPatreons: false,
+      isListed: false,
+      lastModificationTime: timestamp,
+      resoniteDBManifest: const [],
+      lastModifyingUserId: apiClient.userId,
+      lastModifyingMachineId: '',
+      creationTime: timestamp,
+      manifest: const [],
+      url: "resrec:///${apiClient.userId}/$newId",
+      isValidOwnerId: true,
+      isValidRecordId: true,
+      visits: 0,
+      rating: 0,
+      randomOrder: 0,
+      fetchedOn: timestamp,
+      isSynced: false,
+      path: path,
+    );
+    await RecordApi.upsertRecord(apiClient, record: newDirectory);
+    return newDirectory;
+  }
+
   Future<void> reloadCurrentDirectory() async {
     final dir = await _currentDirectory;
 
