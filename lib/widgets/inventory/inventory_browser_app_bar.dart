@@ -5,11 +5,12 @@ import 'package:background_downloader/background_downloader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/inventory_client.dart';
+import 'package:recon/models/records/record.dart';
 import 'package:share_plus/share_plus.dart';
 
 class InventoryBrowserAppBar extends StatefulWidget {
@@ -19,8 +20,330 @@ class InventoryBrowserAppBar extends StatefulWidget {
   State<InventoryBrowserAppBar> createState() => _InventoryBrowserAppBarState();
 }
 
+Future<String?> _showFolderNameDialog(BuildContext context) async {
+  final controller = TextEditingController();
+  String? errorText;
+  return showDialog<String>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (stateContext, setDialogState) {
+          return AlertDialog(
+            title: const Text("New folder"),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: "Folder name",
+                errorText: errorText,
+              ),
+              onChanged: (_) {
+                if (errorText != null) {
+                  setDialogState(() {
+                    errorText = null;
+                  });
+                }
+              },
+              onSubmitted: (value) {
+                final trimmed = value.trim();
+                if (trimmed.isEmpty) {
+                  setDialogState(() {
+                    errorText = "Name cannot be empty.";
+                  });
+                  return;
+                }
+                Navigator.pop(dialogContext, trimmed);
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text("Cancel"),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final trimmed = controller.text.trim();
+                  if (trimmed.isEmpty) {
+                    setDialogState(() {
+                      errorText = "Name cannot be empty.";
+                    });
+                    return;
+                  }
+                  Navigator.pop(dialogContext, trimmed);
+                },
+                child: const Text("Create"),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+enum MoveDialogMode { move, copy }
+
+class _MoveRecordsDialog extends StatefulWidget {
+  const _MoveRecordsDialog({required this.inventoryClient, required this.mode});
+
+  final InventoryClient inventoryClient;
+  final MoveDialogMode mode;
+
+  @override
+  State<_MoveRecordsDialog> createState() => _MoveRecordsDialogState();
+}
+
+class _MoveRecordsDialogState extends State<_MoveRecordsDialog> {
+  late final Record _rootRecord = Record.inventoryRoot();
+  late Record _currentDirectory = _rootRecord;
+  late List<Record> _breadcrumbs = [_rootRecord];
+  late Future<List<Record>> _recordsFuture;
+  bool _creatingFolder = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _recordsFuture =
+        widget.inventoryClient.getDirectoryRecords(_currentDirectory);
+  }
+
+  void _reloadCurrentDirectory() {
+    setState(() {
+      _recordsFuture =
+          widget.inventoryClient.getDirectoryRecords(_currentDirectory);
+    });
+  }
+
+  void _navigateTo(Record directory) {
+    setState(() {
+      _currentDirectory = directory;
+      _breadcrumbs = [..._breadcrumbs, directory];
+      _recordsFuture =
+          widget.inventoryClient.getDirectoryRecords(_currentDirectory);
+    });
+  }
+
+  void _navigateToBreadcrumb(int index) {
+    setState(() {
+      _currentDirectory = _breadcrumbs[index];
+      _breadcrumbs = _breadcrumbs.sublist(0, index + 1);
+      _recordsFuture =
+          widget.inventoryClient.getDirectoryRecords(_currentDirectory);
+    });
+  }
+
+  String get _dialogTitle => widget.mode == MoveDialogMode.move
+      ? "Move selected records"
+      : "Copy selected records";
+
+  String get _confirmLabel => widget.mode == MoveDialogMode.move
+      ? "Move here (${_currentDirectory.name})"
+      : "Copy here (${_currentDirectory.name})";
+
+  Future<void> _promptCreateFolder() async {
+    final name = await _showFolderNameDialog(context);
+    if (name == null) {
+      return;
+    }
+    setState(() {
+      _creatingFolder = true;
+    });
+    try {
+      await widget.inventoryClient
+          .createDirectory(parent: _currentDirectory, name: name);
+      await widget.inventoryClient.reloadCurrentDirectory();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Created '$name'.")),
+        );
+      }
+      _reloadCurrentDirectory();
+    } catch (e, s) {
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to create folder: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _creatingFolder = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_dialogTitle),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(
+                        _breadcrumbs.length,
+                        (index) => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (index != 0)
+                              const Icon(Icons.chevron_right, size: 16),
+                            TextButton(
+                              onPressed: index == _breadcrumbs.length - 1
+                                  ? null
+                                  : () => _navigateToBreadcrumb(index),
+                              child: Text(
+                                _breadcrumbs[index].name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: _creatingFolder ? null : _promptCreateFolder,
+                  icon: _creatingFolder
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.create_new_folder_outlined),
+                  label: const Text("New folder"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 320,
+              child: FutureBuilder<List<Record>>(
+                future: _recordsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Failed to load directories:\n${snapshot.error}",
+                            textAlign: TextAlign.center),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: _reloadCurrentDirectory,
+                          child: const Text("Retry"),
+                        ),
+                      ],
+                    );
+                  }
+                  final directories = (snapshot.data ?? [])
+                      .where(
+                          (record) => record.recordType == RecordType.directory)
+                      .toList()
+                    ..sort((a, b) =>
+                        a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                  return ListView.builder(
+                    itemCount: (_currentDirectory != _rootRecord ? 1 : 0) +
+                        directories.length,
+                    itemBuilder: (context, index) {
+                      if (_currentDirectory != _rootRecord && index == 0) {
+                        return ListTile(
+                          leading: const Icon(Icons.arrow_upward),
+                          title: const Text("Up"),
+                          onTap: () {
+                            if (_breadcrumbs.length > 1) {
+                              _navigateToBreadcrumb(_breadcrumbs.length - 2);
+                            }
+                          },
+                        );
+                      }
+                      final directory = directories[
+                          index - (_currentDirectory != _rootRecord ? 1 : 0)];
+                      return ListTile(
+                        leading: const Icon(Icons.folder_outlined),
+                        title: Text(directory.name),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _navigateTo(directory),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _currentDirectory),
+          child: Text(_confirmLabel),
+        ),
+      ],
+    );
+  }
+}
+
 class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
   final Future<Directory> _tempDirectoryFuture = getTemporaryDirectory();
+  bool _creatingRootFolder = false;
+
+  Future<void> _createFolderInCurrentDirectory(
+    InventoryClient iClient,
+  ) async {
+    final currentDir = await iClient.directoryFuture;
+    if (!mounted) return;
+    if (currentDir == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Inventory not loaded yet.")),
+        );
+      }
+      return;
+    }
+    final name = await _showFolderNameDialog(context);
+    if (!mounted || name == null) return;
+    setState(() {
+      _creatingRootFolder = true;
+    });
+    try {
+      await iClient.createDirectory(parent: currentDir.record, name: name);
+      await iClient.reloadCurrentDirectory();
+      if (!mounted) return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Created '$name'.")),
+        );
+      }
+    } catch (e, s) {
+      FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to create folder: $e")),
+        );
+      }
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _creatingRootFolder = false;
+      });
+    }
+  }
 
   @pragma('vm:entry-point')
   static void downloadCallback(TaskUpdate event) {
@@ -47,6 +370,20 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                   key: const ValueKey("default-appbar"),
                   title: const Text("Inventory"),
                   actions: [
+                    IconButton(
+                      onPressed: _creatingRootFolder
+                          ? null
+                          : () => _createFolderInCurrentDirectory(iClient),
+                      icon: _creatingRootFolder
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.create_new_folder_outlined),
+                      tooltip: "New folder",
+                    ),
+                    const SizedBox(width: 4),
                     PopupMenuButton(
                       icon: const Icon(Icons.swap_vert),
                       onSelected: (value) {
@@ -60,7 +397,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               children: [
                                 Icon(
                                   Icons.arrow_upward,
-                                  color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                  color: !iClient.sortReverse
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context).colorScheme.onSurface,
                                 ),
                                 const SizedBox(
                                   width: 8,
@@ -68,7 +407,11 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 Text(
                                   "Ascending",
                                   style: TextStyle(
-                                    color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                    color: !iClient.sortReverse
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                   ),
                                 ),
                               ],
@@ -78,14 +421,23 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             value: true,
                             child: Row(
                               children: [
-                                Icon(Icons.arrow_downward, color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                Icon(Icons.arrow_downward,
+                                    color: iClient.sortReverse
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface),
                                 const SizedBox(
                                   width: 8,
                                 ),
                                 Text(
                                   "Descending",
                                   style: TextStyle(
-                                    color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                    color: iClient.sortReverse
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                   ),
                                 ),
                               ],
@@ -110,15 +462,28 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                     children: [
                                       Icon(
                                         e.icon,
-                                        color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                        color: iClient.sortMode == e
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                       ),
                                       const SizedBox(
                                         width: 8,
                                       ),
                                       Text(
-                                        toBeginningOfSentenceCase(e.name) ?? e.name,
+                                        toBeginningOfSentenceCase(e.name) ??
+                                            e.name,
                                         style: TextStyle(
-                                          color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                          color: iClient.sortMode == e
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface,
                                         ),
                                       ),
                                     ],
@@ -141,20 +506,28 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                     icon: const Icon(Icons.close),
                   ),
                   actions: [
-                    if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
+                    if (iClient.selectedRecordCount == 1 &&
+                        ((iClient.selectedRecords.firstOrNull?.isLink ??
+                                false) ||
+                            (iClient.selectedRecords.firstOrNull?.isItem ??
+                                false)))
                       IconButton(
                         onPressed: () {
                           Share.share(iClient.selectedRecords.first.assetUri);
                         },
                         icon: const Icon(Icons.share),
                       ),
-                    if (iClient.onlyFilesSelected)
+                    if (iClient.onlyFilesSelected) ...[
                       IconButton(
                         onPressed: () async {
                           final selectedRecords = iClient.selectedRecords;
 
-                          final assetUris = selectedRecords.map((record) => record.assetUri).toList();
-                          final thumbUris = selectedRecords.map((record) => record.thumbnailUri).toList();
+                          final assetUris = selectedRecords
+                              .map((record) => record.assetUri)
+                              .toList();
+                          final thumbUris = selectedRecords
+                              .map((record) => record.thumbnailUri)
+                              .toList();
 
                           final selectedUris = await showDialog<List<String>>(
                             context: context,
@@ -174,7 +547,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       },
                                       leading: const Icon(Icons.data_object),
                                       title: Text(
-                                        "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(extension).toList().unique().join(", ")})",
+                                        "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(p.extension).toList().unique().join(", ")})",
                                       ),
                                     ),
                                     ListTile(
@@ -183,7 +556,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       },
                                       leading: const Icon(Icons.image),
                                       title: Text(
-                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.map(extension).toList().unique().join(", ")})",
+                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.map(p.extension).toList().unique().join(", ")})",
                                       ),
                                     ),
                                   ],
@@ -193,7 +566,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           );
                           if (selectedUris == null) return;
 
-                          final directory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Download to...");
+                          final directory = await FilePicker.platform
+                              .getDirectoryPath(dialogTitle: "Download to...");
                           if (directory == null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -208,7 +582,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Selected directory is invalid"),
+                                  content:
+                                      Text("Selected directory is invalid"),
                                 ),
                               );
                             }
@@ -216,8 +591,11 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           }
 
                           for (final record in selectedRecords) {
-                            final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
-                            final filename = "${record.id.split("-")[1]}-${record.formattedName}${extension(uri)}";
+                            final uri = selectedUris == thumbUris
+                                ? record.thumbnailUri
+                                : record.assetUri;
+                            final filename =
+                                "${record.id.split("-")[1]}-${record.formattedName}${p.extension(uri)}";
                             try {
                               final downloadTask = DownloadTask(
                                 url: Aux.resdbToHttp(uri),
@@ -226,10 +604,14 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 filename: filename,
                                 updates: Updates.statusAndProgress,
                               );
-                              final downloadStatus = await FileDownloader().download(downloadTask);
-                              if (downloadStatus.status == TaskStatus.complete) {
-                                final tempDirectory = await _tempDirectoryFuture;
-                                final file = File("${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${extension(uri)}");
+                              final downloadStatus =
+                                  await FileDownloader().download(downloadTask);
+                              if (downloadStatus.status ==
+                                  TaskStatus.complete) {
+                                final tempDirectory =
+                                    await _tempDirectoryFuture;
+                                final file = File(
+                                    "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${p.extension(uri)}");
                                 if (file.existsSync()) {
                                   final newFile = File("$directory/$filename");
                                   await file.copy(newFile.absolute.path);
@@ -238,15 +620,18 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text("Downloaded ${record.formattedName}"),
+                                      content: Text(
+                                          "Downloaded ${record.formattedName}"),
                                     ),
                                   );
                                 } else {
-                                  throw downloadStatus.exception ?? "Unknown Error";
+                                  throw downloadStatus.exception ??
+                                      "Unknown Error";
                                 }
                               }
                             } catch (e, s) {
-                              FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                              FlutterError.reportError(
+                                  FlutterErrorDetails(exception: e, stack: s));
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -262,9 +647,90 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                         },
                         icon: const Icon(Icons.download),
                       ),
-                    const SizedBox(
-                      width: 4,
-                    ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final target = await showDialog<Record?>(
+                            context: context,
+                            builder: (context) => _MoveRecordsDialog(
+                                inventoryClient: iClient,
+                                mode: MoveDialogMode.copy),
+                          );
+                          if (target == null) {
+                            return;
+                          }
+                          final copyCount = iClient.selectedRecordCount;
+                          try {
+                            await iClient.copySelectedRecordsTo(target);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      "Copied $copyCount item${copyCount == 1 ? "" : "s"}."),
+                                ),
+                              );
+                            }
+                          } catch (e, s) {
+                            FlutterError.reportError(
+                                FlutterErrorDetails(exception: e, stack: s));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Failed to copy records: $e"),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.copy_all_outlined),
+                        tooltip: "Copy to...",
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final target = await showDialog<Record?>(
+                            context: context,
+                            builder: (context) => _MoveRecordsDialog(
+                                inventoryClient: iClient,
+                                mode: MoveDialogMode.move),
+                          );
+                          if (target == null) {
+                            return;
+                          }
+                          final movedCount = iClient.selectedRecordCount;
+                          try {
+                            await iClient.moveSelectedRecordsTo(target);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      "Moved $movedCount item${movedCount == 1 ? "" : "s"}."),
+                                ),
+                              );
+                            }
+                          } catch (e, s) {
+                            FlutterError.reportError(
+                                FlutterErrorDetails(exception: e, stack: s));
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content:
+                                        Text("Failed to move records: $e")),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.drive_file_move_outline),
+                        tooltip: "Move to...",
+                      ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                    ],
                     IconButton(
                       onPressed: () async {
                         var loading = false;
@@ -275,9 +741,13 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               builder: (context, setState) {
                                 return AlertDialog(
                                   icon: const Icon(Icons.delete),
-                                  title: Text(iClient.selectedRecordCount == 1 ? "Really delete this Record?" : "Really delete ${iClient.selectedRecordCount} Records?"),
-                                  content: const Text("This action cannot be undone!"),
-                                  actionsAlignment: MainAxisAlignment.spaceBetween,
+                                  title: Text(iClient.selectedRecordCount == 1
+                                      ? "Really delete this Record?"
+                                      : "Really delete ${iClient.selectedRecordCount} Records?"),
+                                  content: const Text(
+                                      "This action cannot be undone!"),
+                                  actionsAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   actions: [
                                     TextButton(
                                       onPressed: loading
@@ -293,7 +763,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                         if (loading)
                                           const SizedBox.square(
                                             dimension: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
                                           ),
                                         const SizedBox(
                                           width: 4,
@@ -306,12 +777,16 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     loading = true;
                                                   });
                                                   try {
-                                                    await iClient.deleteSelectedRecords();
+                                                    await iClient
+                                                        .deleteSelectedRecords();
                                                   } catch (e) {
                                                     if (context.mounted) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
                                                         SnackBar(
-                                                          content: Text("Failed to delete one or more records: $e"),
+                                                          content: Text(
+                                                              "Failed to delete one or more records: $e"),
                                                         ),
                                                       );
                                                     }
@@ -320,12 +795,16 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     });
                                                   }
                                                   if (context.mounted) {
-                                                    Navigator.of(context).pop(true);
+                                                    Navigator.of(context)
+                                                        .pop(true);
                                                   }
-                                                  await iClient.reloadCurrentDirectory();
+                                                  await iClient
+                                                      .reloadCurrentDirectory();
                                                 },
                                           style: TextButton.styleFrom(
-                                            foregroundColor: Theme.of(context).colorScheme.error,
+                                            foregroundColor: Theme.of(context)
+                                                .colorScheme
+                                                .error,
                                           ),
                                           child: const Text("Delete"),
                                         ),
