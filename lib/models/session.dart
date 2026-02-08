@@ -104,7 +104,7 @@ class Session {
       name: map["name"],
       description: map["description"] ?? "",
       tags: ((map["tags"] as List?) ?? []).map((e) => e.toString()).toList(),
-      id: map["sessionId"],
+      id: map["sessionId"] ?? "",
       hostUserId: map["hostUserId"] ?? "",
       hostMachineId: map["hostMachineId"] ?? "",
       hostUsername: map["hostUsername"] ?? "",
