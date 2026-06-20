@@ -66,6 +66,8 @@ dependencies:
   background_downloader: ^9.5.5
   just_audio_media_kit: ^2.1.0
   media_kit_libs_linux: ^1.2.1
+  media_kit_libs_windows_audio: ^1.0.9
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
