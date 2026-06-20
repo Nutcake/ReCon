@@ -6,7 +6,7 @@ class Session {
   final String description;
   final FormatNode formattedDescription;
   final List<String> tags;
-  final String id; //sessionId
+  final String? id; //sessionId
   final String hostUserId;
   final String hostMachineId;
   final String hostUsername;
@@ -69,7 +69,7 @@ class Session {
       name: "",
       description: "",
       tags: const [],
-      id: "",
+      id: null,
       hostUserId: "",
       hostMachineId: "",
       hostUsername: "",

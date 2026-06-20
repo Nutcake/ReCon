@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
@@ -57,7 +58,7 @@ class MessagingClient extends ChangeNotifier {
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
       final sessions = await SessionApi.getSessions(_apiClient);
-      _sessionMap.addEntries(sessions.map((e) => MapEntry(e.id, e)));
+      _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
       await _setupHub();
     });
   }
@@ -369,7 +370,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Map<String, Session> createSessionMap(String salt) {
-    return _sessionMap.map((key, value) => MapEntry(CryptoHelper.idHash(value.id + salt), value));
+    return _sessionMap.map((key, value) => MapEntry(CryptoHelper.idHash(value.id! + salt), value));
   }
 
   void _onMessageSent(List args) {
@@ -427,7 +428,10 @@ class MessagingClient extends ChangeNotifier {
   void _onReceiveSessionUpdate(List args) {
     final sessionUpdate = args[0];
     final session = Session.fromMap(sessionUpdate);
-    _sessionMap[session.id] = session;
+    if (session.id == null) {
+      return;
+    }
+    _sessionMap[session.id!] = session;
     notifyListeners();
   }
 

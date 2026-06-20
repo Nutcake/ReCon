@@ -24,12 +24,12 @@ import 'package:recon/models/sem_ver.dart';
 import 'package:recon/widgets/homepage.dart';
 import 'package:recon/widgets/login_screen.dart';
 import 'package:recon/widgets/update_notifier.dart';
-
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  JustAudioMediaKit.ensureInitialized(linux: true);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemStatusBarContrastEnforced: true,

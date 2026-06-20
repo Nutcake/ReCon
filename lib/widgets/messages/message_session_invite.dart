@@ -20,68 +20,71 @@ class MessageSessionInvite extends StatelessWidget {
     final sessionInfo = Session.fromMap(jsonDecode(message.content));
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
-      child: TextButton(
-        onPressed: () {
+      child: InkWell(
+        onTap: () {
           Navigator.of(context).push(MaterialPageRoute(builder: (context) => SessionView(session: sessionInfo)));
         },
-        style: TextButton.styleFrom(padding: EdgeInsets.zero),
-        child: Container(
-          padding: const EdgeInsets.only(left: 4),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GenericAvatar(
-                          imageUri: Aux.resdbToHttp(sessionInfo.thumbnailUrl),
-                          placeholderIcon: Icons.no_photography,
-                          foregroundColor: foregroundColor,
-                        ),
-                        const SizedBox(height: 4,),
-                        Text("${sessionInfo.sessionUsers.length.toString().padLeft(2, "0")}/${sessionInfo.maxUsers.toString().padLeft(2, "0")}", style: Theme
+        borderRadius: BorderRadius.all(Radius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            padding: const EdgeInsets.only(left: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GenericAvatar(
+                            imageUri: Aux.resdbToHttp(sessionInfo.thumbnailUrl),
+                            placeholderIcon: Icons.no_photography,
+                            foregroundColor: foregroundColor,
+                          ),
+                          const SizedBox(height: 4,),
+                          Text("${sessionInfo.sessionUsers.length.toString().padLeft(2, "0")}/${sessionInfo.maxUsers.toString().padLeft(2, "0")}", style: Theme
+                              .of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: foregroundColor),)
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: FormattedText(sessionInfo.formattedName, maxLines: null, softWrap: true, textAlign: TextAlign.start, style: Theme
                             .of(context)
                             .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: foregroundColor),)
-                      ],
+                            .titleMedium?.copyWith(color: foregroundColor),),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: FormattedText(sessionInfo.formattedName, maxLines: null, softWrap: true, textAlign: TextAlign.start, style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleMedium?.copyWith(color: foregroundColor),),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8,),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Hosted by ${sessionInfo.hostUsername}", overflow: TextOverflow.ellipsis, style: Theme
-                      .of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: foregroundColor?.withAlpha(150)),),
-                  MessageStateIndicator(message: message, foregroundColor: foregroundColor,),
-                ],
-              )
-            ],
+                  ],
+                ),
+                const SizedBox(height: 8,),
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Hosted by ${sessionInfo.hostUsername}", overflow: TextOverflow.ellipsis, style: Theme
+                        .of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: foregroundColor?.withAlpha(150)),),
+                    MessageStateIndicator(message: message, foregroundColor: foregroundColor,),
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ),
