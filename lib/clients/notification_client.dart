@@ -23,7 +23,12 @@ class NotificationClient {
   );
 
   final fln.FlutterLocalNotificationsPlugin _notifier = fln.FlutterLocalNotificationsPlugin()
-    ..initialize(const fln.InitializationSettings(
+    ..initialize(settings: const fln.InitializationSettings(
+      windows: fln.WindowsInitializationSettings(
+        appName: "ReCon",
+        appUserModelId: "me.voidspace.recon",
+        guid: 'a8100a1f-4794-4a6b-8ed6-c52efc766fc7',
+      ),
       android: fln.AndroidInitializationSettings("ic_notification"),
       iOS: fln.DarwinInitializationSettings(),
       macOS: fln.DarwinInitializationSettings(),
@@ -38,10 +43,10 @@ class NotificationClient {
     for (final entry in bySender.entries) {
       final uname = entry.key.stripUid();
       await _notifier.show(
-        uname.hashCode,
-        null,
-        null,
-        fln.NotificationDetails(
+        id: uname.hashCode,
+        title: null,
+        body: null,
+        notificationDetails: fln.NotificationDetails(
           android: fln.AndroidNotificationDetails(
             _messageChannel.id,
             _messageChannel.name,
