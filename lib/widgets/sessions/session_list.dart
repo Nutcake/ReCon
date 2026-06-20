@@ -68,6 +68,9 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                               ),
                               itemBuilder: (context, index) {
                                 final session = data[index];
+                                if (session.id == null) {
+                                  return SizedBox.shrink();
+                                }
                                 return Card(
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
@@ -90,7 +93,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                               topRight: Radius.circular(16),
                                             ),
                                             child: Hero(
-                                              tag: session.id,
+                                              tag: session.id!,
                                               child: CachedNetworkImage(
                                                 imageUrl: Aux.resdbToHttp(session.thumbnailUrl),
                                                 fit: BoxFit.cover,
