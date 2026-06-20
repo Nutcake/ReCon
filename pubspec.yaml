@@ -54,9 +54,9 @@ dependencies:
   dynamic_color: ^1.8.1
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  file_picker: ^10.3.6
   record: ^6.1.2
   camera: ^0.11.3
+  file_picker: ^12.0.0-beta.7
   path_provider: ^2.1.5
   crypto: ^3.0.7
   image_picker: ^1.2.1
