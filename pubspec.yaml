@@ -65,7 +65,7 @@ dependencies:
   share_plus: ^13.1.0
   background_downloader: ^9.5.5
   just_audio_media_kit: ^2.1.0
-  media_kit_libs_linux: any
+  media_kit_libs_linux: ^1.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
