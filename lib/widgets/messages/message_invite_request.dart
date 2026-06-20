@@ -36,6 +36,7 @@ class MessageInviteRequest extends StatelessWidget {
     
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
