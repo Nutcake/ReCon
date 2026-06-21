@@ -24,15 +24,17 @@ class MessageInviteRequest extends StatelessWidget {
       text ='''Requested invite''';
     } else if (fromSelf) {
       //Forwarded invite request
-      text = '''Forwarded invite request from "${inviteInfo.usernameToInvite}" to session "${inviteInfo.forSessionName}"''';
       if(inviteInfo.response == "SendInvite") {
         text = '''Granted "${inviteInfo.usernameToInvite}" invite to session "${inviteInfo.forSessionName}"''';
-      }
-      if(inviteInfo.response == "AddAsContact") {
+      } else if(inviteInfo.response == "AddAsContact") {
         text = '''Adding ${inviteInfo.usernameToInvite} as a contact of the headless"''';
+      } else {
+        //If new responses are added to the InviteRequestResponse enum.
+        text = '''Unknown response "${inviteInfo.response}" for invite request''';
       }
     } else if (inviteInfo.forSessionName != null) {
-      if (inviteInfo.requestingFromUsername != null) {
+      //Another user requested an invite from you.
+      if (inviteInfo.requestingFromUsername.isNotEmpty) {
         //User wants to invite user2 to world
         text = '''"${inviteInfo.requestingFromUsername}" wants to invite "${inviteInfo.usernameToInvite}" to "${inviteInfo.forSessionName}"''';
       } else {
