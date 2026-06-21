@@ -68,7 +68,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                 const SizedBox(
                   width: 8,
                 ),
-                Text(friend.contactUsername),
+                Expanded(child: Text(friend.contactUsername)),
                 if (friend.isHeadless)
                   Padding(
                     padding: const EdgeInsets.only(left: 12),
