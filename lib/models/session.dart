@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:recon/string_formatter.dart';
 
 class Session {
@@ -28,6 +29,7 @@ class Session {
   final bool hideFromListing;
   final String broadcastKey;
   final bool awayKickEnabled;
+
   //final Float awayKickMinutes;
   final bool hasEnded;
   final bool isValid;
@@ -60,7 +62,6 @@ class Session {
     required this.awayKickEnabled,
     required this.hasEnded,
     required this.isValid,
-    
   })  : formattedName = FormatNode.fromText(name),
         formattedDescription = FormatNode.fromText(description);
 
@@ -225,6 +226,68 @@ class Session {
     );
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Session &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          description == other.description &&
+          listEquals(tags, other.tags) &&
+          id == other.id &&
+          hostUserId == other.hostUserId &&
+          hostMachineId == other.hostMachineId &&
+          hostUsername == other.hostUsername &&
+          universeId == other.universeId &&
+          appVersion == other.appVersion &&
+          headlessHost == other.headlessHost &&
+          listEquals(sessionURLs, other.sessionURLs) &&
+          listEquals(sessionUsers, other.sessionUsers) &&
+          thumbnailUrl == other.thumbnailUrl &&
+          joinedUsers == other.joinedUsers &&
+          minActiveUsers == other.minActiveUsers &&
+          totalJoinedUsers == other.totalJoinedUsers &&
+          totalActiveUsers == other.totalActiveUsers &&
+          maxUsers == other.maxUsers &&
+          mobileFriendly == other.mobileFriendly &&
+          sessionBeginTime == other.sessionBeginTime &&
+          accessLevel == other.accessLevel &&
+          hideFromListing == other.hideFromListing &&
+          broadcastKey == other.broadcastKey &&
+          awayKickEnabled == other.awayKickEnabled &&
+          hasEnded == other.hasEnded &&
+          isValid == other.isValid;
+
+  @override
+  int get hashCode => Object.hashAll([
+        name,
+        description,
+        tags,
+        id,
+        hostUserId,
+        hostMachineId,
+        hostUsername,
+        universeId,
+        appVersion,
+        headlessHost,
+        sessionURLs,
+        sessionUsers,
+        thumbnailUrl,
+        joinedUsers,
+        minActiveUsers,
+        totalJoinedUsers,
+        totalActiveUsers,
+        maxUsers,
+        mobileFriendly,
+        sessionBeginTime,
+        accessLevel,
+        hideFromListing,
+        broadcastKey,
+        awayKickEnabled,
+        hasEnded,
+        isValid,
+      ]);
+
   bool get isLive => !hasEnded && isValid;
 }
 
@@ -284,6 +347,19 @@ class SessionUser {
       "outputDevice": outputDevice,
     };
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SessionUser &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          username == other.username &&
+          isPresent == other.isPresent &&
+          outputDevice == other.outputDevice;
+
+  @override
+  int get hashCode => Object.hash(id, username, isPresent, outputDevice);
 }
 
 class SessionFilterSettings {

@@ -431,8 +431,11 @@ class MessagingClient extends ChangeNotifier {
     if (session.id == null) {
       return;
     }
+    final oldSession = _sessionMap[session.id!];
     _sessionMap[session.id!] = session;
-    notifyListeners();
+    if (oldSession != session) {
+      notifyListeners();
+    }
   }
 
   void _onRemoveSession(List args) {
