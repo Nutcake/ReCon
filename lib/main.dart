@@ -30,7 +30,11 @@ import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  JustAudioMediaKit.ensureInitialized(linux: true);
+  try {
+    JustAudioMediaKit.ensureInitialized(); // Windows and Linux are enabled by default.
+  } catch (e) {
+    log("Failed to initialize JustAudioMediaKit, audio features will be unavailable. Error: $e");
+  }
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       systemStatusBarContrastEnforced: true,
