@@ -51,8 +51,11 @@ class _SessionViewState extends State<SessionView> {
           ),
           body: RefreshIndicator(
             onRefresh: () async {
+              if (session.id == null) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Session is no longer valid")));
+              }
               setState(() {
-                _sessionFuture = SessionApi.getSession(ClientHolder.of(context).apiClient, sessionId: session.id);
+                _sessionFuture = SessionApi.getSession(ClientHolder.of(context).apiClient, sessionId: session.id!);
               });
               await _sessionFuture;
             },
@@ -99,7 +102,7 @@ class _SessionViewState extends State<SessionView> {
                                       padding: EdgeInsets.all(16),
                                       child: Icon(Icons.panorama_photosphere),
                                     ),
-                                  )
+                                  ),
                                 ],
                               ),
                             ),
@@ -185,17 +188,19 @@ class _SessionViewState extends State<SessionView> {
                     ),
                   ] +
                   session.sessionUsers
-                      .map((user) => ListTile(
-                            dense: true,
-                            title: Text(
-                              user.username,
-                              textAlign: TextAlign.start,
-                            ),
-                            subtitle: Text(
-                              user.isPresent ? "Active" : "Inactive",
-                              textAlign: TextAlign.start,
-                            ),
-                          ))
+                      .map(
+                        (user) => ListTile(
+                          dense: true,
+                          title: Text(
+                            user.username,
+                            textAlign: TextAlign.start,
+                          ),
+                          subtitle: Text(
+                            user.isPresent ? "Active" : "Inactive",
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                      )
                       .toList(),
             ),
           ),

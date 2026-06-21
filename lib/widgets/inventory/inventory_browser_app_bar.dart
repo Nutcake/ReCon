@@ -193,7 +193,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           );
                           if (selectedUris == null) return;
 
-                          final directory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Download to...");
+                          final directory = await FilePicker.getDirectoryPath(dialogTitle: "Download to...");
                           if (directory == null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(

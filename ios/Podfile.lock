@@ -36,13 +36,6 @@ PODS:
   - DKPhotoGallery/Resource (0.0.17):
     - SDWebImage
     - SwiftyGif
-  - ffmpeg-kit-ios-audio (6.0)
-  - ffmpeg_kit_flutter_audio (6.0.3):
-    - ffmpeg_kit_flutter_audio/audio (= 6.0.3)
-    - Flutter
-  - ffmpeg_kit_flutter_audio/audio (6.0.3):
-    - ffmpeg-kit-ios-audio (= 6.0)
-    - Flutter
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
@@ -51,63 +44,56 @@ PODS:
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
-  - FMDB (2.7.9):
-    - FMDB/standard (= 2.7.9)
-  - FMDB/standard (2.7.9)
   - image_picker_ios (0.0.1):
     - Flutter
   - just_audio (0.0.1):
     - Flutter
+    - FlutterMacOS
+  - objective_c (0.0.1):
+    - Flutter
   - package_info_plus (0.4.5):
     - Flutter
-  - path_provider_foundation (0.0.1):
+  - permission_handler_apple (9.3.0):
     - Flutter
-    - FlutterMacOS
-  - permission_handler_apple (9.1.1):
+  - record_ios (1.1.0):
     - Flutter
-  - record_darwin (1.0.0):
-    - Flutter
-    - FlutterMacOS
   - SDWebImage (5.19.0):
     - SDWebImage/Core (= 5.19.0)
   - SDWebImage/Core (5.19.0)
   - share_plus (0.0.1):
     - Flutter
-  - sqflite (0.0.3):
+  - sqflite_darwin (0.0.4):
     - Flutter
-    - FMDB (>= 2.7.5)
+    - FlutterMacOS
   - SwiftyGif (5.4.4)
   - url_launcher_ios (0.0.1):
     - Flutter
-  - workmanager (0.0.1):
+  - workmanager_apple (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - background_downloader (from `.symlinks/plugins/background_downloader/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
-  - ffmpeg_kit_flutter_audio (from `.symlinks/plugins/ffmpeg_kit_flutter_audio/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
-  - just_audio (from `.symlinks/plugins/just_audio/ios`)
+  - just_audio (from `.symlinks/plugins/just_audio/darwin`)
+  - objective_c (from `.symlinks/plugins/objective_c/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
-  - record_darwin (from `.symlinks/plugins/record_darwin/ios`)
+  - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
-  - sqflite (from `.symlinks/plugins/sqflite/ios`)
+  - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
-  - workmanager (from `.symlinks/plugins/workmanager/ios`)
+  - workmanager_apple (from `.symlinks/plugins/workmanager_apple/ios`)
 
 SPEC REPOS:
   trunk:
     - DKImagePickerController
     - DKPhotoGallery
-    - ffmpeg-kit-ios-audio
-    - FMDB
     - SDWebImage
     - SwiftyGif
 
@@ -118,8 +104,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/background_downloader/ios"
   camera_avfoundation:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
-  ffmpeg_kit_flutter_audio:
-    :path: ".symlinks/plugins/ffmpeg_kit_flutter_audio/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
@@ -131,50 +115,47 @@ EXTERNAL SOURCES:
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   just_audio:
-    :path: ".symlinks/plugins/just_audio/ios"
+    :path: ".symlinks/plugins/just_audio/darwin"
+  objective_c:
+    :path: ".symlinks/plugins/objective_c/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
-  record_darwin:
-    :path: ".symlinks/plugins/record_darwin/ios"
+  record_ios:
+    :path: ".symlinks/plugins/record_ios/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
-  sqflite:
-    :path: ".symlinks/plugins/sqflite/ios"
+  sqflite_darwin:
+    :path: ".symlinks/plugins/sqflite_darwin/darwin"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
-  workmanager:
-    :path: ".symlinks/plugins/workmanager/ios"
+  workmanager_apple:
+    :path: ".symlinks/plugins/workmanager_apple/ios"
 
 SPEC CHECKSUMS:
-  audio_session: 4f3e461722055d21515cf3261b64c973c062f345
-  background_downloader: 6f55e5548875be2ad4bb91b542558b5be22f339a
-  camera_avfoundation: 3125e8cd1a4387f6f31c6c63abb8a55892a9eeeb
+  audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
+  background_downloader: 50e91d979067b82081aba359d7d916b3ba5fadad
+  camera_avfoundation: 5675ca25298b6f81fa0a325188e7df62cc217741
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
-  ffmpeg-kit-ios-audio: 9fa9953fc197280a69e59c603c7fa7690df7190c
-  ffmpeg_kit_flutter_audio: 9b107d9902e16804c90637cd7f42106a5447a9e6
-  file_picker: 15fd9539e4eb735dc54bae8c0534a7a9511a03de
-  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
-  flutter_local_notifications: 0c0b1ae97e741e1521e4c1629a459d04b9aec743
-  flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
-  FMDB: aa44149f6fb634b1ac54f64f47064bb0d0c5a032
-  image_picker_ios: 4a8aadfbb6dc30ad5141a2ce3832af9214a705b5
-  just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
-  package_info_plus: 115f4ad11e0698c8c1c5d8a689390df880f47e85
-  path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
-  permission_handler_apple: e76247795d700c14ea09e3a2d8855d41ee80a2e6
-  record_darwin: 1f6619f2abac4d1ca91d3eeab038c980d76f1517
+  file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
+  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
+  image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
+  just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
+  objective_c: 89e720c30d716b036faf9c9684022048eee1eee2
+  package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
+  permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
+  record_ios: f75fa1d57f840012775c0e93a38a7f3ceea1a374
   SDWebImage: 981fd7e860af070920f249fd092420006014c3eb
-  share_plus: c3fef564749587fc939ef86ffb283ceac0baf9f5
-  sqflite: 31f7eba61e3074736dff8807a9b41581e4f7f15a
+  share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
+  sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   SwiftyGif: 93a1cc87bf3a51916001cf8f3d63835fb64c819f
-  url_launcher_ios: 68d46cc9766d0c41dbdc884310529557e3cd7a86
-  workmanager: 0afdcf5628bbde6924c21af7836fed07b42e30e6
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  workmanager_apple: 904529ae31e97fc5be632cf628507652294a0778
 
-PODFILE CHECKSUM: 0a7d5b7d0e53420cb0284f7b2f171f93843b94d2
+PODFILE CHECKSUM: c1c473ba3f42a95a9bcd1b205addac0938789a41
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.16.2
