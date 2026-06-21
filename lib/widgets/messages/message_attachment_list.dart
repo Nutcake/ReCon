@@ -158,7 +158,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                 ),
                 padding: EdgeInsets.zero,
                 onPressed: () async {
-                  final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
+                  final result = await FilePicker.pickFiles(type: FileType.image, allowMultiple: true);
                   if (result != null) {
                     setState(() {
                       _loadedFiles.addAll(
@@ -229,7 +229,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                 ),
                 padding: EdgeInsets.zero,
                 onPressed: () async {
-                  final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
+                  final result = await FilePicker.pickFiles(type: FileType.any, allowMultiple: true);
                   if (result != null) {
                     setState(() {
                       _loadedFiles.addAll(

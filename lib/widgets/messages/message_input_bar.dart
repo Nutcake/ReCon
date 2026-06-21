@@ -330,7 +330,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               onPressed: _isSending
                                   ? null
                                   : () async {
-                                      final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: true);
+                                      final result = await FilePicker.pickFiles(type: FileType.image, allowMultiple: true);
                                       if (result != null) {
                                         setState(() {
                                           _loadedFiles.addAll(
@@ -371,7 +371,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               onPressed: _isSending
                                   ? null
                                   : () async {
-                                      final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: true);
+                                      final result = await FilePicker.pickFiles(type: FileType.any, allowMultiple: true);
                                       if (result != null) {
                                         setState(() {
                                           _loadedFiles.addAll(
