@@ -18,7 +18,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: 3.35.7
+          version: 3.44.2
           cache: true
 
       - name: Install flutter dependencies
@@ -78,7 +78,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: 3.35.7
+          version: 3.44.2
           cache: true
 
       - name: Install flutter dependencies
@@ -115,7 +115,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: 3.35.7
+          version: 3.44.2
           cache: true
 
       - name: Decode Keystore
