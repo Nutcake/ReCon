@@ -45,7 +45,7 @@ class NotificationClient {
       await _notifier.show(
         id: uname.hashCode,
         title: null,
-        body: null,
+        body: "New message from $uname",
         notificationDetails: fln.NotificationDetails(
           android: fln.AndroidNotificationDetails(
             _messageChannel.id,
