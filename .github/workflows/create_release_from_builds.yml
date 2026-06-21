@@ -18,7 +18,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: 3.35.7
+          version: 3.44.2
 
       - name: Install flutter dependencies
         run: flutter pub get
@@ -77,7 +77,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: 3.35.7
+          version: 3.44.2
 
       - name: Install flutter dependencies
         run: flutter pub get
@@ -113,7 +113,7 @@ jobs:
         uses: flutter-actions/setup-flutter@v4
         with:
           channel: stable
-          version: 3.35.7
+          version: 3.44.2
 
       - name: Decode Keystore
         run: |
