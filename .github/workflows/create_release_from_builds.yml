@@ -100,7 +100,7 @@ jobs:
       - name: Upload Linux AppImage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: recon-linux.AppImage
+          name: recon-linux
           path: recon-linux.AppImage
 
   build_android:
