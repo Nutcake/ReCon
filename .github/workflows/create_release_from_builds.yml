@@ -182,3 +182,19 @@ jobs:
           copy_if_exists \
             release_artifacts/recon-linux/recon-linux.AppImage \
             ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
+
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: ReCon ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          preserve_order: true
+          overwrite_files: false # Delete file in target release if you need to replace
+          files: |
+            ReCon-Android-${{ steps.get_version.outputs.version }}.apk
+            ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
+            ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
