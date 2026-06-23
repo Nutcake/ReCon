@@ -160,3 +160,25 @@ jobs:
           VERSION=$(grep '^version: ' pubspec.yaml | sed 's/version: //')
           echo "Project version: $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Rename release assets
+        run: |
+          copy_if_exists() {
+            if [ -f "$1" ]; then
+              cp "$1" "$2"
+            else
+              echo "::warning::Artifact not found: $1"
+            fi
+          }
+
+          copy_if_exists \
+            release_artifacts/recon-android/recon-android.apk \
+            ReCon-Android-${{ steps.get_version.outputs.version }}.apk
+
+          copy_if_exists \
+            release_artifacts/recon-windows/recon-windows.zip \
+            ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
+
+          copy_if_exists \
+            release_artifacts/recon-linux/recon-linux.AppImage \
+            ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
