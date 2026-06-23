@@ -27,16 +27,13 @@ class MessageBubble extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             color: backgroundColor,
             textStyle: Theme.of(context).textTheme.bodySmall?.copyWith(color: foregroundColor),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: switch (message.type) {
-                MessageType.sessionInvite => MessageSessionInvite(message: message, foregroundColor: foregroundColor,),
-                MessageType.object => MessageAsset(message: message, foregroundColor: foregroundColor,),
-                MessageType.sound => MessageAudioPlayer(message: message, foregroundColor: foregroundColor,),
-                MessageType.inviteRequest => MessageInviteRequest(message: message, foregroundColor: foregroundColor,),
-                MessageType.unknown || MessageType.text => MessageText(message: message, foregroundColor: foregroundColor,)
-              },
-            ),
+            child: switch (message.type) {
+              MessageType.sessionInvite => MessageSessionInvite(message: message, foregroundColor: foregroundColor,),
+              MessageType.object => MessageAsset(message: message, foregroundColor: foregroundColor,),
+              MessageType.sound => MessageAudioPlayer(message: message, foregroundColor: foregroundColor,),
+              MessageType.inviteRequest => MessageInviteRequest(message: message, foregroundColor: foregroundColor,),
+              MessageType.unknown || MessageType.text => MessageText(message: message, foregroundColor: foregroundColor,)
+            },
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'package:recon/clients/messaging_client.dart';
 import 'package:recon/models/users/online_status.dart';
 import 'package:recon/widgets/friends/user_search.dart';
 import 'package:recon/widgets/my_profile_dialog.dart';
+import 'package:recon/widgets/settings_page.dart';
 
 class FriendsListAppBar extends StatefulWidget {
   const FriendsListAppBar({super.key});
@@ -25,18 +26,21 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
         Consumer<MessagingClient>(
           builder: (context, client, _) {
             return PopupMenuButton<OnlineStatus>(
-              child: Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: Icon(
-                      Icons.circle,
-                      size: 16,
-                      color: client.userStatus.onlineStatus.color(context),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        Icons.circle,
+                        size: 16,
+                        color: client.userStatus.onlineStatus.color(context),
+                      ),
                     ),
-                  ),
-                  Text(toBeginningOfSentenceCase(client.userStatus.onlineStatus.name) ?? "Unknown"),
-                ],
+                    Text(toBeginningOfSentenceCase(client.userStatus.onlineStatus.name) ?? "Unknown"),
+                  ],
+                ),
               ),
               onSelected: (onlineStatus) async {
                 final settingsClient = ClientHolder.of(context).settingsClient;
@@ -51,7 +55,9 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                 }
               },
               itemBuilder: (context) => OnlineStatus.values
-                  .where((element) => element == OnlineStatus.sociable || element == OnlineStatus.online || element == OnlineStatus.busy || element == OnlineStatus.offline)
+                  .where(
+                    (element) => element == OnlineStatus.sociable || element == OnlineStatus.online || element == OnlineStatus.busy || element == OnlineStatus.invisible,
+                  )
                   .sorted(
                     (a, b) => b.index.compareTo(a.index),
                   )
@@ -79,7 +85,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
           },
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 4, right: 4),
+          padding: const EdgeInsets.only(left: 8, right: 8),
           child: PopupMenuButton<MenuItemDefinition>(
             icon: const Icon(Icons.more_vert),
             onSelected: (itemDef) async {
@@ -110,6 +116,17 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                     builder: (context) {
                       return const MyProfileDialog();
                     },
+                  );
+                },
+              ),
+              MenuItemDefinition(
+                name: "Settings",
+                icon: Icons.settings,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => SettingsPage(),
+                    ),
                   );
                 },
               ),

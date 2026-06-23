@@ -36,8 +36,9 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Consumer<InventoryClient>(builder: (BuildContext context, InventoryClient iClient, Widget? child) {
-      return FutureBuilder<ResoniteDirectory>(
+    return Consumer<InventoryClient>(
+      builder: (context, iClient, child) {
+        return FutureBuilder<ResoniteDirectory>(
           future: iClient.directoryFuture,
           builder: (context, snapshot) {
             final currentDir = snapshot.data;
@@ -63,29 +64,21 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                 child: Builder(
                   builder: (context) {
                     if (snapshot.hasError) {
-                      FlutterError.reportError(
-                          FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
+                      FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
                       return DefaultErrorWidget(
                         message: snapshot.error.toString(),
                         onRetry: () {
-                          iClient.loadInventoryRoot();
-                          iClient.forceNotify();
+                          iClient
+                            ..loadInventoryRoot()
+                            ..forceNotify();
                         },
                       );
                     }
                     final directory = snapshot.data;
                     final records = directory?.records ?? [];
-                    records.sort(
-                      (Record a, Record b) => iClient.sortMode.sortFunction(a, b, reverse: iClient.sortReverse),
-                    );
-                    final paths = records
-                        .where((element) =>
-                            element.recordType == RecordType.link || element.recordType == RecordType.directory)
-                        .toList();
-                    final objects = records
-                        .where((element) =>
-                            element.recordType != RecordType.link && element.recordType != RecordType.directory)
-                        .toList();
+                    final groups = records.groupListsBy((element) => element.recordType == RecordType.link || element.recordType == RecordType.directory);
+                    final paths = groups[true] ?? [];
+                    final objects = groups[false] ?? [];
                     final pathSegments = directory?.absolutePathSegments ?? [];
                     return Stack(
                       children: [
@@ -104,9 +97,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                             padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                             child: TextButton(
                                               style: TextButton.styleFrom(
-                                                foregroundColor: idx == pathSegments.length - 1
-                                                    ? Theme.of(context).colorScheme.primary
-                                                    : Theme.of(context).colorScheme.onSurface,
+                                                foregroundColor: idx == pathSegments.length - 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                               ),
                                               onPressed: () {
                                                 iClient.navigateUp(times: pathSegments.length - 1 - idx);
@@ -207,7 +198,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                                   heroAttributes: PhotoViewHeroAttributes(tag: record.id),
                                                 ),
                                               ),
-                                            )
+                                            ),
                                           );
                                         },
                                   onLongPress: () async {
@@ -223,8 +214,10 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                           child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 250),
                             child: snapshot.connectionState == ConnectionState.waiting
-                                ? const LinearProgressIndicator()
-                                : null,
+                                ? const LinearProgressIndicator(key: ValueKey("dir-loading"))
+                                : const SizedBox.shrink(
+                                    key: ValueKey("dir-not-loading"),
+                                  ),
                           ),
                         ),
                         Align(
@@ -233,21 +226,26 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                             duration: const Duration(milliseconds: 250),
                             child: snapshot.connectionState == ConnectionState.waiting
                                 ? Container(
+                                    key: ValueKey("dir-overlay"),
                                     width: double.infinity,
                                     height: double.infinity,
                                     color: Colors.black38,
                                   )
-                                : null,
+                                : const SizedBox.shrink(
+                                    key: ValueKey("dir-no-overlay"),
+                                  ),
                           ),
-                        )
+                        ),
                       ],
                     );
                   },
                 ),
               ),
             );
-          });
-    });
+          },
+        );
+      },
+    );
   }
 
   @override

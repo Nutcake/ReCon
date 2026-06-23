@@ -8,7 +8,7 @@ set(BINARY_NAME "recon")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
-cmake_policy(SET CMP0063 NEW)
+cmake_policy(VERSION 3.14...3.25)
 
 # Define build configuration option.
 get_property(IS_MULTICONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -32,6 +32,9 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Ignore Coroutine Deprecation Warnings, Caused build error on windows with vs26 [permission_handler_windows]
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
@@ -51,6 +54,7 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
+
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
@@ -85,6 +89,12 @@ if(PLUGIN_BUNDLED_LIBRARIES)
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endif()
+
+# Copy the native assets provided by the build.dart from all packages.
+set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
+install(DIRECTORY "${NATIVE_ASSETS_DIR}"
+   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+   COMPONENT Runtime)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.

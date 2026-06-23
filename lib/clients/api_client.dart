@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:recon/auxiliary.dart';
 import 'package:recon/models/authentication_data.dart';
 import 'package:uuid/uuid.dart';
 
@@ -18,13 +19,12 @@ class ApiClient {
   static const String passwordKey = "password";
   static const String uidKey = "uid";
 
-  ApiClient({required AuthenticationData authenticationData, required this.onLogout}) : _authenticationData = authenticationData;
+  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
 
-  // Saving the context here feels kinda cringe ngl
-  final Function() onLogout;
+  final _logoutNotifier = EventNotifier();
   final http.Client _client = http.Client();
 
   AuthenticationData get authenticationData => _authenticationData;
@@ -32,6 +32,8 @@ class ApiClient {
   String get userId => _authenticationData.userId;
 
   bool get isAuthenticated => _authenticationData.isAuthenticated;
+
+  void addLogoutListener(VoidCallback listener) => _logoutNotifier.addListener(listener);
 
   static Future<AuthenticationData> tryLogin({
     required String username,
@@ -128,6 +130,7 @@ class ApiClient {
   }
 
   Future<void> logout() async {
+    //TODO: Fix messaging/hub clients not being disposed on logout
     const storage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     );
@@ -135,7 +138,7 @@ class ApiClient {
     await storage.delete(key: machineIdKey);
     await storage.delete(key: tokenKey);
     await storage.delete(key: passwordKey);
-    onLogout();
+    _logoutNotifier.notify();
   }
 
   Future<void> extendSession() async {
@@ -149,7 +152,7 @@ class ApiClient {
     if (response.statusCode == 403) {
       tryCachedLogin().then((value) {
         if (!value.isAuthenticated) {
-          onLogout();
+          _logoutNotifier.notify();
         }
       });
     }

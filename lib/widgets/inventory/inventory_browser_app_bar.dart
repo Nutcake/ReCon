@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -60,9 +61,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               children: [
                                 Icon(
                                   Icons.arrow_upward,
-                                  color: !iClient.sortReverse
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context).colorScheme.onSurface,
+                                  color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                 ),
                                 const SizedBox(
                                   width: 8,
@@ -70,9 +69,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 Text(
                                   "Ascending",
                                   style: TextStyle(
-                                    color: !iClient.sortReverse
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface,
+                                    color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ],
@@ -82,21 +79,14 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             value: true,
                             child: Row(
                               children: [
-                                Icon(
-                                  Icons.arrow_downward,
-                                  color: iClient.sortReverse
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context).colorScheme.onSurface,
-                                ),
+                                Icon(Icons.arrow_downward, color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
                                 const SizedBox(
                                   width: 8,
                                 ),
                                 Text(
                                   "Descending",
                                   style: TextStyle(
-                                    color: iClient.sortReverse
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface,
+                                    color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ],
@@ -121,9 +111,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                     children: [
                                       Icon(
                                         e.icon,
-                                        color: iClient.sortMode == e
-                                            ? Theme.of(context).colorScheme.primary
-                                            : Theme.of(context).colorScheme.onSurface,
+                                        color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                       ),
                                       const SizedBox(
                                         width: 8,
@@ -131,9 +119,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       Text(
                                         toBeginningOfSentenceCase(e.name) ?? e.name,
                                         style: TextStyle(
-                                          color: iClient.sortMode == e
-                                              ? Theme.of(context).colorScheme.primary
-                                              : Theme.of(context).colorScheme.onSurface,
+                                          color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ],
@@ -156,12 +142,10 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                     icon: const Icon(Icons.close),
                   ),
                   actions: [
-                    if (iClient.selectedRecordCount == 1 &&
-                        (iClient.selectedRecords.firstOrNull?.isLink == true ||
-                            iClient.selectedRecords.firstOrNull?.isItem == true))
+                    if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
                       IconButton(
                         onPressed: () {
-                          Share.share(iClient.selectedRecords.first.assetUri);
+                          SharePlus.instance.share(ShareParams(text: iClient.selectedRecords.first.assetUri));
                         },
                         icon: const Icon(Icons.share),
                       ),
@@ -184,25 +168,23 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Divider(),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: () {
+                                    const SizedBox(height: 8),
+                                    ListTile(
+                                      onTap: () {
                                         Navigator.of(context).pop(assetUris);
                                       },
-                                      icon: const Icon(Icons.data_object),
-                                      label: Text(
+                                      leading: const Icon(Icons.data_object),
+                                      title: Text(
                                         "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(extension).toList().unique().join(", ")})",
                                       ),
                                     ),
-                                    TextButton.icon(
-                                      onPressed: () {
+                                    ListTile(
+                                      onTap: () {
                                         Navigator.of(context).pop(thumbUris);
                                       },
-                                      icon: const Icon(Icons.image),
-                                      label: Text(
-                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.map((e) => extension(e ?? "")).toList().unique().join(", ")})",
+                                      leading: const Icon(Icons.image),
+                                      title: Text(
+                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.nonNulls.map(extension).toList().unique().join(", ")})",
                                       ),
                                     ),
                                   ],
@@ -212,7 +194,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           );
                           if (selectedUris == null) return;
 
-                          final directory = await FilePicker.platform.getDirectoryPath(dialogTitle: "Download to...");
+                          final directory = await FilePicker.getDirectoryPath(dialogTitle: "Download to...");
                           if (directory == null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -297,11 +279,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               builder: (context, setState) {
                                 return AlertDialog(
                                   icon: const Icon(Icons.delete),
-                                  title: Text(
-                                    iClient.selectedRecordCount == 1
-                                        ? "Really delete this Record?"
-                                        : "Really delete ${iClient.selectedRecordCount} Records?",
-                                  ),
+                                  title: Text(iClient.selectedRecordCount == 1 ? "Really delete this Record?" : "Really delete ${iClient.selectedRecordCount} Records?"),
                                   content: const Text("This action cannot be undone!"),
                                   actionsAlignment: MainAxisAlignment.spaceBetween,
                                   actions: [

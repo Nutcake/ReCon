@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
@@ -15,7 +16,9 @@ import 'package:recon/models/hub_events.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/models/users/friend.dart';
+import 'package:recon/models/users/friend_status.dart';
 import 'package:recon/models/users/online_status.dart';
+import 'package:recon/models/users/user.dart';
 import 'package:recon/models/users/user_status.dart';
 
 class MessagingClient extends ChangeNotifier {
@@ -51,10 +54,11 @@ class MessagingClient extends ChangeNotifier {
         _notificationClient = notificationClient,
         _settingsClient = settingsClient {
     debugPrint("mClient created: $hashCode");
+    _apiClient.addLogoutListener(dispose);
     Hive.openBox(_messageBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
       final sessions = await SessionApi.getSessions(_apiClient);
-      _sessionMap.addEntries(sessions.map((e) => MapEntry(e.id, e)));
+      _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
       await _setupHub();
     });
   }
@@ -72,9 +76,9 @@ class MessagingClient extends ChangeNotifier {
 
   List<Friend> get cachedFriends => _sortedFriendsCache;
 
-  List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.id] ?? [];
+  List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.contactUserId] ?? [];
 
-  bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.id);
+  bool friendHasUnreads(Friend friend) => _unreads.containsKey(friend.contactUserId);
 
   bool messageIsUnread(Message message) => _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
 
@@ -94,7 +98,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> initFriendsList() async {
-    _hubManager.send(
+    _hubManager.send<Map>(
       "InitializeStatus",
       responseHandler: (data) async {
         final rawContacts = data["contacts"] as List;
@@ -107,10 +111,10 @@ class MessagingClient extends ChangeNotifier {
         _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
         final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
         _hubManager.send("RequestStatus", arguments: [null, lastOnline == OnlineStatus.invisible]);
-        await setOnlineStatus(lastOnline ?? OnlineStatus.online);
+        await setOnlineStatus(lastOnline ?? OnlineStatus.online, broadcast: lastOnline != OnlineStatus.invisible);
         _statusHeartbeat?.cancel();
-        _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) {
-          setOnlineStatus(_userStatus.onlineStatus);
+        _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) async {
+          await setOnlineStatus(_userStatus.onlineStatus, broadcast: _userStatus.onlineStatus != OnlineStatus.invisible && _userStatus.onlineStatus != OnlineStatus.offline);
         });
       },
     );
@@ -145,7 +149,7 @@ class MessagingClient extends ChangeNotifier {
     clearUnreadsForUser(batch.senderId);
   }
 
-  Future<void> setOnlineStatus(OnlineStatus status) async {
+  Future<void> setOnlineStatus(OnlineStatus status, {bool broadcast = true}) async {
     final pkginfo = await PackageInfo.fromPlatform();
     final now = DateTime.now();
     _userStatus = _userStatus.copyWith(
@@ -156,23 +160,56 @@ class MessagingClient extends ChangeNotifier {
       onlineStatus: status,
       isPresent: true,
     );
-
-    _hubManager.send(
-      "BroadcastStatus",
-      arguments: [
-        _userStatus.toMap(),
-        {
-          "group": 1,
-          "targetIds": null,
-        }
-      ],
-    );
-
+    if (broadcast) {
+      _hubManager.send(
+        "BroadcastStatus",
+        arguments: [
+          _userStatus.toMap(),
+          {
+            "group": 1,
+            "targetIds": null,
+          }
+        ],
+      );
+    }
     final self = getAsFriend(_apiClient.userId);
     if (self != null) {
       await _updateContact(self.copyWith(userStatus: _userStatus));
     }
     notifyListeners();
+  }
+
+  Future<bool> addContact(User user) async {
+    return _hubUpdateContact(
+      Friend.empty().copyWith(
+        ownerId: _apiClient.userId,
+        contactUserId: user.id,
+        contactUsername: user.username,
+        contactStatus: ContactStatus.accepted,
+      ),
+    );
+  }
+
+  Future<bool> removeContact(Friend friend) async {
+    return _hubUpdateContact(
+      friend.copyWith(
+        contactStatus: ContactStatus.ignored,
+      ),
+    );
+  }
+
+  Future<bool> _hubUpdateContact(Friend friend) async {
+    final response = await _hubManager.sendAndWait<bool>(
+          "UpdateContact",
+          arguments: [
+            friend.toMap(),
+          ],
+        ) ??
+        false;
+    if (response) {
+      await _updateContact(friend);
+    }
+    return response;
   }
 
   void addUnread(Message message) {
@@ -252,42 +289,44 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _sortFriendsCache() {
-    _sortedFriendsCache.sort((a, b) {
-      // Check for unreads and sort by latest message time if either has unreads
-      final aHasUnreads = friendHasUnreads(a);
-      final bHasUnreads = friendHasUnreads(b);
-      if (aHasUnreads || bHasUnreads) {
-        if (aHasUnreads && bHasUnreads) {
-          return -a.latestMessageTime.compareTo(b.latestMessageTime);
+    _sortedFriendsCache
+      ..removeWhere((element) => element.contactStatus != ContactStatus.accepted)
+      ..sort((a, b) {
+        // Check for unreads and sort by latest message time if either has unreads
+        final aHasUnreads = friendHasUnreads(a);
+        final bHasUnreads = friendHasUnreads(b);
+        if (aHasUnreads || bHasUnreads) {
+          if (aHasUnreads && bHasUnreads) {
+            return -a.latestMessageTime.compareTo(b.latestMessageTime);
+          }
+
+          return aHasUnreads ? -1 : 1;
         }
 
-        return aHasUnreads ? -1 : 1;
-      }
+        final onlineStatusComparison = getOnlineStatusValue(a).compareTo(getOnlineStatusValue(b));
+        if (onlineStatusComparison != 0) {
+          return onlineStatusComparison;
+        }
 
-      final onlineStatusComparison = getOnlineStatusValue(a).compareTo(getOnlineStatusValue(b));
-      if (onlineStatusComparison != 0) {
-        return onlineStatusComparison;
-      }
-
-      return -a.latestMessageTime.compareTo(b.latestMessageTime);
-    });
+        return -a.latestMessageTime.compareTo(b.latestMessageTime);
+      });
   }
 
   Future<void> _updateContacts(List<Friend> friends) async {
     final box = Hive.box(_messageBoxKey);
     for (final friend in friends) {
-      await box.put(friend.id, friend.toMap());
+      await box.put(friend.contactUserId, friend.toMap());
       final lastStatusUpdate = box.get(_lastUpdateKey);
       if (lastStatusUpdate == null || friend.userStatus.lastStatusChange.isAfter(lastStatusUpdate)) {
         await box.put(_lastUpdateKey, friend.userStatus.lastStatusChange);
       }
-      final sIndex = _sortedFriendsCache.indexWhere((element) => element.id == friend.id);
+      final sIndex = _sortedFriendsCache.indexWhere((element) => element.contactUserId == friend.contactUserId);
       if (sIndex == -1) {
         _sortedFriendsCache.add(friend);
       } else {
         _sortedFriendsCache[sIndex] = friend;
       }
-      if (friend.id == selectedFriend?.id) {
+      if (friend.contactUserId == selectedFriend?.contactUserId) {
         selectedFriend = friend;
       }
     }
@@ -296,18 +335,18 @@ class MessagingClient extends ChangeNotifier {
 
   Future<void> _updateContact(Friend friend) async {
     final box = Hive.box(_messageBoxKey);
-    await box.put(friend.id, friend.toMap());
+    await box.put(friend.contactUserId, friend.toMap());
     final lastStatusUpdate = box.get(_lastUpdateKey);
     if (lastStatusUpdate == null || friend.userStatus.lastStatusChange.isAfter(lastStatusUpdate)) {
       await box.put(_lastUpdateKey, friend.userStatus.lastStatusChange);
     }
-    final sIndex = _sortedFriendsCache.indexWhere((element) => element.id == friend.id);
+    final sIndex = _sortedFriendsCache.indexWhere((element) => element.contactUserId == friend.contactUserId);
     if (sIndex == -1) {
       _sortedFriendsCache.add(friend);
     } else {
       _sortedFriendsCache[sIndex] = friend;
     }
-    if (friend.id == selectedFriend?.id) {
+    if (friend.contactUserId == selectedFriend?.contactUserId) {
       selectedFriend = friend;
     }
     _sortFriendsCache();
@@ -331,7 +370,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Map<String, Session> createSessionMap(String salt) {
-    return _sessionMap.map((key, value) => MapEntry(CryptoHelper.idHash(value.id + salt), value));
+    return _sessionMap.map((key, value) => MapEntry(CryptoHelper.idHash(value.id! + salt), value));
   }
 
   void _onMessageSent(List args) {
@@ -345,7 +384,7 @@ class MessagingClient extends ChangeNotifier {
     final msg = args[0];
     final message = Message.fromMap(msg);
     (getUserMessageCache(message.senderId) ?? _createUserMessageCache(message.senderId)).addMessage(message);
-    if (message.senderId != selectedFriend?.id) {
+    if (message.senderId != selectedFriend?.contactUserId) {
       addUnread(message);
       requestUserStatus(message.senderId);
     } else {
@@ -389,8 +428,14 @@ class MessagingClient extends ChangeNotifier {
   void _onReceiveSessionUpdate(List args) {
     final sessionUpdate = args[0];
     final session = Session.fromMap(sessionUpdate);
-    _sessionMap[session.id] = session;
-    notifyListeners();
+    if (session.id == null) {
+      return;
+    }
+    final oldSession = _sessionMap[session.id!];
+    _sessionMap[session.id!] = session;
+    if (oldSession != session) {
+      notifyListeners();
+    }
   }
 
   void _onRemoveSession(List args) {

@@ -17,7 +17,8 @@ class HubManager {
   final Logger _logger = Logger("Hub");
   final Map<String, dynamic> _headers = {};
   final Map<EventTarget, dynamic Function(List arguments)> _handlers = {};
-  final Map<String, dynamic Function(Map result)> _responseHandlers = {};
+  final Map<String, void Function(dynamic)> _responseHandlers = {};
+  bool _disposed = false;
   FutureOr<void> Function() onConnected = () {};
   WebSocket? _wsChannel;
   bool _isConnecting = false;
@@ -31,14 +32,14 @@ class HubManager {
     _headers.addAll(headers);
   }
 
-  Future<void> _onDisconnected(error) async {
+  Future<void> _onDisconnected(dynamic error) async {
     _wsChannel = null;
     _logger.warning("Hub connection died with error '$error', reconnecting...");
     await start();
   }
 
   Future<void> start() async {
-    if (_isConnecting) {
+    if (_isConnecting || _disposed) {
       return;
     }
     _isConnecting = true;
@@ -68,7 +69,8 @@ class HubManager {
     }
   }
 
-  void _handleEvent(event) {
+  void _handleEvent(dynamic event) {
+    if (_disposed) return;
     final bodies = event.toString().split(_eofChar);
     final eventBodies = bodies.whereNot((element) => element.isEmpty).map(jsonDecode);
     for (final Map body in eventBodies) {
@@ -120,7 +122,7 @@ class HubManager {
     handler(args);
   }
 
-  void send(String target, {List arguments = const [], Function(Map data)? responseHandler}) {
+  void send<T>(String target, {List arguments = const [], void Function(T data)? responseHandler}) {
     final invocationId = const Uuid().v4();
     final data = {
       "type": EventType.invocation.index,
@@ -128,14 +130,44 @@ class HubManager {
       "target": target,
       "arguments": arguments,
     };
-    if (responseHandler != null) {
-      _responseHandlers[invocationId] = responseHandler;
-    }
     if (_wsChannel == null) throw "Resonite Hub is not connected";
+    if (responseHandler != null) {
+      _responseHandlers[invocationId] = (d) => responseHandler(d);
+    }
     _wsChannel!.add(jsonEncode(data) + _eofChar);
+  }
+
+  Future<T?> sendAndWait<T>(String target, {List arguments = const [], Duration timeout = const Duration(seconds: 5)}) async {
+    DateTime? startTime;
+    T? result;
+    Object? error;
+    var hasResponse = false;
+    while (!hasResponse && (startTime == null || DateTime.now().isBefore(startTime.add(timeout)))) {
+      if (startTime == null) {
+        startTime = DateTime.now();
+        send(
+          target,
+          arguments: arguments,
+          responseHandler: (data) async {
+            try {
+              result = data as T;
+            } catch (e) {
+              error = e;
+            }
+            hasResponse = true;
+          },
+        );
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    if (error != null) {
+      throw error!;
+    }
+    return result;
   }
 
   void dispose() {
     _wsChannel?.close();
+    _disposed = true;
   }
 }

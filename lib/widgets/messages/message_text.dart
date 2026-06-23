@@ -39,30 +39,33 @@ class MessageText extends StatelessWidget {
           );
         }
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            constraints: const BoxConstraints(maxWidth: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: FormattedText(
-              message.formattedContent,
-              softWrap: true,
-              maxLines: null,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: foregroundColor),
-            ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              MessageStateIndicator(
-                message: message,
-                foregroundColor: foregroundColor,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+              constraints: const BoxConstraints(maxWidth: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: FormattedText(
+                message.formattedContent,
+                softWrap: true,
+                maxLines: null,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: foregroundColor),
               ),
-            ],
-          ),
-        ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                MessageStateIndicator(
+                  message: message,
+                  foregroundColor: foregroundColor,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,0 +1,201 @@
+name: CI + Create Release
+
+on:
+  push:
+    branches: [ "release" ]
+  workflow_dispatch:
+
+jobs:
+  build_windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: 3.44.2
+          cache: true
+
+      - name: Install flutter dependencies
+        run: flutter pub get
+
+      - name: Flutter Build Windows
+        run: flutter build windows --release
+
+      - name: Zip Windows build
+        # Compress the entire Release folder into a single zip for attaching to the GitHub Release.
+        run: |
+          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'recon-windows.zip' -Force
+        shell: powershell
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: recon-windows
+          path: recon-windows.zip
+
+  build_linux_appimage:
+    name: Build Linux (AppImage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang \
+            cmake \
+            ninja-build \
+            pkg-config \
+            libgtk-3-0t64 \
+            libgtk-3-dev \
+            libstdc++-12-dev \
+            libjsoncpp-dev \
+            libsecret-1-dev \
+            libsecret-tools \
+            libsecret-1-0 \
+            libarchive-tools \
+            binutils \
+            coreutils \
+            desktop-file-utils \
+            fakeroot \
+            fuse \
+            libgdk-pixbuf2.0-dev \
+            patchelf \
+            python3-pip \
+            python3-setuptools \
+            squashfs-tools \
+            strace \
+            util-linux \
+            zsync
+
+      - name: Setup Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: 3.44.2
+          cache: true
+
+      - name: Install flutter dependencies
+        run: flutter pub get
+
+      - name: Flutter Build Linux 
+        run: flutter build linux --release
+
+      - name: Prepare for AppImage build
+        run: |
+          cp -r build/linux/x64/release/bundle AppDir
+          mkdir -p AppDir/usr/share/icons
+          cp assets/images/logo.png AppDir/usr/share/icons/ReCon.png
+          echo "::notice::$(pwd)"
+
+      - name: Build AppImage
+        run: |
+          sudo pip3 install --break-system-packages appimage-builder
+          sudo appimage-builder --recipe AppImageBuilder.yml
+
+      - name: Upload Linux AppImage artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: recon-linux
+          path: recon-linux.AppImage
+
+  build_android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+          version: 3.44.2
+          cache: true
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore.jks
+          
+      - name: Create Signing Properties File
+        working-directory: android
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> key.properties
+          echo "storeFile=keystore.jks" >> key.properties
+
+      - name: Build Android APK
+        working-directory: android
+        run: |
+            flutter build apk --release
+            cd ../build/app/outputs/flutter-apk
+            mv app-release.apk recon-android.apk
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: recon-android
+          path: build/app/outputs/flutter-apk/recon-android.apk
+
+  release:
+    name: Create Release and attach artifacts
+    runs-on: ubuntu-latest
+    needs: [build_windows, build_android, build_linux_appimage]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: release_artifacts
+
+      - name: Get Flutter Project Version
+        id: get_version
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | sed 's/version: //')
+          echo "Project version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Rename release assets
+        run: |
+          copy_if_exists() {
+            if [ -f "$1" ]; then
+              cp "$1" "$2"
+            else
+              echo "::warning::Artifact not found: $1"
+            fi
+          }
+
+          copy_if_exists \
+            release_artifacts/recon-android/recon-android.apk \
+            ReCon-Android-${{ steps.get_version.outputs.version }}.apk
+
+          copy_if_exists \
+            release_artifacts/recon-windows/recon-windows.zip \
+            ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
+
+          copy_if_exists \
+            release_artifacts/recon-linux/recon-linux.AppImage \
+            ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
+
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: ReCon ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          preserve_order: true
+          overwrite_files: false # Delete file in target release if you need to replace
+          generate_release_notes: true
+          files: |
+            ReCon-Android-${{ steps.get_version.outputs.version }}.apk
+            ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
+            ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage

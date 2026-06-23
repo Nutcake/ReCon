@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -12,20 +14,17 @@ import 'package:recon/widgets/generic_avatar.dart';
 import 'package:recon/widgets/messages/messages_list.dart';
 
 class FriendListTile extends StatelessWidget {
-  const FriendListTile({required this.friend, required this.unreads, this.onTap, super.key});
+  const FriendListTile({required this.friend, required this.unreads, super.key});
 
   final Friend friend;
   final int unreads;
-  final Function? onTap;
 
   @override
   Widget build(BuildContext context) {
     final imageUri = Aux.resdbToHttp(friend.userProfile.iconUrl);
     final theme = Theme.of(context);
     final mClient = Provider.of<MessagingClient>(context, listen: false);
-    final currentSession = friend.userStatus.currentSessionIndex == -1
-        ? null
-        : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
+    final currentSession = friend.userStatus.currentSessionIndex == -1 ? null : friend.userStatus.decodedSessions.elementAtOrNull(friend.userStatus.currentSessionIndex);
     return ListTile(
       leading: GenericAvatar(
         imageUri: imageUri,
@@ -38,7 +37,7 @@ class FriendListTile extends StatelessWidget {
           : null,
       title: Row(
         children: [
-          Text(friend.username),
+          Text(friend.contactUsername),
           if (friend.isHeadless)
             Padding(
               padding: const EdgeInsets.only(left: 8),
@@ -77,7 +76,7 @@ class FriendListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
-                )
+                ),
             ] else if (friend.userStatus.appVersion.isNotEmpty)
               Expanded(
                 child: Text(
@@ -103,21 +102,26 @@ class FriendListTile extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: const Color.fromARGB(255, 41, 77, 92),
               ),
-            )
+            ),
         ],
       ),
       onTap: () async {
-        onTap?.call();
-        mClient.loadUserMessageCache(friend.id);
-        final unreads = mClient.getUnreadsForFriend(friend);
-        if (unreads.isNotEmpty) {
-          final readBatch = MarkReadBatch(
-            senderId: friend.id,
-            ids: unreads.map((e) => e.id).toList(),
-            readTime: DateTime.now(),
-          );
-          mClient.markMessagesRead(readBatch);
-        }
+        unawaited(
+          Future(
+            () async {
+              await mClient.loadUserMessageCache(friend.contactUserId);
+              final unreads = mClient.getUnreadsForFriend(friend);
+              if (unreads.isNotEmpty) {
+                final readBatch = MarkReadBatch(
+                  senderId: friend.contactUserId,
+                  ids: unreads.map((e) => e.id).toList(),
+                  readTime: DateTime.now(),
+                );
+                mClient.markMessagesRead(readBatch);
+              }
+            },
+          ),
+        );
         mClient.selectedFriend = friend;
         await Navigator.of(context).push(
           MaterialPageRoute(

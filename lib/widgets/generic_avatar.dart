@@ -1,8 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class GenericAvatar extends StatelessWidget {
-  const GenericAvatar({this.imageUri="", super.key, this.placeholderIcon=Icons.person, this.radius, this.foregroundColor});
+  const GenericAvatar({this.imageUri = "", super.key, this.placeholderIcon = Icons.person, this.radius, this.foregroundColor});
 
   final String imageUri;
   final IconData placeholderIcon;
@@ -11,39 +10,44 @@ class GenericAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return imageUri.isEmpty ? CircleAvatar(
+    final placeholder = CircleAvatar(
+      key: const ValueKey("avatar-placeholder"),
       radius: radius,
-      foregroundColor: foregroundColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
-      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      child: Icon(placeholderIcon, color: foregroundColor,),
-    ) : CachedNetworkImage(
-      imageBuilder: (context, imageProvider) {
-        return CircleAvatar(
-          foregroundImage: imageProvider,
-          foregroundColor: Colors.transparent,
-          backgroundColor: Colors.transparent,
-          radius: radius,
-        );
-      },
-      imageUrl: imageUri,
-      placeholder: (context, url) {
-        return CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          foregroundColor: foregroundColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
-          radius: radius,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: CircularProgressIndicator(color: foregroundColor ?? Theme.of(context).colorScheme.onPrimaryContainer, strokeWidth: 2),
-          ),
-        );
-      },
-      errorWidget: (context, error, what) => CircleAvatar(
-        radius: radius,
-        foregroundColor: foregroundColor ?? Theme.of(context).colorScheme.onPrimaryContainer,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(placeholderIcon, color: foregroundColor ?? Theme.of(context).colorScheme.onPrimaryContainer,),
+      foregroundColor: foregroundColor ?? Theme.of(context).colorScheme.onSecondaryContainer,
+      backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+      child: Icon(
+        placeholderIcon,
+        color: foregroundColor,
       ),
     );
+    return imageUri.isEmpty
+        ? placeholder
+        : ClipRRect(
+            borderRadius: BorderRadiusGeometry.all(Radius.circular(64)),
+            child: Image.network(
+              imageUri,
+              width: 40,
+              height: 40,
+              cacheHeight: 40,
+              cacheWidth: 40,
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) => AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: child,
+                ),
+                child: frame == null
+                    ? placeholder
+                    : CircleAvatar(
+                        key: const ValueKey("avatar-loaded"),
+                        radius: radius,
+                        foregroundColor: Colors.transparent,
+                        backgroundColor: Colors.transparent,
+                        child: child,
+                      ),
+              ),
+              errorBuilder: (context, error, stackTrace) => placeholder,
+            ),
+          );
   }
-
 }

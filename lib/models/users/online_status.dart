@@ -14,7 +14,7 @@ enum OnlineStatus {
     Colors.yellow,
     Colors.red,
     Colors.green,
-    Colors.blue
+    Colors.blue,
   ];
 
   Color color(BuildContext context) => this == OnlineStatus.offline || this == OnlineStatus.invisible

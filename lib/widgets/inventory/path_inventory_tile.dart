@@ -28,15 +28,19 @@ class PathInventoryTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
           child: Row(
             children: [
-              record.recordType == RecordType.directory ? const Icon(Icons.folder) : const Icon(Icons.link),
-              const SizedBox(
-                width: 4,
-              ),
+              if (record.recordType == RecordType.directory)
+                const Icon(Icons.folder)
+              else
+                RotatedBox(
+                  quarterTurns: 1,
+                  child: const Icon(Icons.link),
+                ),
+              const SizedBox(width: 4),
               Expanded(
                 child: FormattedText(
                   record.formattedName,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  overflow: TextOverflow.fade,
                 ),
               ),
             ],

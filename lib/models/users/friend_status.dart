@@ -1,4 +1,4 @@
-enum FriendStatus {
+enum ContactStatus {
   none,
   searchResult,
   requested,
@@ -6,9 +6,9 @@ enum FriendStatus {
   blocked,
   accepted;
 
-  factory FriendStatus.fromString(String text) {
-    return FriendStatus.values.firstWhere((element) => element.name.toLowerCase() == text.toLowerCase(),
-      orElse: () => FriendStatus.none,
+  factory ContactStatus.fromString(String text) {
+    return ContactStatus.values.firstWhere((element) => element.name.toLowerCase() == text.toLowerCase(),
+      orElse: () => ContactStatus.none,
     );
   }
 }
