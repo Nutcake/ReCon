@@ -161,46 +161,41 @@ jobs:
           echo "Project version: $VERSION"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Rename release assets
+        run: |
+          copy_if_exists() {
+            if [ -f "$1" ]; then
+              cp "$1" "$2"
+            else
+              echo "::warning::Artifact not found: $1"
+            fi
+          }
+
+          copy_if_exists \
+            release_artifacts/recon-android/recon-android.apk \
+            ReCon-Android-${{ steps.get_version.outputs.version }}.apk
+
+          copy_if_exists \
+            release_artifacts/recon-windows/recon-windows.zip \
+            ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
+
+          copy_if_exists \
+            release_artifacts/recon-linux/recon-linux.AppImage \
+            ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
+
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
-          release_name: ReCon ${{ steps.get_version.outputs.version }}
+          name: ReCon ${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
-
-      - name: Upload Windows Build to Release
-        id: upload-release-asset-windows
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: release_artifacts/recon-windows/recon-windows.zip
-          asset_name: ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
-          asset_content_type: application/zip
-      
-      - name: Upload Android APK to Release
-        id: upload-release-asset-android
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release_artifacts/recon-android/recon-android.apk
-          asset_name: ReCon-Android-${{ steps.get_version.outputs.version }}.apk
-          asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload Linux AppImage to Release
-        id: upload-release-asset-linux
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: release_artifacts/recon-linux/recon-linux.AppImage
-          asset_name: ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
-          asset_content_type: application/x-executable
+          preserve_order: true
+          overwrite_files: false # Delete file in target release if you need to replace
+          generate_release_notes: true
+          files: |
+            ReCon-Android-${{ steps.get_version.outputs.version }}.apk
+            ReCon-Windows-${{ steps.get_version.outputs.version }}.zip
+            ReCon-Linux-${{ steps.get_version.outputs.version }}.AppImage
