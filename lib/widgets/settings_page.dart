@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
-import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/client_holder.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -17,13 +17,13 @@ class SettingsPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          const ListSectionHeader(leadingText: "Notifications"),
+          ListSectionHeader(leadingText: 'settings.notifications.title'.tr()),
           BooleanSettingsTile(
-            title: "Enable Notifications",
+            title: 'settings.notifications.enabled'.tr(),
             initialState: !sClient.currentSettings.notificationsDenied.valueOrDefault,
             onChanged: (value) async => sClient.changeSettings(sClient.currentSettings.copyWith(notificationsDenied: !value)),
           ),
-          const ListSectionHeader(leadingText: "Appearance"),
+          ListSectionHeader(leadingText: 'settings.appearance.title'.tr()),
           ListTile(
             trailing: StatefulBuilder(
               builder: (context, setState) {
@@ -52,12 +52,12 @@ class SettingsPage extends StatelessWidget {
                 );
               },
             ),
-            title: const Text("Theme Mode"),
+            title: Text('settings.appearance.theme'.tr()),
           ),
-          const ListSectionHeader(leadingText: "Other"),
+          ListSectionHeader(leadingText: 'settings.other.title'.tr()),
           ListTile(
             trailing: const Icon(Icons.logout),
-            title: const Text("Sign out"),
+            title: Text('settings.other.signout'.tr()),
             onTap: () {
               showDialog(
                 context: context,
@@ -67,12 +67,12 @@ class SettingsPage extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   actions: [
-                    TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("No")),
+                    TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('general.no').tr()),
                     TextButton(
                       onPressed: () async {
                         await ClientHolder.of(context).apiClient.logout();
                       },
-                      child: const Text("Yes"),
+                      child: const Text('general.yes').tr(),
                     ),
                   ],
                 ),
@@ -81,7 +81,7 @@ class SettingsPage extends StatelessWidget {
           ),
           ListTile(
             trailing: const Icon(Icons.info_outline),
-            title: const Text("About ReCon"),
+            title: const Text('settings.other.about').tr(),
             onTap: () async {
               final version = (await PackageInfo.fromPlatform()).version;
               if (context.mounted) {
