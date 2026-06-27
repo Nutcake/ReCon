@@ -28,5 +28,14 @@
 		"no": "No",
 		"confirm": "Confirm",
 		"cancel": "Cancel"
+	},
+	"update": {
+		"title": "Update Available",
+		"description": "There is a new version available for download!",
+		"localVersion": "Your version: {}",
+		"remoteVersion": "New version: {}",
+		"openDownload": "Get it on Github",
+		"dismiss": "I'll do it later."
+	},
 	}
 }
