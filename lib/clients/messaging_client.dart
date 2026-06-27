@@ -179,15 +179,17 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> addContact(User user) async {
-    return _hubUpdateContact(
-      Friend.empty().copyWith(
-        ownerId: _apiClient.userId,
-        contactUserId: user.id,
-        contactUsername: user.username,
-        contactStatus: ContactStatus.accepted,
-      ),
+  Future<Friend> addContact(User user) async {
+    final friend = Friend.empty().copyWith(
+      ownerId: _apiClient.userId,
+      contactUserId: user.id,
+      contactUsername: user.username,
+      contactStatus: ContactStatus.accepted,
     );
+    if (!await _hubUpdateContact(friend)) {
+      throw "Failed to add contact";
+    }
+    return friend;
   }
 
   Future<bool> removeContact(Friend friend) async {

@@ -59,13 +59,12 @@ class _UserListTileState extends State<UserListTile> {
             ),
           ),
           () async {
-            final success = await mClient.addContact(widget.user);
-            if (success) {
-              setState(() {
-                _statusOverride = ContactStatus.accepted;
-              });
-            }
-            return success;
+            final friend = await mClient.addContact(widget.user);
+            setState(() {
+              _asFriend = friend;
+              _statusOverride = ContactStatus.accepted;
+            });
+            return true;
           },
         ),
       ContactStatus.requested || ContactStatus.accepted => (
