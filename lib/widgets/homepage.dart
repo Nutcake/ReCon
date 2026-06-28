@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:recon/widgets/friends/friends_list.dart';
 import 'package:recon/widgets/friends/friends_list_app_bar.dart';
@@ -6,7 +7,6 @@ import 'package:recon/widgets/inventory/inventory_browser_app_bar.dart';
 import 'package:recon/widgets/sessions/session_list.dart';
 import 'package:recon/widgets/sessions/session_list_app_bar.dart';
 import 'package:recon/widgets/settings_app_bar.dart';
-import 'package:recon/widgets/settings_page.dart';
 import 'package:recon/widgets/worlds/world_list.dart';
 import 'package:recon/widgets/worlds/world_list_app_bar.dart';
 
@@ -71,22 +71,22 @@ class _HomeState extends State<Home> {
             _selectedPage = index;
           });
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
             icon: Icon(Icons.message),
-            label: "Chat",
+            label: 'navigation.chat'.tr(),
           ),
           NavigationDestination(
             icon: Icon(Icons.groups),
-            label: "Sessions",
+            label: 'navigation.sessions'.tr(),
           ),
           NavigationDestination(
             icon: Icon(Icons.public),
-            label: "Worlds",
+            label: 'navigation.worlds'.tr(),
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory),
-            label: "Inventory",
+            label: 'navigation.inventory'.tr(),
           ),
         ],
       ),

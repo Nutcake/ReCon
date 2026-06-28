@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:recon/apis/record_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
@@ -96,9 +96,9 @@ class WorldListState extends State<WorldList> {
                 await _recordsFuture;
               },
               child: data.isEmpty && snapshot.connectionState == ConnectionState.done
-                  ? const DefaultErrorWidget(
-                      title: "No Sessions Found",
-                      message: "Try to adjust your filters",
+                  ? DefaultErrorWidget(
+                      title: 'worlds.noWorldsFound'.tr(),
+                      message: 'worlds.noWorldsFound.description'.tr(),
                       iconOverride: Icons.public_off,
                     )
                   : Padding(

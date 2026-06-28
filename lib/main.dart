@@ -4,12 +4,12 @@ import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -30,6 +30,7 @@ import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   try {
     JustAudioMediaKit.ensureInitialized(); // Windows and Linux are enabled by default.
   } catch (e) {
@@ -64,7 +65,15 @@ void main() async {
     // Ignore
   }
 
-  runApp(ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('es')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      useFallbackTranslations: true,
+      child: ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth)
+    )
+  );
 }
 
 class ReCon extends StatefulWidget {
@@ -230,6 +239,9 @@ class _ReConState extends State<ReCon> {
                     colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
                   ),
                   themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+                  locale: context.locale,
+                  localizationsDelegates: context.localizationDelegates,
+                  supportedLocales: context.supportedLocales,
                   home: Builder(
                     // Builder is necessary here since we need a context which has access to the ClientHolder
                     builder: (context) {

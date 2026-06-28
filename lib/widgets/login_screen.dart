@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -90,11 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
               );
             });
           } else {
-            _error = "The given 2FA code is not valid.";
+            _error = 'login.invalidTotp'.tr();
           }
           _needsTotp = true;
         } else {
-          _error = "Login unsuccessful: $e.";
+          _error = 'login.unsuccessful'.tr(args:[e.toString()]);
         }
         if (kDebugMode) {
           FlutterError.reportError(
@@ -126,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.of(context).pop();
                     await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(notificationsDenied: true));
                   },
-                  child: const Text("No"),
+                  child: const Text('general.no').tr(),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -148,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       settingsClient.currentSettings.copyWith(notificationsDenied: !(requestResult == null) && !requestResult),
                     );
                   },
-                  child: const Text("Yes"),
+                  child: const Text('general.yes').tr(),
                 ),
               ],
             );
@@ -174,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 64),
                   child: Center(
-                    child: Text("Sign In", style: Theme.of(context).textTheme.headlineMedium),
+                    child: Text('login.signin', style: Theme.of(context).textTheme.headlineMedium).tr(),
                   ),
                 ),
                 Padding(
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(32),
                       ),
-                      labelText: 'Username',
+                      labelText: 'login.username'.tr(),
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                     ),
@@ -205,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(32)),
-                      labelText: 'Password',
+                      labelText: 'login.password'.tr(),
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                     ),
@@ -224,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(32),
                         ),
-                        labelText: '2FA Code',
+                        labelText: 'login.totp'.tr(),
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
                       ),
@@ -257,11 +258,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(width: 16),
                                 Text(
-                                  "Login",
+                                  'login.title',
                                   style: Theme.of(context).textTheme.bodyLarge?.apply(
                                         color: Theme.of(context).colorScheme.primary,
                                       ),
-                                ),
+                                ).tr(),
                                 const SizedBox(width: 4),
                               ],
                             ),

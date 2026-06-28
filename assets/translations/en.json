@@ -1,0 +1,89 @@
+{
+	"navigation": {
+		"chat": "Chat",
+		"sessions": "Sessions",
+		"worlds": "Worlds",
+		"inventory": "Inventory"
+	},
+	"settings": {
+		"title": "Settings",
+		"notifications": {
+			"title": "Notifications",
+			"enabled": "Enable Notifications",
+			"showusernames": "Show Usernames"
+		},
+		"appearance": {
+			"title": "Appearance",
+			"theme": "Theme Mode"
+		},
+		"other": {
+			"title": "Other",
+			"signout": "Sign out",
+			"signout.confirm": "Are you sure you want to sign out?",
+			"about": "About ReCon",
+			"error": "Failed to open link."
+		}
+	},
+	"general": {
+		"yes": "Yes",
+		"no": "No",
+		"confirm": "Confirm",
+		"cancel": "Cancel",
+		"retry": "Retry",
+		"search": "Search",
+		"featureUnavailable": "Sorry, this feature is not yet available"
+	},
+	"messaging": {
+		"placeholder": "Message {}...",
+		"failedSend": "Failed to send a message: {}",
+		"recording": "Recording: {}",
+		"cancelRecording": "Cancel Recording",
+		"removeAttachments": "Remove all attachments",
+		"removeAttachments.description": "This will remove all attachments, are you sure?"
+	},
+	"worlds": {
+		"title": "Worlds",
+		"search": "Search for worlds",
+		"inputTags": "Enter tags",
+		"failedLoad": "Failed to load Worlds",
+		"noWorldsFound": "No Worlds Found",
+		"noWorldsFound.description": "Try to adjust your filters"
+	},
+	"sessions": {
+		"preview": "Session Preview",
+		"headless": "Headless: ",
+		"access": "Access: ",
+		"details": "Details: ",
+		"tags": "Tags:",
+		"users": "Users",
+		"noDescription": "No description",
+		"sessionUsers": "{} / {} Online",
+		"noSessionsFound": "No Sessions Found",
+		"noSessionsFound.description": "Try to adjust your filters",
+		"noLongerValid": "Session is no longer valid"
+	},
+	"login": {
+		"title": "Login",
+		"signin": "Sign In",
+		"username": "Username",
+		"password": "Password",
+		"totp": "2FA Code",
+		"emptyField": "Please enter a valid username/password combination.",
+		"invalidServerRespose":"Login unsuccessful: Server sent invalid response.",
+		"totpRequired": "Please enter your 2FA-Code",
+		"invalidTotp": "The given 2FA code is not valid.",
+		"loginFailed": "Login unsuccessful: {}"
+	},
+	"update": {
+		"title": "Update Available",
+		"description": "There is a new version available for download!",
+		"localVersion": "Your version: {}",
+		"remoteVersion": "New version: {}",
+		"openDownload": "Get it on Github",
+		"dismiss": "I'll do it later."
+	},
+	"uncategorized": {
+		"findUsers": "Find Users",
+		"myProfile": "My Profile"
+	}
+}

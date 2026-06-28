@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -38,7 +39,7 @@ class CameraImageView extends StatelessWidget {
                         side: BorderSide(width: 1, color: Theme.of(context).colorScheme.error)
                     ),
                     icon: const Icon(Icons.close),
-                    label: const Text("Cancel",),
+                    label: Text('general.cancel'.tr(),),
                   ),
                   TextButton.icon(
                     onPressed: () {
