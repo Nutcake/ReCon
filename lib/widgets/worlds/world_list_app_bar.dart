@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:recon/models/records/search_sort.dart';
 
 class WorldListAppBar extends StatefulWidget {
@@ -23,7 +23,7 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text("Worlds"),
+      title: const Text('worlds.title').tr(),
       actions: [
         if (_needle.isEmpty)
           IconButton(
@@ -34,11 +34,11 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: const Text("Search for worlds"),
+                    title: const Text('worlds.search').tr(),
                     content: TextField(
                       controller: textController,
-                      decoration: const InputDecoration(
-                        hintText: "Enter tags",
+                      decoration: InputDecoration(
+                        hintText: 'worlds.inputTags'.tr(),
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -47,13 +47,13 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: const Text("Cancel"),
+                        child: const Text('general.cancel').tr(),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop(textController.text);
                         },
-                        child: const Text("Search"),
+                        child: const Text('general.search').tr(),
                       ),
                     ],
                   );

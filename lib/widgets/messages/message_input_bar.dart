@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -423,7 +424,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                 ? null
                                 : () {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Sorry, this feature is not yet available")),
+                                      SnackBar(content: const Text('general.featureUnavailable').tr()),
                                     );
                                     return;
                                     // setState(() {
@@ -443,14 +444,14 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                       await showDialog(
                                         context: context,
                                         builder: (context) => AlertDialog(
-                                          title: const Text("Remove all attachments"),
-                                          content: const Text("This will remove all attachments, are you sure?"),
+                                          title: const Text('messaging.removeAttachments').tr(),
+                                          content: const Text('messaging.removeAttachmentsDescription').tr(),
                                           actions: [
                                             TextButton(
                                               onPressed: () {
                                                 Navigator.of(context).pop();
                                               },
-                                              child: const Text("No"),
+                                              child: const Text('general.no').tr(),
                                             ),
                                             TextButton(
                                               onPressed: () {
@@ -460,7 +461,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                                 });
                                                 Navigator.of(context).pop();
                                               },
-                                              child: const Text("Yes"),
+                                              child: const Text('general.yes').tr(),
                                             ),
                                           ],
                                         ),
@@ -501,7 +502,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               style: Theme.of(context).textTheme.bodyLarge,
                               decoration: InputDecoration(
                                 isDense: true,
-                                hintText: _isRecording ? "" : "Message ${widget.recipient.contactUsername}...",
+                                hintText: _isRecording ? "" : 'messaging.placeholder'.tr(args: [widget.recipient.contactUsername]),
                                 hintMaxLines: 1,
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 fillColor: Colors.black26,
@@ -542,7 +543,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                                     size: 16,
                                                   ),
                                                 ),
-                                                Text("Cancel Recording", style: Theme.of(context).textTheme.titleMedium),
+                                                Text('messaging.cancelRecording'.tr(), style: Theme.of(context).textTheme.titleMedium),
                                               ],
                                             )
                                           : Row(
@@ -563,7 +564,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                                   stream: _recordingDurationStream(),
                                                   builder: (context, snapshot) {
                                                     return Text(
-                                                      "Recording: ${snapshot.data?.format()}",
+                                                      'messaging.recording'.tr(args: [snapshot.data?.format() ?? "0:00"]),
                                                       style: Theme.of(context).textTheme.titleMedium,
                                                     );
                                                   },
@@ -602,7 +603,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                   ? null
                                   : (_) async {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text("Sorry, this feature is not yet available")),
+                                        SnackBar(content: Text('general.featureUnavailable'.tr())),
                                       );
                                       return;
                                       // HapticFeedback.vibrate();

@@ -239,6 +239,7 @@ class _ReConState extends State<ReCon> {
                     colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
                   ),
                   themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+                  locale: context.locale,
                   localizationsDelegates: context.localizationDelegates,
                   supportedLocales: context.supportedLocales,
                   home: Builder(

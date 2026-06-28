@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:recon/apis/session_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
@@ -6,7 +8,6 @@ import 'package:recon/models/session.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/panorama.dart';
 import 'package:recon/widgets/settings_page.dart';
-import 'package:flutter/material.dart';
 
 class SessionView extends StatefulWidget {
   const SessionView({required this.session, super.key});
@@ -52,7 +53,7 @@ class _SessionViewState extends State<SessionView> {
           body: RefreshIndicator(
             onRefresh: () async {
               if (session.id == null) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Session is no longer valid")));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('sessions.noLongerValid').tr()));
               }
               setState(() {
                 _sessionFuture = SessionApi.getSession(ClientHolder.of(context).apiClient, sessionId: session.id!);
@@ -74,7 +75,7 @@ class _SessionViewState extends State<SessionView> {
                                   MaterialPageRoute(
                                     builder: (context) => Scaffold(
                                       appBar: AppBar(
-                                        title: const Text("Session Preview"),
+                                        title: const Text('sessions.preview').tr(),
                                       ),
                                       body: Center(
                                         child: Panorama(
@@ -123,14 +124,14 @@ class _SessionViewState extends State<SessionView> {
                           Padding(
                             padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
                             child: session.formattedDescription.isEmpty
-                                ? Text("No description", style: Theme.of(context).textTheme.labelLarge)
+                                ? Text('sessions.noDescription', style: Theme.of(context).textTheme.labelLarge).tr()
                                 : FormattedText(
                                     session.formattedDescription,
                                     style: Theme.of(context).textTheme.labelLarge?.apply(fontStyle: FontStyle.italic),
                                   ),
                           ),
-                          const ListSectionHeader(
-                            leadingText: "Tags:",
+                          ListSectionHeader(
+                            leadingText: 'sessions.tags'.tr(),
                             showLine: false,
                           ),
                           Padding(
@@ -142,8 +143,8 @@ class _SessionViewState extends State<SessionView> {
                               softWrap: true,
                             ),
                           ),
-                          const ListSectionHeader(
-                            leadingText: "Details:",
+                          ListSectionHeader(
+                            leadingText: 'sessions.details'.tr(),
                             showLine: false,
                           ),
                           Padding(
@@ -152,9 +153,9 @@ class _SessionViewState extends State<SessionView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Access: ",
+                                  'sessions.access',
                                   style: Theme.of(context).textTheme.labelLarge,
-                                ),
+                                ).tr(),
                                 Text(
                                   session.accessLevel.toReadableString(),
                                   style: Theme.of(context).textTheme.labelMedium,
@@ -168,19 +169,19 @@ class _SessionViewState extends State<SessionView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Headless: ",
+                                  'sessions.headless',
                                   style: Theme.of(context).textTheme.labelLarge,
-                                ),
+                                ).tr(),
                                 Text(
-                                  session.headlessHost ? "Yes" : "No",
+                                  session.headlessHost ? 'general.yes' : 'general.no',
                                   style: Theme.of(context).textTheme.labelMedium,
-                                ),
+                                ).tr(),
                               ],
                             ),
                           ),
                           ListSectionHeader(
-                            leadingText: "Users",
-                            trailingText: "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")}",
+                            leadingText: 'sessions.users'.tr(),
+                            trailingText: 'sessions.sessionUsers'.tr(args: [session.sessionUsers.length.toString().padLeft(2, "0"), session.maxUsers.toString().padLeft(2, "0")]),
                             showLine: false,
                           ),
                         ],

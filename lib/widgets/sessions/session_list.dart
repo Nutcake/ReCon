@@ -1,12 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/widgets/default_error_widget.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/sessions/session_view.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SessionList extends StatefulWidget {
   const SessionList({super.key});
@@ -50,9 +51,9 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                       }
                     },
                     child: data.isEmpty && snapshot.connectionState == ConnectionState.done
-                        ? const DefaultErrorWidget(
-                            title: "No Sessions Found",
-                            message: "Try to adjust your filters",
+                        ? DefaultErrorWidget(
+                            title: 'sessions.noSessionsFound'.tr(),
+                            message: 'sessions.noSessionsFound.description'.tr(),
                             iconOverride: Icons.public_off,
                           )
                         : Padding(
@@ -137,7 +138,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                                                   children: [
                                                     Expanded(
                                                       child: Text(
-                                                        "${session.sessionUsers.length.toString().padLeft(2, "0")}/${session.maxUsers.toString().padLeft(2, "0")} Online",
+                                                        'sessions.sessionUsers'.tr(args: [session.sessionUsers.length.toString().padLeft(2, "0"), session.maxUsers.toString().padLeft(2, "0")]),
                                                         maxLines: 1,
                                                         overflow: TextOverflow.ellipsis,
                                                         style: Theme.of(context).textTheme.bodySmall?.copyWith(

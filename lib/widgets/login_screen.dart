@@ -91,11 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
               );
             });
           } else {
-            _error = "The given 2FA code is not valid.";
+            _error = 'login.invalidTotp'.tr();
           }
           _needsTotp = true;
         } else {
-          _error = "Login unsuccessful: $e.";
+          _error = 'login.unsuccessful'.tr(args:[e.toString()]);
         }
         if (kDebugMode) {
           FlutterError.reportError(
@@ -175,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 64),
                   child: Center(
-                    child: Text("Sign In", style: Theme.of(context).textTheme.headlineMedium),
+                    child: Text('login.signin', style: Theme.of(context).textTheme.headlineMedium).tr(),
                   ),
                 ),
                 Padding(
@@ -258,11 +258,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(width: 16),
                                 Text(
-                                  'login.title'.tr(),
+                                  'login.title',
                                   style: Theme.of(context).textTheme.bodyLarge?.apply(
                                         color: Theme.of(context).colorScheme.primary,
                                       ),
-                                ),
+                                ).tr(),
                                 const SizedBox(width: 4),
                               ],
                             ),

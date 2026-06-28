@@ -13,7 +13,7 @@ class SettingsPage extends StatelessWidget {
     final sClient = ClientHolder.of(context).settingsClient;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Settings"),
+        title: const Text('settings.title').tr(),
       ),
       body: ListView(
         children: [
@@ -52,20 +52,20 @@ class SettingsPage extends StatelessWidget {
                 );
               },
             ),
-            title: Text('settings.appearance.theme'.tr()),
+            title: const Text('settings.appearance.theme').tr(),
           ),
           ListSectionHeader(leadingText: 'settings.other.title'.tr()),
           ListTile(
             trailing: const Icon(Icons.logout),
-            title: Text('settings.other.signout'.tr()),
+            title: const Text('settings.other.signout').tr(),
             onTap: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
                   title: Text(
-                    "Are you sure you want to sign out?",
+                    'settings.other.signout.confirm',
                     style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  ).tr(),
                   actions: [
                     TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('general.no').tr()),
                     TextButton(
@@ -92,7 +92,7 @@ class SettingsPage extends StatelessWidget {
                     onTap: () async {
                       if (!await launchUrl(Uri.parse("https://github.com/Nutcake/ReCon"), mode: LaunchMode.externalApplication)) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to open link.")));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('settings.other.error').tr()));
                         }
                       }
                     },
