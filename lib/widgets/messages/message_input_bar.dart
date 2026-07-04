@@ -6,6 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/apis/record_api.dart';
 import 'package:recon/auxiliary.dart';
@@ -17,6 +19,7 @@ import 'package:recon/models/message.dart';
 import 'package:recon/models/users/friend.dart';
 import 'package:recon/widgets/messages/message_attachment_list.dart';
 import 'package:record/record.dart';
+import 'package:uuid/uuid.dart';
 
 class MessageInputBar extends StatefulWidget {
   const MessageInputBar({this.disabled = false, required this.recipient, this.onMessageSent, super.key});
@@ -101,14 +104,16 @@ class _MessageInputBarState extends State<MessageInputBar> {
     String machineId,
     void Function(double progress) progressCallback,
   ) async {
+    final msgId = Message.generateId();
     final record = await RecordApi.uploadVoiceClip(
       client,
       voiceClip: file,
       machineId: machineId,
+      messageId: msgId,
       progressCallback: progressCallback,
     );
     final message = Message(
-      id: record.extractMessageId() ?? Message.generateId(),
+      id: msgId,
       recipientId: widget.recipient.contactUserId,
       senderId: client.userId,
       type: MessageType.sound,
@@ -258,7 +263,14 @@ class _MessageInputBarState extends State<MessageInputBar> {
           });
 
           if (await _recorder.isRecording()) {
-            final recording = await _recorder.stop();
+            String? recording;
+            try {
+              recording = await _recorder.stop();
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to finalize recording: $e")));
+              }
+            }
             if (recording == null) return;
 
             final file = File(recording);
@@ -268,9 +280,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
             });
             final apiClient = cHolder.apiClient;
             try {
-              await sendVoiceMessage(
-                  apiClient, mClient, file, cHolder.settingsClient.currentSettings.machineId.valueOrDefault,
-                  (progress) {
+              await sendVoiceMessage(apiClient, mClient, file, cHolder.settingsClient.currentSettings.machineId.valueOrDefault, (progress) {
                 setState(() {
                   _sendProgress = progress;
                 });
@@ -620,40 +630,43 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               onTapDown: widget.disabled
                                   ? null
                                   : (_) async {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text("Sorry, this feature is not yet available")),
-                                      );
-                                      return;
-                                      // HapticFeedback.vibrate();
-                                      // final hadToAsk =
-                                      //     await Permission.microphone.isDenied;
-                                      // final hasPermission =
-                                      //     !await _recorder.hasPermission();
-                                      // if (hasPermission) {
-                                      //   if (context.mounted) {
-                                      //     ScaffoldMessenger.of(context)
-                                      //         .showSnackBar(const SnackBar(
-                                      //       content: Text(
-                                      //           "No permission to record audio."),
-                                      //     ));
-                                      //   }
-                                      //   return;
-                                      // }
-                                      // if (hadToAsk) {
-                                      //   // We had to ask for permissions so the user removed their finger from the record button.
-                                      //   return;
-                                      // }
+                                      unawaited(HapticFeedback.vibrate());
+                                      bool hadToAsk;
+                                      try {
+                                        hadToAsk = await Permission.microphone.isDenied;
+                                      } catch (_) {
+                                        hadToAsk = false;
+                                      }
+                                      final hasPermission = !await _recorder.hasPermission();
+                                      if (hasPermission) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "No permission to record audio.",
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return;
+                                      }
+                                      if (hadToAsk) {
+                                        // We had to ask for permissions so the user removed their finger from the record button.
+                                        return;
+                                      }
 
-                                      // final dir = await getTemporaryDirectory();
-                                      // await _recorder.start(
-                                      //     path: "${dir.path}/A-${const Uuid().v4()}.wav",
-                                      //     const RecordConfig(
-                                      //         numChannels: 1,
-                                      //         sampleRate: 44100,
-                                      //         encoder: AudioEncoder.wav));
-                                      // setState(() {
-                                      //   _isRecording = true;
-                                      // });
+                                      final dir = await getTemporaryDirectory();
+                                      await _recorder.start(
+                                        path: "${dir.path}/A-${const Uuid().v4()}.wav",
+                                        const RecordConfig(
+                                          numChannels: 1,
+                                          sampleRate: 44100,
+                                          encoder: AudioEncoder.wav,
+                                        ),
+                                      );
+                                      setState(() {
+                                        _isRecording = true;
+                                      });
                                     },
                               child: IconButton(
                                 icon: const Icon(Icons.mic_outlined),

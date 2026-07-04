@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/models/records/asset_chunk.dart';
@@ -16,10 +14,8 @@ import 'package:recon/models/records/asset_digest.dart';
 import 'package:recon/models/records/asset_manifest.dart';
 import 'package:recon/models/records/asset_upload_data.dart';
 import 'package:recon/models/records/cloudflare_chunk_result.dart';
-import 'package:recon/models/records/json_template.dart';
 import 'package:recon/models/records/preprocess_status.dart';
 import 'package:recon/models/records/record.dart';
-import 'package:recon/models/records/resonite_db_asset.dart';
 import 'package:recon/models/records/search_sort.dart';
 
 class RecordApi {
@@ -133,7 +129,7 @@ class RecordApi {
       Uri.parse(uploadData.uploadEndpoint),
       headers: {
         "Upload-Key": uploadData.uploadKey,
-        "Upload-Timestamp": uploadData.createdOn.toIso8601String(),
+        "Upload-Timestamp": uploadData.createdOn,
       },
       body: assetData,
     );
@@ -215,6 +211,7 @@ class RecordApi {
     ApiClient client, {
     required File voiceClip,
     required String machineId,
+    String? messageId,
     void Function(double progress)? progressCallback,
   }) async {
     progressCallback?.call(0);
@@ -228,8 +225,12 @@ class RecordApi {
       recordType: RecordType.audio,
       ownerId: client.userId,
       assetManifest: assetManifests.keys.toList(),
-      assetUri: "resdb:///${voiceManifest.hash}.${extension(voiceClip.path)}",
-      tags: ["message_item"],
+      assetUri: "resdb:///${voiceManifest.hash}${extension(voiceClip.path)}",
+      tags: [
+        "message_item",
+        if (messageId != null) "message_id:$messageId",
+      ],
+      lastModifyingMachineId: machineId,
     );
 
     var preproc = await preprocessRecord(client, record: record);

@@ -50,6 +50,7 @@ class Record {
     isDeleted: false,
     isReadOnly: true,
     firstPublishTime: DateTimeX.epoch,
+    rootRecordId: null,
   );
 
   final String id;
@@ -76,6 +77,7 @@ class Record {
   final int visits;
   final int rating;
   final int randomOrder;
+  final String? rootRecordId;
   final List<AssetManifest> assetManifest;
 
   Record({
@@ -102,6 +104,7 @@ class Record {
     required this.isDeleted,
     required this.isReadOnly,
     required this.firstPublishTime,
+    required this.rootRecordId,
   })  : formattedName = FormatNode.fromText(name),
         formattedDescription = FormatNode.fromText(description);
 
@@ -130,6 +133,7 @@ class Record {
       isDeleted: map["isDeleted"] ?? false,
       isReadOnly: map["isReadOnly"] ?? false,
       firstPublishTime: DateTime.tryParse(map["firstPublishTime"] ?? ""),
+      rootRecordId: map["rootRecordId"],
     );
   }
 
@@ -140,6 +144,7 @@ class Record {
     required List<AssetManifest> assetManifest,
     String assetUri = "",
     List<String> tags = const [],
+    String? lastModifyingMachineId,
   }) {
     final now = DateTime.now();
     return Record(
@@ -152,17 +157,17 @@ class Record {
       tags: tags,
       recordType: recordType,
       thumbnailUri: null,
-      isPublic: true,
-      isListed: true,
+      isPublic: false,
+      isListed: false,
       isForPatreons: false,
       lastModificationTime: now,
       creationTime: now,
       assetManifest: assetManifest,
       version: RecordVersion(
-        globalVersion: 1,
+        globalVersion: 0,
         localVersion: 1,
         lastModifyingUserId: ownerId,
-        lastModifyingMachineId: null,
+        lastModifyingMachineId: lastModifyingMachineId,
       ),
       visits: 0,
       rating: 0,
@@ -171,6 +176,7 @@ class Record {
       isDeleted: false,
       isReadOnly: false,
       firstPublishTime: null,
+      rootRecordId: null,
     );
   }
 
@@ -236,6 +242,7 @@ class Record {
     int? rating,
     int? randomOrder,
     List<AssetManifest>? assetManifest,
+    String? Function()? rootRecordId,
   }) =>
       Record(
         id: id ?? this.id,
@@ -261,6 +268,7 @@ class Record {
         isDeleted: isDeleted ?? this.isDeleted,
         isReadOnly: isReadOnly ?? this.isReadOnly,
         firstPublishTime: firstPublishTime == null ? this.firstPublishTime : firstPublishTime(),
+        rootRecordId: rootRecordId == null ? this.rootRecordId : rootRecordId(),
       );
 
   Map toMap() {
@@ -288,6 +296,12 @@ class Record {
       "isDeleted": isDeleted,
       "isReadOnly": isReadOnly,
       "firstPublishTime": firstPublishTime?.toUtc().toIso8601String(),
+      "rootRecordId": rootRecordId,
+      "submissions": null, // no idea what this is yet
+      "migrationMetadata": null, // don't need to care about this
+      "IsValidOwnerId": true,
+      "IsValidRecordId": true,
+      "neosDBmanifest": null, // legacy stuff I assume
     };
   }
 

@@ -33,7 +33,7 @@ class AssetUploadData {
   final bool isDirectUpload;
   final int maxUploadConcurrency;
   final List<AssetChunk> chunks;
-  final DateTime createdOn;
+  final String createdOn; // This is a string to prevent truncation of millisecond data which breaks asset upload HMAC checks
 
   const AssetUploadData({
     required this.hash,
@@ -66,7 +66,7 @@ class AssetUploadData {
         isDirectUpload: map["isDirectUpload"],
         maxUploadConcurrency: map["maxUploadConcurrency"],
         chunks: (map["chunks"] as List?)?.cast<Map<String, dynamic>>().map(AssetChunk.fromMap).toList() ?? [],
-        createdOn: DateTime.parse(map["createdOn"]).toUtc(),
+        createdOn: map["createdOn"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -82,9 +82,7 @@ class AssetUploadData {
         "uploadEndpoint": uploadEndpoint,
         "isDirectUpload": isDirectUpload,
         "maxUploadConcurrency": maxUploadConcurrency,
-        "chunks": chunks.map(
-          (e) => e.toMap(),
-        ),
+        "chunks": chunks.map((e) => e.toMap()).toList(),
         "createdOn": createdOn,
       };
 }
