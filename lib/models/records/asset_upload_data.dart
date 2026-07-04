@@ -16,7 +16,7 @@ enum UploadState {
   }
 
   @override
-  String toString() => toBeginningOfSentenceCase(super.toString());
+  String toString() => toBeginningOfSentenceCase(name);
 }
 
 class AssetUploadData {
