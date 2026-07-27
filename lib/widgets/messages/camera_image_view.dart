@@ -39,7 +39,7 @@ class CameraImageView extends StatelessWidget {
                         side: BorderSide(width: 1, color: Theme.of(context).colorScheme.error)
                     ),
                     icon: const Icon(Icons.close),
-                    label: Text('general.cancel'.tr(),),
+                    label: const Text('general.cancel').tr(),
                   ),
                   TextButton.icon(
                     onPressed: () {

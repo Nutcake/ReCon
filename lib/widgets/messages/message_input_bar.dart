@@ -195,7 +195,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
       _attachmentPickerOpen = false;
     } catch (e, s) {
       FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
-      sMsgnr.showSnackBar(SnackBar(content: Text("Failed to send a message: $e")));
+      sMsgnr.showSnackBar(SnackBar(content: Text('messaging.failedSend'.tr(args: [e.toString()]))));
     }
     setState(() {
       _isSending = false;
@@ -603,7 +603,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                   ? null
                                   : (_) async {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('general.featureUnavailable'.tr())),
+                                        SnackBar(content: Text('uncategorized.featureUnavailable'.tr())),
                                       );
                                       return;
                                       // HapticFeedback.vibrate();

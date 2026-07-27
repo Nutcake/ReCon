@@ -30,8 +30,7 @@
 		"confirm": "Confirm",
 		"cancel": "Cancel",
 		"retry": "Retry",
-		"search": "Search",
-		"featureUnavailable": "Sorry, this feature is not yet available"
+		"search": "Search"
 	},
 	"messaging": {
 		"placeholder": "Message {}...",
@@ -39,7 +38,31 @@
 		"recording": "Recording: {}",
 		"cancelRecording": "Cancel Recording",
 		"removeAttachments": "Remove all attachments",
-		"removeAttachments.description": "This will remove all attachments, are you sure?"
+		"removeAttachments.description": "This will remove all attachments, are you sure?",
+		"invite": {
+			"requestedSelf": "Requested invite",
+			"granted": "Granted {} invite to session {}", 
+			"addAsContact": "Adding {} as a contact of the headless",
+			"unknownResponse": "Unknown response: {} for invite request",
+			"requestForwarded": "{} wants to invite {} to {}",
+			"requestToYou": "{} would like to join you in '{}'",
+			"requestGeneric": "{} would like to join you",
+			"hostedBy": "Hosted by {}"
+		}
+	},
+	"sessions": {
+		"title": "Sessions",
+		"preview": "Session Preview",
+		"headless": "Headless: ",
+		"access": "Access: ",
+		"details": "Details: ",
+		"tags": "Tags: ",
+		"users": "Users",
+		"noDescription": "No description",
+		"sessionUsers": "{} / {} Online",
+		"noSessionsFound": "No Sessions Found",
+		"noSessionsFound.description": "Try to adjust your filters",
+		"noLongerValid": "Session is no longer valid"
 	},
 	"worlds": {
 		"title": "Worlds",
@@ -49,18 +72,24 @@
 		"noWorldsFound": "No Worlds Found",
 		"noWorldsFound.description": "Try to adjust your filters"
 	},
-	"sessions": {
-		"preview": "Session Preview",
-		"headless": "Headless: ",
-		"access": "Access: ",
-		"details": "Details: ",
-		"tags": "Tags:",
-		"users": "Users",
-		"noDescription": "No description",
-		"sessionUsers": "{} / {} Online",
-		"noSessionsFound": "No Sessions Found",
-		"noSessionsFound.description": "Try to adjust your filters",
-		"noLongerValid": "Session is no longer valid"
+	"inventory": {
+		"title": "Inventory",
+		"selection": "{} Selected",
+		"sorting": {
+			"ascending": "Ascending",
+			"descending": "Descending",
+			"name": "Name",
+			"date": "Date",
+			"resonite": "Resonite"
+		},
+		"download": {
+			"title": "What would you like to download?",
+			"selectionAborted": "Selection aborted",
+			"selectionInvalid": "Selected directory is invalid",
+			"downloadSuccess": "Downloaded {}",
+			"downloadFailed": "Failed to download {} : {}",
+			"downloadError": "Unknown Error"
+		}
 	},
 	"login": {
 		"title": "Login",
@@ -84,6 +113,8 @@
 	},
 	"uncategorized": {
 		"findUsers": "Find Users",
-		"myProfile": "My Profile"
+		"myProfile": "My Profile",
+		"settings": "Settings",
+		"featureUnavailable": "Sorry, this feature is not yet available"
 	}
 }

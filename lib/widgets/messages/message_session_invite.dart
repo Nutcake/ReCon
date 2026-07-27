@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
@@ -75,7 +76,7 @@ class MessageSessionInvite extends StatelessWidget {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Hosted by ${sessionInfo.hostUsername}", overflow: TextOverflow.ellipsis, style: Theme
+                    Text('messaging.hostedBy'.tr(args: [sessionInfo.hostUsername]), overflow: TextOverflow.ellipsis, style: Theme
                         .of(context)
                         .textTheme
                         .bodySmall
