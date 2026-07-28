@@ -67,7 +67,18 @@ void main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('af')],
+      supportedLocales: const [
+        Locale('af'), //testing only
+        Locale('en'),
+        Locale('eo'),
+        Locale('es'),
+        Locale('fr'),
+        Locale('de'),
+        Locale('ja'),
+        Locale('ko'),
+        Locale('ru'),
+        Locale('zh-cn')
+      ],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       useFallbackTranslations: true,
@@ -241,7 +252,18 @@ class _ReConState extends State<ReCon> {
                   themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
                   locale: context.locale,
                   localizationsDelegates: context.localizationDelegates,
-                  supportedLocales: context.supportedLocales,
+                  supportedLocales: const [
+                    Locale('af'), // testing only
+                    Locale('en'),
+                    //Locale('eo'), // Not supported by MaterialLocalizations
+                    Locale('es'),
+                    Locale('fr'),
+                    Locale('de'),
+                    Locale('ja'),
+                    Locale('ko'),
+                    Locale('ru'),
+                    Locale('zh') // only base supported, not zh-cn?
+                  ],
                   home: Builder(
                     // Builder is necessary here since we need a context which has access to the ClientHolder
                     builder: (context) {
