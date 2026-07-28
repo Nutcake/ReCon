@@ -67,7 +67,7 @@ void main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [Locale('en'), Locale('es')],
+      supportedLocales: const [Locale('en'), Locale('af')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       useFallbackTranslations: true,

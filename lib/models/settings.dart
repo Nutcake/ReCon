@@ -44,6 +44,7 @@ class Settings {
   final SettingsEntry<bool> sessionViewLastIncludeEnded;
   final SettingsEntry<bool> sessionViewLastIncludeEmpty;
   final SettingsEntry<bool> sessionViewLastIncludeIncompatible;
+  final SettingsEntry<String> locale;
 
   Settings({
     SettingsEntry<bool>? notificationsDenied,
@@ -55,6 +56,7 @@ class Settings {
     SettingsEntry<bool>? sessionViewLastIncludeEnded,
     SettingsEntry<bool>? sessionViewLastIncludeEmpty,
     SettingsEntry<bool>? sessionViewLastIncludeIncompatible,
+    SettingsEntry<String>? locale,
   })  : notificationsDenied = notificationsDenied ?? const SettingsEntry<bool>(deflt: false),
         lastOnlineStatus = lastOnlineStatus ?? SettingsEntry<int>(deflt: OnlineStatus.online.index),
         themeMode = themeMode ?? SettingsEntry<int>(deflt: ThemeMode.dark.index),
@@ -64,7 +66,8 @@ class Settings {
         sessionViewLastIncludeEnded = sessionViewLastIncludeEnded ?? const SettingsEntry<bool>(deflt: false),
         sessionViewLastIncludeEmpty = sessionViewLastIncludeEmpty ?? const SettingsEntry<bool>(deflt: true),
         sessionViewLastIncludeIncompatible =
-            sessionViewLastIncludeIncompatible ?? const SettingsEntry<bool>(deflt: false);
+            sessionViewLastIncludeIncompatible ?? const SettingsEntry<bool>(deflt: false),
+        locale = locale ?? const SettingsEntry<String>(deflt: 'en');
 
   factory Settings.fromMap(Map map) {
     return Settings(
@@ -77,6 +80,7 @@ class Settings {
       sessionViewLastIncludeEnded: getEntryOrNull<bool>(map["sessionViewLastIncludeEnded"]),
       sessionViewLastIncludeEmpty: getEntryOrNull<bool>(map["sessionViewLastIncludeEmpty"]),
       sessionViewLastIncludeIncompatible: getEntryOrNull<bool>(map["sessionViewLastIncludeIncompatible"]),
+      locale: getEntryOrNull<String>(map["locale"]),
     );
   }
 
@@ -100,6 +104,7 @@ class Settings {
       "sessionViewLastIncludeEnded": sessionViewLastIncludeEnded.toMap(),
       "sessionViewLastIncludeEmpty": sessionViewLastIncludeEmpty.toMap(),
       "sessionViewLastIncludeIncompatible": sessionViewLastIncludeIncompatible.toMap(),
+      "locale": locale.toMap(),
     };
   }
 
@@ -115,6 +120,7 @@ class Settings {
     bool? sessionViewLastIncludeEnded,
     bool? sessionViewLastIncludeEmpty,
     bool? sessionViewLastIncludeIncompatible,
+    String? locale,
   }) {
     return Settings(
       notificationsDenied: this.notificationsDenied.passThrough(notificationsDenied),
@@ -127,6 +133,7 @@ class Settings {
       sessionViewLastIncludeEmpty: this.sessionViewLastIncludeEmpty.passThrough(sessionViewLastIncludeEmpty),
       sessionViewLastIncludeIncompatible:
           this.sessionViewLastIncludeIncompatible.passThrough(sessionViewLastIncludeIncompatible),
+      locale: this.locale.passThrough(locale),
     );
   }
 }
