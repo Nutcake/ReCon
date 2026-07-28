@@ -1,9 +1,12 @@
 {
 	"navigation": {
 		"chat": "Chat",
-		"sessions": "Sessions",
-		"worlds": "Worlds",
-		"inventory": "Inventory"
+		"settings": "@:settings.title",
+		"sessions": "@:sessions.title",
+		"worlds": "@:worlds.title",
+		"inventory": "@:inventory.title",
+		"findUsers": "Find Users",
+		"myProfile": "My Profile"
 	},
 	"settings": {
 		"title": "Settings",
@@ -30,7 +33,9 @@
 		"confirm": "Confirm",
 		"cancel": "Cancel",
 		"retry": "Retry",
-		"search": "Search"
+		"search": "Search",
+		"enabled": "Enabled",
+		"disabled": "Disabled"
 	},
 	"contacts": {
 		"status": {
@@ -49,6 +54,7 @@
 	},
 	"messaging": {
 		"placeholder": "Message {}...",
+		"noMessages": "There are no messages here\nWhy not say hello?",
 		"failedSend": "Failed to send a message: {}",
 		"recording": "Recording: {}",
 		"cancelRecording": "Cancel Recording",
@@ -63,29 +69,19 @@
 			"requestToYou": "{} would like to join you in '{}'",
 			"requestGeneric": "{} would like to join you",
 			"hostedBy": "Hosted by {}"
-		}
+		},
+		"send": "Send",
+		"copiedToClipboard": "Copied to clipboard"
 	},
 	"sessions": {
 		"title": "Sessions",
-		"preview": "Session Preview",
-		"headless": "Headless: ",
-		"access": "Access: ",
-		"details": "Details: ",
-		"tags": "Tags: ",
-		"users": "Users",
-		"noDescription": "No description",
+		"headless": "Headless:",
+		"access": "Access:",
+		"users": "Users:",
 		"sessionUsers": "{} / {} Online",
 		"noSessionsFound": "No Sessions Found",
 		"noSessionsFound.description": "Try to adjust your filters",
-		"noLongerValid": "Session is no longer valid"
-	},
-	"worlds": {
-		"title": "Worlds",
-		"search": "Search for worlds",
-		"inputTags": "Enter tags",
-		"failedLoad": "Failed to load Worlds",
-		"noWorldsFound": "No Worlds Found",
-		"noWorldsFound.description": "Try to adjust your filters",
+		"noLongerValid": "Session is no longer valid",
 		"accessLevel": {
 			"unknown": "Unknown",
 			"private": "Private",
@@ -94,6 +90,34 @@
 			"contactsPlus": "Contacts+",
 			"registeredUsers": "Registered users",
 			"anyone": "Public"
+		}
+	},
+	"worlds": {
+		"title": "Worlds",
+		"preview": "World Preview",
+		"search": "Search for worlds",
+		"inputTags": "Enter tags",
+		"failedToLoad": "Failed to load Worlds",
+		"noWorldsFound": "No Worlds Found",
+		"noWorldsFound.description": "Try to adjust your filters",
+		"description": "Description:",
+		"noDescription": "No description",
+		"details": "Details:",
+		"tags": "Tags:",
+		"noTags": "None",
+		"createdAt": "Created at:",
+		"lastModified": "Last modified:",
+		"visits": "Visits:",
+		"rating": "Rating:",
+		"sorting": {
+			"ascending": "Ascending",
+			"descending": "Descending",
+			"creationDate": "Created",
+			"lastUpdateDate": "Last Updated",
+			"firstPublishTime": "First Published",
+			"totalVisits": "Total Visits",
+			"name": "Name",
+			"random": "Random"
 		}
 	},
 	"inventory": {
@@ -121,11 +145,11 @@
 		"username": "Username",
 		"password": "Password",
 		"totp": "2FA Code",
-		"emptyField": "Please enter a valid username/password combination.",
-		"invalidServerRespose":"Login unsuccessful: Server sent invalid response.",
+		"invalidCredentials": "Please enter a valid username/password combination.",
+		"invalidServerResponse":"Login unsuccessful: Server sent invalid response.",
 		"totpRequired": "Please enter your 2FA-Code",
 		"invalidTotp": "The given 2FA code is not valid.",
-		"loginFailed": "Login unsuccessful: {}"
+		"unsuccessful": "Login unsuccessful: {}"
 	},
 	"update": {
 		"title": "Update Available",
@@ -136,9 +160,6 @@
 		"dismiss": "I'll do it later."
 	},
 	"uncategorized": {
-		"findUsers": "Find Users",
-		"myProfile": "My Profile",
-		"settings": "Settings",
 		"featureUnavailable": "Sorry, this feature is not yet available"
 	}
 }

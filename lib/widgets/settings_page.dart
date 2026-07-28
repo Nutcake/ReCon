@@ -63,9 +63,9 @@ class SettingsPage extends StatelessWidget {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: Text(
-                    'settings.other.signout.confirm',
+                    'settings.other.signout.confirm'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
-                  ).tr(),
+                  ),
                   actions: [
                     TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('general.no').tr()),
                     TextButton(

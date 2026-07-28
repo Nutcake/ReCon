@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> submit() async {
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
-        _error = "Please enter a valid username/password combination.";
+        _error = 'login.invalidCredentials'.tr();
       });
       return;
     }
@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (!authData.isAuthenticated) {
         setState(() {
-          _error = "Login unsuccessful: Server sent invalid response.";
+          _error = 'login.invalidServerResponse'.tr();
           _isLoading = false;
         });
         return;
@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         if (e == ApiClient.totpKey) {
           if (!_needsTotp) {
-            _error = "Please enter your 2FA-Code";
+            _error = 'login.totpRequired'.tr();
             _totpFocusNode.requestFocus();
             WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               _scrollController.animateTo(

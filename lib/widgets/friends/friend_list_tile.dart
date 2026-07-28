@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/messaging_client.dart';
@@ -73,7 +72,7 @@ class FriendListTile extends StatelessWidget {
               else
                 Expanded(
                   child: Text(
-                    'contacts.inWorldNoDetails'.tr(args: ['contacts.status.${friend.userStatus.onlineStatus.name}'.tr(), 'worlds.accessLevel.${currentSession.accessLevel.name}'.tr()]),
+                    'contacts.inWorldNoDetails'.tr(args: ['contacts.status.${friend.userStatus.onlineStatus.name}'.tr(), 'sessions.accessLevel.${currentSession.accessLevel.name}'.tr()]),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),

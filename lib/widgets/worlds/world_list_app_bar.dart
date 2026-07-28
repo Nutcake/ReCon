@@ -97,7 +97,7 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
                 (e) => CheckedPopupMenuItem(
                   value: e,
                   checked: e == _sortParameter,
-                  child: Text(toBeginningOfSentenceCase(e.toString())),
+                  child: Text('worlds.sorting.${e.name}').tr(),
                 ),
               )
               .toList(),
@@ -119,7 +119,7 @@ class _WorldListAppBarState extends State<WorldListAppBar> {
                 (e) => CheckedPopupMenuItem(
                   value: e,
                   checked: e == _sortDirection,
-                  child: Text(toBeginningOfSentenceCase(e.toString())),
+                  child: Text('worlds.sorting.${e.name}').tr(),
                 ),
               )
               .toList(),

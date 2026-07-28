@@ -121,17 +121,21 @@ class _SessionViewState extends State<SessionView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          ListSectionHeader(
+                            leadingText: 'worlds.description'.tr(),
+                            showLine: false,
+                          ),
                           Padding(
                             padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
                             child: session.formattedDescription.isEmpty
-                                ? Text('sessions.noDescription', style: Theme.of(context).textTheme.labelLarge).tr()
+                                ? Text('worlds.noDescription', style: Theme.of(context).textTheme.labelLarge).tr()
                                 : FormattedText(
                                     session.formattedDescription,
                                     style: Theme.of(context).textTheme.labelLarge?.apply(fontStyle: FontStyle.italic),
                                   ),
                           ),
                           ListSectionHeader(
-                            leadingText: 'sessions.tags'.tr(),
+                            leadingText: 'worlds.tags'.tr(),
                             showLine: false,
                           ),
                           Padding(
@@ -144,7 +148,7 @@ class _SessionViewState extends State<SessionView> {
                             ),
                           ),
                           ListSectionHeader(
-                            leadingText: 'sessions.details'.tr(),
+                            leadingText: 'worlds.details'.tr(),
                             showLine: false,
                           ),
                           Padding(
@@ -157,9 +161,9 @@ class _SessionViewState extends State<SessionView> {
                                   style: Theme.of(context).textTheme.labelLarge,
                                 ).tr(),
                                 Text(
-                                  session.accessLevel.toReadableString(),
+                                  'sessions.accessLevel.${session.accessLevel.name}',
                                   style: Theme.of(context).textTheme.labelMedium,
-                                ),
+                                ).tr(),
                               ],
                             ),
                           ),

@@ -83,7 +83,7 @@ class WorldListState extends State<WorldList> {
         if (snapshot.hasError) {
           FlutterError.reportError(FlutterErrorDetails(exception: snapshot.error!, stack: snapshot.stackTrace));
           return DefaultErrorWidget(
-            title: "Failed to load Worlds",
+            title: 'worlds.failedToLoad'.tr(),
             message: snapshot.error.toString(),
           );
         }
@@ -181,7 +181,7 @@ class WorldListState extends State<WorldList> {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  "Last modified ${_dateFormat.format(world.lastModificationTime)}",
+                                                  'worlds.lastModified'.tr(args: [_dateFormat.format(world.lastModificationTime)]),
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
                                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(

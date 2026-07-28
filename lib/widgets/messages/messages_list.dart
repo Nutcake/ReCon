@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/apis/user_api.dart';
@@ -93,11 +94,11 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
-                                child: const Text("Cancel"),
+                                child: const Text("general.cancel").tr(),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
-                                child: const Text("Send"),
+                                child: const Text('messaging.send').tr(),
                               ),
                             ],
                           );
@@ -227,7 +228,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 24),
                                   child: Text(
-                                    "There are no messages here\nWhy not say hello?",
+                                    'messaging.noMessages'.tr(),
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context).textTheme.titleMedium,
                                   ),
