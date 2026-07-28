@@ -75,6 +75,7 @@
 	},
 	"sessions": {
 		"title": "Sessions",
+		"preview": "Sessions Preview",
 		"headless": "Headless:",
 		"access": "Access:",
 		"users": "Users:",
