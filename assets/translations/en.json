@@ -32,6 +32,21 @@
 		"retry": "Retry",
 		"search": "Search"
 	},
+	"contacts": {
+		"status": {
+			"sociable": "Sociable",
+			"online": "Online",
+			"away": "Away",
+			"busy": "Busy",
+			"invisible": "Invisible",
+			"offline": "Offline"
+		},
+		"headlessHost": "Headless Host",
+		"inWorld": "{} in ",
+		"inWorldNoDetails": "{} in {} World",
+		"onVersion": "{} on version {}",
+		"bot": "Bot"
+	},
 	"messaging": {
 		"placeholder": "Message {}...",
 		"failedSend": "Failed to send a message: {}",
@@ -70,7 +85,16 @@
 		"inputTags": "Enter tags",
 		"failedLoad": "Failed to load Worlds",
 		"noWorldsFound": "No Worlds Found",
-		"noWorldsFound.description": "Try to adjust your filters"
+		"noWorldsFound.description": "Try to adjust your filters",
+		"accessLevel": {
+			"unknown": "Unknown",
+			"private": "Private",
+			"lan": "LAN",
+			"contacts": "Contacts",
+			"contactsPlus": "Contacts+",
+			"registeredUsers": "Registered users",
+			"anyone": "Public"
+		}
 	},
 	"inventory": {
 		"title": "Inventory",
