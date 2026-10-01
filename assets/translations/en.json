@@ -19,12 +19,16 @@
 			"title": "Appearance",
 			"theme": "Theme Mode"
 		},
-		"other": {
-			"title": "Other",
+		"system": {
+			"title": "System",
+			"language": "Language",
 			"signout": "Sign out",
 			"signout.confirm": "Are you sure you want to sign out?",
 			"about": "About ReCon",
-			"error": "Failed to open link."
+			"failedToOpenLink": "Failed to open link."
+		},
+		"developer": {
+			"title": "Developer Options"
 		}
 	},
 	"general": {

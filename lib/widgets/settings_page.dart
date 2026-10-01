@@ -5,6 +5,19 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/client_holder.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+const languages = <(String, String, Locale)>[
+  ('English', 'English', Locale('en')),
+  ('Chinese', '中文', Locale('zh-cn')),
+  ('Esperanto', 'Esperanto', Locale('eo')),
+  ('French', 'Français', Locale('fr')),
+  ('German', 'Deutsch', Locale('de')),
+  ('Japanese', '日本語', Locale('ja')),
+  ('Korean', '한국어', Locale('ko')),
+  ('Russian', 'Русский', Locale('ru')),
+  ('Spanish', 'Español', Locale('es')),
+  ('Test', 'Test', Locale('af')),
+];
+
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -54,34 +67,30 @@ class SettingsPage extends StatelessWidget {
             ),
             title: const Text('settings.appearance.theme').tr(),
           ),
-          ListSectionHeader(leadingText: 'settings.other.title'.tr()),
-          ListTile(
-            trailing: const Icon(Icons.logout),
-            title: const Text('settings.other.signout').tr(),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text(
-                    'settings.other.signout.confirm'.tr(),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('general.no').tr()),
-                    TextButton(
-                      onPressed: () async {
-                        await ClientHolder.of(context).apiClient.logout();
-                      },
-                      child: const Text('general.yes').tr(),
-                    ),
-                  ],
+          ListSectionHeader(leadingText: 'settings.system.title'.tr()),
+          DropdownButtonFormField<Locale>(
+            initialValue: context.locale,
+            decoration: InputDecoration(
+              labelText: 'settings.system.language'.tr(),
+              prefixIcon: Icon(Icons.language),
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              for (final language in languages)
+                DropdownMenuItem(
+                  value: language.$3,
+                  child: Text(language.$2),
                 ),
-              );
+            ],
+            onChanged: (locale) {
+              if (locale != null) {
+                context.setLocale(locale);
+              }
             },
           ),
           ListTile(
             trailing: const Icon(Icons.info_outline),
-            title: const Text('settings.other.about').tr(),
+            title: const Text('settings.system.about').tr(),
             onTap: () async {
               final version = (await PackageInfo.fromPlatform()).version;
               if (context.mounted) {
@@ -90,9 +99,13 @@ class SettingsPage extends StatelessWidget {
                   applicationVersion: version,
                   applicationIcon: InkWell(
                     onTap: () async {
-                      if (!await launchUrl(Uri.parse("https://github.com/Nutcake/ReCon"), mode: LaunchMode.externalApplication)) {
+                      if (!await launchUrl(
+                          Uri.parse("https://github.com/Nutcake/ReCon"),
+                          mode: LaunchMode.externalApplication)) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('settings.other.error').tr()));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('settings.system.failedToOpenLink'.tr()))
+                          );
                         }
                       }
                     },
@@ -105,6 +118,32 @@ class SettingsPage extends StatelessWidget {
                   applicationLegalese: "Created by Nutcake with love <3",
                 );
               }
+            },
+          ),
+          ListTile(
+            trailing: const Icon(Icons.logout),
+            title: const Text('settings.system.signout').tr(),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(
+                    'settings.system.signout.confirm'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('general.no').tr()),
+                    TextButton(
+                      onPressed: () async {
+                        await ClientHolder.of(context).apiClient.logout();
+                      },
+                      child: const Text('general.yes').tr(),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],
