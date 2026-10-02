@@ -201,9 +201,9 @@ class _SessionViewState extends State<SessionView> {
                             textAlign: TextAlign.start,
                           ),
                           subtitle: Text(
-                            user.isPresent ? "Active" : "Inactive",
+                            user.isPresent ? 'sessions.user.active' : 'sessions.user.inactive',
                             textAlign: TextAlign.start,
-                          ),
+                          ).tr(),
                         ),
                       )
                       .toList(),

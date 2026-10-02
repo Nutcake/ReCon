@@ -95,6 +95,10 @@
 			"contactsPlus": "Contacts+",
 			"registeredUsers": "Registered users",
 			"anyone": "Public"
+		},
+		"user":{
+			"active": "Active",
+			"inactive": "Inactive"
 		}
 	},
 	"worlds": {
@@ -142,6 +146,14 @@
 			"downloadSuccess": "Downloaded {}",
 			"downloadFailed": "Failed to download {} : {}",
 			"downloadError": "Unknown Error"
+		},
+		"delete": {
+			"deleteHeader": "Really delete this record?",
+			"deleteHeaderPlural": "Really delete {} records?",
+			"warning": "This action cannot be undone!",
+			"confirm": "Delete",
+			"success": "Deleted {}",
+			"failed": "Failed to delete one or more records: {}",
 		}
 	},
 	"login": {

@@ -275,8 +275,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               builder: (context, setState) {
                                 return AlertDialog(
                                   icon: const Icon(Icons.delete),
-                                  title: Text(iClient.selectedRecordCount == 1 ? "Really delete this Record?" : "Really delete ${iClient.selectedRecordCount} Records?"),
-                                  content: const Text("This action cannot be undone!"),
+                                  title: Text(iClient.selectedRecordCount == 1 ? 'inventory.delete.deleteHeader'.tr() : 'inventory.delete.deleteHeaderPlural'.tr(args: [iClient.selectedRecordCount.toString()])),
+                                  content: const Text('inventory.delete.warning').tr(),
                                   actionsAlignment: MainAxisAlignment.spaceBetween,
                                   actions: [
                                     TextButton(
@@ -311,7 +311,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     if (context.mounted) {
                                                       ScaffoldMessenger.of(context).showSnackBar(
                                                         SnackBar(
-                                                          content: Text("Failed to delete one or more records: $e"),
+                                                          content: Text('inventory.delete.failed'.tr(args: [e.toString()])),
                                                         ),
                                                       );
                                                     }
@@ -327,7 +327,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                           style: TextButton.styleFrom(
                                             foregroundColor: Theme.of(context).colorScheme.error,
                                           ),
-                                          child: const Text("Delete"),
+                                          child: const Text('inventory.delete.confirm').tr(),
                                         ),
                                       ],
                                     ),
