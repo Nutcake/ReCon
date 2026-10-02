@@ -2,2799 +2,1000 @@ import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
 class JsonTemplate {
-  static const String thumbUrl = "resdb:///8ed80703e48c3d1556093927b67298f3d5e10315e9f782ec56fc49d6366f09b7.webp";
-  final Map data;
 
-  JsonTemplate({required this.data});
-
-  factory JsonTemplate.image({required String imageUri, required String filename, required int width, required int height}) {
-    final texture2dUid = const Uuid().v4();
-    final quadMeshUid = const Uuid().v4();
-    final quadMeshSizeUid = const Uuid().v4();
-    final materialId = const Uuid().v4();
-    final boxColliderSizeUid = const Uuid().v4();
-    final ratio = height/width;
-    final data = {
-      "Object": {
-        "ID": const Uuid().v4(),
-        "Components": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            {
-              "Type": "FrooxEngine.Grabbable",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "ReparentOnRelease": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "PreserveUserSpace": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "DestroyOnRelease": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "GrabPriority": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "GrabPriorityWhenGrabbed": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "CustomCanGrabCheck": {
-                  "ID": const Uuid().v4(),
-                  "Data": {
-                    "Target": null
-                  }
-                },
-                "EditModeOnly": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "AllowSteal": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "DropOnDisable": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "ActiveUserFilter": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Disabled"
-                },
-                "OnlyUsers": {
-                  "ID": const Uuid().v4(),
-                  "Data": []
-                },
-                "Scalable": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Receivable": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "AllowOnlyPhysicalGrab": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "_grabber": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "_lastParent": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "_lastParentIsUserSpace": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "__legacyActiveUserRootOnly-ID": const Uuid().v4()
-              }
-            },
-            {
-              "Type": "FrooxEngine.StaticTexture2D",
-              "Data": {
-                "ID": texture2dUid,
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "URL": {
-                  "ID": const Uuid().v4(),
-                  "Data": "@$imageUri"
-                },
-                "FilterMode": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Anisotropic"
-                },
-                "AnisotropicLevel": {
-                  "ID": const Uuid().v4(),
-                  "Data": 16
-                },
-                "Uncompressed": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "DirectLoad": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "ForceExactVariant": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "PreferredFormat": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "MipMapBias": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0.0
-                },
-                "IsNormalMap": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "WrapModeU": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Repeat"
-                },
-                "WrapModeV": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Repeat"
-                },
-                "PowerOfTwoAlignThreshold": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0.05
-                },
-                "CrunchCompressed": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "MaxSize": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "MipMaps": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "MipMapFilter": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Box"
-                },
-                "Readable": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.ItemTextureThumbnailSource",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Texture": {
-                  "ID": const Uuid().v4(),
-                  "Data": texture2dUid
-                },
-                "Crop": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.SnapPlane",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Normal": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    1.0
-                  ]
-                },
-                "SnapParent": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.ReferenceProxy",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Reference": {
-                  "ID": const Uuid().v4(),
-                  "Data": texture2dUid
-                },
-                "SpawnInstanceOnTrigger": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.AssetProxy`1[[FrooxEngine.Texture2D, FrooxEngine, Version=2022.1.28.1335, Culture=neutral, PublicKeyToken=null]]",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "AssetReference": {
-                  "ID": const Uuid().v4(),
-                  "Data": texture2dUid
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.UnlitMaterial",
-              "Data": {
-                "ID": materialId,
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "HighPriorityIntegration": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "TintColor": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "Texture": {
-                  "ID": const Uuid().v4(),
-                  "Data": texture2dUid
-                },
-                "TextureScale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0
-                  ]
-                },
-                "TextureOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0
-                  ]
-                },
-                "MaskTexture": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "MaskScale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0
-                  ]
-                },
-                "MaskOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0
-                  ]
-                },
-                "MaskMode": {
-                  "ID": const Uuid().v4(),
-                  "Data": "MultiplyAlpha"
-                },
-                "BlendMode": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Alpha"
-                },
-                "AlphaCutoff": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0.5
-                },
-                "UseVertexColors": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Sidedness": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Double"
-                },
-                "ZWrite": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Auto"
-                },
-                "OffsetTexture": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "OffsetMagnitude": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0
-                  ]
-                },
-                "OffsetTextureScale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0
-                  ]
-                },
-                "OffsetTextureOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0
-                  ]
-                },
-                "PolarUVmapping": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "PolarPower": {
-                  "ID": const Uuid().v4(),
-                  "Data": 1.0
-                },
-                "StereoTextureTransform": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "RightEyeTextureScale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0
-                  ]
-                },
-                "RightEyeTextureOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0
-                  ]
-                },
-                "DecodeAsNormalMap": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "UseBillboardGeometry": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "UsePerBillboardScale": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "UsePerBillboardRotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "UsePerBillboardUV": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "BillboardSize": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.005,
-                    0.005
-                  ]
-                },
-                "OffsetFactor": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0.0
-                },
-                "OffsetUnits": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0.0
-                },
-                "RenderQueue": {
-                  "ID": const Uuid().v4(),
-                  "Data": -1
-                },
-                "_unlit-ID": const Uuid().v4(),
-                "_unlitBillboard-ID": const Uuid().v4()
-              }
-            },
-            {
-              "Type": "FrooxEngine.QuadMesh",
-              "Data": {
-                "ID": quadMeshUid,
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "HighPriorityIntegration": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "OverrideBoundingBox": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "OverridenBoundingBox": {
-                  "ID": const Uuid().v4(),
-                  "Data": {
-                    "Min": [
-                      0.0,
-                      0.0,
-                      0.0
-                    ],
-                    "Max": [
-                      0.0,
-                      0.0,
-                      0.0
-                    ]
-                  }
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0
-                  ]
-                },
-                "Size": {
-                  "ID": quadMeshSizeUid,
-                  "Data": [
-                    ratio > 1 ? ratio : 1,
-                    ratio > 1 ? 1 : ratio
-                  ]
-                },
-                "UVScale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0
-                  ]
-                },
-                "ScaleUVWithSize": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "UVOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0
-                  ]
-                },
-                "DualSided": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "UseVertexColors": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "UpperLeftColor": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "LowerLeftColor": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "LowerRightColor": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                },
-                "UpperRightColor": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    1.0,
-                    1.0,
-                    1.0,
-                    1.0
-                  ]
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.MeshRenderer",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Mesh": {
-                  "ID": const Uuid().v4(),
-                  "Data": quadMeshUid
-                },
-                "Materials": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "ID": const Uuid().v4(),
-                      "Data": materialId
-                    }
-                  ]
-                },
-                "MaterialPropertyBlocks": {
-                  "ID": const Uuid().v4(),
-                  "Data": []
-                },
-                "ShadowCastMode": {
-                  "ID": const Uuid().v4(),
-                  "Data": "On"
-                },
-                "MotionVectorMode": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Object"
-                },
-                "SortingOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.BoxCollider",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 1000000
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Offset": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0
-                  ]
-                },
-                "Type": {
-                  "ID": const Uuid().v4(),
-                  "Data": "NoCollision"
-                },
-                "Mass": {
-                  "ID": const Uuid().v4(),
-                  "Data": 1.0
-                },
-                "CharacterCollider": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "IgnoreRaycasts": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "Size": {
-                  "ID": boxColliderSizeUid,
-                  "Data": [
-                    0.7071067,
-                    0.7071067,
-                    0.0
-                  ]
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.Float2ToFloat3SwizzleDriver",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Source": {
-                  "ID": const Uuid().v4(),
-                  "Data": quadMeshSizeUid
-                },
-                "Target": {
-                  "ID": const Uuid().v4(),
-                  "Data": boxColliderSizeUid
-                },
-                "X": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Y": {
-                  "ID": const Uuid().v4(),
-                  "Data": 1
-                },
-                "Z": {
-                  "ID": const Uuid().v4(),
-                  "Data": -1
-                }
-              }
-            }
-          ]
-        },
-        "Name": {
-          "ID": const Uuid().v4(),
-          "Data": filename
-        },
-        "Tag": {
-          "ID": const Uuid().v4(),
-          "Data": null
-        },
-        "Active": {
-          "ID": const Uuid().v4(),
-          "Data": true
-        },
-        "Persistent-ID": const Uuid().v4(),
-        "Position": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            0.8303015,
-            1.815294,
-            0.494639724
-          ]
-        },
-        "Rotation": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            1.05315749E-07,
-            0.0222634021,
-            -1.08297385E-07,
-            0.999752164
-          ]
-        },
-        "Scale": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            0.9999994,
-            0.999999464,
-            0.99999994
-          ]
-        },
-        "OrderOffset": {
-          "ID": const Uuid().v4(),
-          "Data": 0
-        },
-        "ParentReference": const Uuid().v4(),
-        "Children": []
-      },
+  static Map<String, dynamic> image({required String imageResDb, required String machineId}) {
+    final data =
+    {
       "TypeVersions": {
-        "FrooxEngine.Grabbable": 2,
-        "FrooxEngine.QuadMesh": 1,
-        "FrooxEngine.BoxCollider": 1
-      }
-    };
-    return JsonTemplate(data: data);
-  }
-
-  factory JsonTemplate.rawFile({required String assetUri, required String filename}) {
-    final var20 = const Uuid().v4();
-    final var19 = const Uuid().v4();
-    final var18 = const Uuid().v4();
-    final var17 = const Uuid().v4();
-    final var16 = const Uuid().v4();
-    final var15 = const Uuid().v4();
-    final var14 = const Uuid().v4();
-    final var13 = const Uuid().v4();
-    final var12 = const Uuid().v4();
-    final var11 = const Uuid().v4();
-    final var10 = const Uuid().v4();
-    final var9 = const Uuid().v4();
-    final var8 = const Uuid().v4();
-    final var7 = const Uuid().v4();
-    final var6 = const Uuid().v4();
-    final var5 = const Uuid().v4();
-    final var4 = const Uuid().v4();
-    final var3 = const Uuid().v4();
-    final var2 = const Uuid().v4();
-    final var1 = const Uuid().v4();
-    final var0 = const Uuid().v4();
-    final data = {
+        "[FrooxEngine]FrooxEngine.InventoryItem": 1,
+        "[FrooxEngine]FrooxEngine.PhotoMetadata": 1,
+        "[FrooxEngine]FrooxEngine.Grabbable": 2,
+        "[FrooxEngine]FrooxEngine.QuadMesh": 1,
+        "[FrooxEngine]FrooxEngine.BoxCollider": 1
+      },
       "Object": {
-        "ID": const Uuid().v4(),
-        "Components": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            {
-              "Type": "FrooxEngine.ObjectRoot",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.StaticBinary",
-              "Data": {
-                "ID": var0,
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "URL": {
-                  "ID": const Uuid().v4(),
-                  "Data": "@$assetUri"
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.BinaryExportable",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Binary": {
-                  "ID": const Uuid().v4(),
-                  "Data": var0
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.FileMetadata",
-              "Data": {
-                "ID": var1,
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Filename": {
-                  "ID": const Uuid().v4(),
-                  "Data": filename
-                },
-                "MIME": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "IsProcessing-ID": const Uuid().v4()
-              }
-            },
-            {
-              "Type": "FrooxEngine.FileVisual",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "MetadataSource": {
-                  "ID": const Uuid().v4(),
-                  "Data": var1
-                },
-                "TypeLabel": {
-                  "ID": const Uuid().v4(),
-                  "Data": var2
-                },
-                "NameLabel": {
-                  "ID": const Uuid().v4(),
-                  "Data": var3
-                },
-                "FillMaterial": {
-                  "ID": const Uuid().v4(),
-                  "Data": var4
-                },
-                "OutlineMaterial": {
-                  "ID": const Uuid().v4(),
-                  "Data": var5
-                },
-                "TypeMaterial": {
-                  "ID": const Uuid().v4(),
-                  "Data": var6
-                }
-              }
-            },
-            {
-              "Type": "FrooxEngine.Grabbable",
-              "Data": {
-                "ID": const Uuid().v4(),
-                "persistent-ID": const Uuid().v4(),
-                "UpdateOrder": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "Enabled": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "ReparentOnRelease": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "PreserveUserSpace": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "DestroyOnRelease": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "GrabPriority": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "GrabPriorityWhenGrabbed": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "CustomCanGrabCheck": {
-                  "ID": const Uuid().v4(),
-                  "Data": {
-                    "Target": null
-                  }
-                },
-                "EditModeOnly": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "AllowSteal": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "DropOnDisable": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "ActiveUserFilter": {
-                  "ID": const Uuid().v4(),
-                  "Data": "Disabled"
-                },
-                "OnlyUsers": {
-                  "ID": const Uuid().v4(),
-                  "Data": []
-                },
-                "Scalable": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Receivable": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "AllowOnlyPhysicalGrab": {
-                  "ID": const Uuid().v4(),
-                  "Data": false
-                },
-                "_grabber": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "_lastParent": {
-                  "ID": const Uuid().v4(),
-                  "Data": null
-                },
-                "_lastParentIsUserSpace": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "__legacyActiveUserRootOnly-ID": const Uuid().v4()
-              }
-            }
-          ]
-        },
-        "Name": {
-          "ID": const Uuid().v4(),
-          "Data": filename
-        },
-        "Tag": {
-          "ID": const Uuid().v4(),
-          "Data": null
-        },
-        "Active": {
-          "ID": const Uuid().v4(),
-          "Data": true
-        },
-        "Persistent-ID": const Uuid().v4(),
         "Position": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            1.12835562,
-            1.54872811,
-            -2.16048574
-          ]
-        },
-        "Rotation": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            0.0814014,
-            0.69532,
-            -0.07976244,
-            0.7096068
-          ]
+          "ID": "00000013-0000-0000-0000-000000000000",
+          "Data": [-0.03113400936126709, 0.07841096818447113, 0.1895841360092163]
         },
         "Scale": {
-          "ID": const Uuid().v4(),
-          "Data": [
-            1.00000036,
-            0.99999994,
-            1.00000036
-          ]
+          "ID": "00000015-0000-0000-0000-000000000000",
+          "Data": [1.0000001192092896, 1.000000238418579, 1.0000001192092896]
         },
-        "OrderOffset": {
-          "ID": const Uuid().v4(),
-          "Data": 0
-        },
-        "ParentReference": const Uuid().v4(),
         "Children": [
           {
-            "ID": const Uuid().v4(),
-            "Components": {
-              "ID": const Uuid().v4(),
-              "Data": []
-            },
-            "Name": {
-              "ID": const Uuid().v4(),
-              "Data": "FileVisual"
-            },
-            "Tag": {
-              "ID": const Uuid().v4(),
-              "Data": ""
-            },
-            "Active": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "Persistent-ID": const Uuid().v4(),
+            "Persistent-ID": "000000f0-0000-0000-0000-000000000000",
             "Position": {
-              "ID": const Uuid().v4(),
               "Data": [
-                0.0,
-                0.0,
-                0.0
-              ]
-            },
-            "Rotation": {
-              "ID": const Uuid().v4(),
-              "Data": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-              ]
+                -0.008691459894180298, -0.016768932342529297, -0.0020900964736938477
+              ],
+              "ID": "000000f1-0000-0000-0000-000000000000"
             },
             "Scale": {
-              "ID": const Uuid().v4(),
+              "ID": "000000f3-0000-0000-0000-000000000000",
+              "Data": [0.25000008940696716, 0.25, 0.2500000298023224]
+            },
+            "ParentReference": "000000f5-0000-0000-0000-000000000000",
+            "Children": [],
+            "ID": "00000017-0000-0000-0000-000000000000",
+            "Name": {
+              "ID": "000000ed-0000-0000-0000-000000000000",
+              "Data": "Photo"
+            },
+            "Tag": { "ID": "000000ee-0000-0000-0000-000000000000", "Data": null },
+            "Active": {
+              "ID": "000000ef-0000-0000-0000-000000000000",
+              "Data": true
+            },
+            "Rotation": {
+              "ID": "000000f2-0000-0000-0000-000000000000",
               "Data": [
-                1.0,
-                1.0,
-                1.0
+                0.055005572736263275, -0.013591023162007332, 0.0007486905087716877,
+                0.9983932971954346
               ]
             },
             "OrderOffset": {
-              "ID": const Uuid().v4(),
+              "ID": "000000f4-0000-0000-0000-000000000000",
               "Data": 0
             },
-            "ParentReference": const Uuid().v4(),
-            "Children": [
-              {
-                "ID": const Uuid().v4(),
-                "Components": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "Type": "FrooxEngine.MeshRenderer",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "Mesh": {
-                          "ID": const Uuid().v4(),
-                          "Data": var7
-                        },
-                        "Materials": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            {
-                              "ID": const Uuid().v4(),
-                              "Data": var4
-                            },
-                            {
-                              "ID": const Uuid().v4(),
-                              "Data": var5
-                            },
-                            {
-                              "ID": const Uuid().v4(),
-                              "Data": var6
-                            }
-                          ]
-                        },
-                        "MaterialPropertyBlocks": {
-                          "ID": const Uuid().v4(),
-                          "Data": []
-                        },
-                        "ShadowCastMode": {
-                          "ID": const Uuid().v4(),
-                          "Data": "On"
-                        },
-                        "MotionVectorMode": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Object"
-                        },
-                        "SortingOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        }
-                      }
-                    },
-                    {
-                      "Type": "FrooxEngine.BoxCollider",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "Offset": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.180121541,
-                            0.0,
-                            0.0669048056
-                          ]
-                        },
-                        "Type": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Static"
-                        },
-                        "Mass": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "CharacterCollider": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "IgnoreRaycasts": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "Size": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            2.360243,
-                            2.5,
-                            0.1516055
-                          ]
-                        }
-                      }
-                    }
-                  ]
-                },
-                "Name": {
-                  "ID": const Uuid().v4(),
-                  "Data": "File Mesh"
-                },
-                "Tag": {
-                  "ID": const Uuid().v4(),
-                  "Data": ""
-                },
-                "Active": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Persistent-ID": const Uuid().v4(),
-                "Position": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    5.96046448E-08,
-                    0.0,
-                    0.0
-                  ]
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    -1.19209275E-07,
-                    0.0,
-                    0.0,
-                    1.0
-                  ]
-                },
-                "Scale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.04071409,
-                    0.0407139659,
-                    0.0407141037
-                  ]
-                },
-                "OrderOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "ParentReference": const Uuid().v4(),
-                "Children": []
-              },
-              {
-                "ID": const Uuid().v4(),
-                "Components": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "Type": "FrooxEngine.TextRenderer",
-                      "Data": {
-                        "ID": var3,
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "HighPriorityIntegration": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "OverrideBoundingBox": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "OverridenBoundingBox": {
-                          "ID": const Uuid().v4(),
-                          "Data": {
-                            "Min": [
-                              0.0,
-                              0.0,
-                              0.0
-                            ],
-                            "Max": [
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          }
-                        },
-                        "Font": {
-                          "ID": const Uuid().v4(),
-                          "Data": var8
-                        },
-                        "Text": {
-                          "ID": const Uuid().v4(),
-                          "Data": basenameWithoutExtension(filename)
-                        },
-                        "ParseRichText": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "NullText": {
-                          "ID": const Uuid().v4(),
-                          "Data": ""
-                        },
-                        "Size": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "HorizontalAlign": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Center"
-                        },
-                        "VerticalAlign": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Top"
-                        },
-                        "AlignmentMode": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Geometric"
-                        },
-                        "Color": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "Materials": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            {
-                              "ID": const Uuid().v4(),
-                              "Data": var9
-                            }
-                          ]
-                        },
-                        "LineHeight": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.8
-                        },
-                        "Bounded": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "BoundsSize": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.5,
-                            0.2
-                          ]
-                        },
-                        "BoundsAlignment": {
-                          "ID": const Uuid().v4(),
-                          "Data": "MiddleCenter"
-                        },
-                        "MaskPattern": {
-                          "ID": const Uuid().v4(),
-                          "Data": ""
-                        },
-                        "HorizontalAutoSize": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "VerticalAutoSize": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "CaretPosition": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "SelectionStart": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "CaretColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "SelectionColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.5,
-                            0.2,
-                            0.5
-                          ]
-                        },
-                        "_legacyFontMaterial-ID": const Uuid().v4(),
-                        "_legacyAlign-ID": const Uuid().v4()
-                      }
-                    },
-                    {
-                      "Type": "FrooxEngine.BoxCollider",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "Offset": {
-                          "ID": var10,
-                          "Data": [
-                            0.0,
-                            0.0590983443,
-                            0.0
-                          ]
-                        },
-                        "Type": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Static"
-                        },
-                        "Mass": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "CharacterCollider": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "IgnoreRaycasts": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "Size": {
-                          "ID": var11,
-                          "Data": [
-                            0.5113616,
-                            0.09316488,
-                            0.0
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "Type": "FrooxEngine.BoundingBoxDriver",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "BoundedSource": {
-                          "ID": const Uuid().v4(),
-                          "Data": var3
-                        },
-                        "Size": {
-                          "ID": const Uuid().v4(),
-                          "Data": var11
-                        },
-                        "Center": {
-                          "ID": const Uuid().v4(),
-                          "Data": var10
-                        },
-                        "Padding": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "Scale": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        }
-                      }
-                    }
-                  ]
-                },
-                "Name": {
-                  "ID": const Uuid().v4(),
-                  "Data": "NameLabel"
-                },
-                "Tag": {
-                  "ID": const Uuid().v4(),
-                  "Data": ""
-                },
-                "Active": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Persistent-ID": const Uuid().v4(),
-                "Position": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0009058714,
-                    -0.08701205,
-                    0.00394916534
-                  ]
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0009555904,
-                    0.999872863,
-                    0.000245468284,
-                    0.01591436
-                  ]
-                },
-                "Scale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.3075354,
-                    0.307534128,
-                    0.307536483
-                  ]
-                },
-                "OrderOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "ParentReference": const Uuid().v4(),
-                "Children": []
-              },
-              {
-                "ID": const Uuid().v4(),
-                "Components": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "Type": "FrooxEngine.TextRenderer",
-                      "Data": {
-                        "ID": var2,
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "HighPriorityIntegration": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "OverrideBoundingBox": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "OverridenBoundingBox": {
-                          "ID": const Uuid().v4(),
-                          "Data": {
-                            "Min": [
-                              0.0,
-                              0.0,
-                              0.0
-                            ],
-                            "Max": [
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          }
-                        },
-                        "Font": {
-                          "ID": const Uuid().v4(),
-                          "Data": var8
-                        },
-                        "Text": {
-                          "ID": const Uuid().v4(),
-                          "Data": extension(filename).toUpperCase()
-                        },
-                        "ParseRichText": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "NullText": {
-                          "ID": const Uuid().v4(),
-                          "Data": ""
-                        },
-                        "Size": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "HorizontalAlign": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Center"
-                        },
-                        "VerticalAlign": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Middle"
-                        },
-                        "AlignmentMode": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Geometric"
-                        },
-                        "Color": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "Materials": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            {
-                              "ID": const Uuid().v4(),
-                              "Data": var9
-                            }
-                          ]
-                        },
-                        "LineHeight": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.8
-                        },
-                        "Bounded": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "BoundsSize": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.24,
-                            1.0
-                          ]
-                        },
-                        "BoundsAlignment": {
-                          "ID": const Uuid().v4(),
-                          "Data": "MiddleCenter"
-                        },
-                        "MaskPattern": {
-                          "ID": const Uuid().v4(),
-                          "Data": ""
-                        },
-                        "HorizontalAutoSize": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "VerticalAutoSize": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "CaretPosition": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "SelectionStart": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "CaretColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "SelectionColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.5,
-                            0.2,
-                            0.5
-                          ]
-                        },
-                        "_legacyFontMaterial-ID": const Uuid().v4(),
-                        "_legacyAlign-ID": const Uuid().v4()
-                      }
-                    },
-                    {
-                      "Type": "FrooxEngine.BoxCollider",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "Offset": {
-                          "ID": var12,
-                          "Data": [
-                            -3.7252903E-09,
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "Type": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Static"
-                        },
-                        "Mass": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "CharacterCollider": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "IgnoreRaycasts": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "Size": {
-                          "ID": var13,
-                          "Data": [
-                            0.1862,
-                            0.08590001,
-                            0.0
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "Type": "FrooxEngine.BoundingBoxDriver",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "BoundedSource": {
-                          "ID": const Uuid().v4(),
-                          "Data": var2
-                        },
-                        "Size": {
-                          "ID": const Uuid().v4(),
-                          "Data": var13
-                        },
-                        "Center": {
-                          "ID": const Uuid().v4(),
-                          "Data": var12
-                        },
-                        "Padding": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "Scale": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        }
-                      }
-                    }
-                  ]
-                },
-                "Name": {
-                  "ID": const Uuid().v4(),
-                  "Data": "TypeLabel"
-                },
-                "Tag": {
-                  "ID": const Uuid().v4(),
-                  "Data": ""
-                },
-                "Active": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Persistent-ID": const Uuid().v4(),
-                "Position": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.02074349,
-                    0.02509594,
-                    0.00547504425
-                  ]
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    3.05048379E-05,
-                    0.9999975,
-                    -0.000117197917,
-                    -0.0022352722
-                  ]
-                },
-                "Scale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.268987477,
-                    0.2689861,
-                    0.268988162
-                  ]
-                },
-                "OrderOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "ParentReference": const Uuid().v4(),
-                "Children": []
-              },
-              {
-                "ID": const Uuid().v4(),
-                "Components": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "Type": "FrooxEngine.Panner2D",
-                      "Data": {
-                        "ID": const Uuid().v4(),
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "_target": {
-                          "ID": const Uuid().v4(),
-                          "Data": var14
-                        },
-                        "_offset": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "_preOffset": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "_speed": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            0.0
-                          ]
-                        },
-                        "_repeat": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "PingPong": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        }
-                      }
-                    },
-                    {
-                      "Type": "FrooxEngine.PBS_DualSidedMetallic",
-                      "Data": {
-                        "ID": var5,
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "HighPriorityIntegration": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "TextureScale": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "TextureOffset": {
-                          "ID": var14,
-                          "Data": [
-                            0.399169922,
-                            0.0
-                          ]
-                        },
-                        "AlbedoColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.25,
-                            0.25,
-                            0.25,
-                            1.0
-                          ]
-                        },
-                        "AlbedoTexture": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "EmissiveColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0
-                          ]
-                        },
-                        "EmissiveMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": var15
-                        },
-                        "NormalMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "NormalScale": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "OcclusionMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "Culling": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Off"
-                        },
-                        "AlphaHandling": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Opaque"
-                        },
-                        "AlphaClip": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "OffsetFactor": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "OffsetUnits": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "RenderQueue": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "Metallic": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "Smoothness": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.9
-                        },
-                        "MetallicMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "_regular-ID": const Uuid().v4(),
-                        "_transparent-ID": const Uuid().v4()
-                      }
-                    }
-                  ]
-                },
-                "Name": {
-                  "ID": const Uuid().v4(),
-                  "Data": "OutlineMaterial"
-                },
-                "Tag": {
-                  "ID": const Uuid().v4(),
-                  "Data": ""
-                },
-                "Active": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Persistent-ID": const Uuid().v4(),
-                "Position": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0
-                  ]
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0
-                  ]
-                },
-                "Scale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.000407140964,
-                    0.000407139567,
-                    0.000407140964
-                  ]
-                },
-                "OrderOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "ParentReference": const Uuid().v4(),
-                "Children": []
-              },
-              {
-                "ID": const Uuid().v4(),
-                "Components": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "Type": "FrooxEngine.PBS_DualSidedMetallic",
-                      "Data": {
-                        "ID": var4,
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "HighPriorityIntegration": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "TextureScale": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "TextureOffset": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "AlbedoColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0,
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "AlbedoTexture": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "EmissiveColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0
-                          ]
-                        },
-                        "EmissiveMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "NormalMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "NormalScale": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "OcclusionMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "Culling": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Off"
-                        },
-                        "AlphaHandling": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Opaque"
-                        },
-                        "AlphaClip": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "OffsetFactor": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "OffsetUnits": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "RenderQueue": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "Metallic": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "Smoothness": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.75
-                        },
-                        "MetallicMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "_regular-ID": const Uuid().v4(),
-                        "_transparent-ID": const Uuid().v4()
-                      }
-                    }
-                  ]
-                },
-                "Name": {
-                  "ID": const Uuid().v4(),
-                  "Data": "FillMaterial"
-                },
-                "Tag": {
-                  "ID": const Uuid().v4(),
-                  "Data": ""
-                },
-                "Active": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Persistent-ID": const Uuid().v4(),
-                "Position": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0
-                  ]
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0
-                  ]
-                },
-                "Scale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.000407140964,
-                    0.000407139567,
-                    0.000407140964
-                  ]
-                },
-                "OrderOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "ParentReference": const Uuid().v4(),
-                "Children": []
-              },
-              {
-                "ID": const Uuid().v4(),
-                "Components": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    {
-                      "Type": "FrooxEngine.PBS_DualSidedMetallic",
-                      "Data": {
-                        "ID": var6,
-                        "persistent-ID": const Uuid().v4(),
-                        "UpdateOrder": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0
-                        },
-                        "Enabled": {
-                          "ID": const Uuid().v4(),
-                          "Data": true
-                        },
-                        "HighPriorityIntegration": {
-                          "ID": const Uuid().v4(),
-                          "Data": false
-                        },
-                        "TextureScale": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            1.0,
-                            1.0
-                          ]
-                        },
-                        "TextureOffset": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0
-                          ]
-                        },
-                        "AlbedoColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.25,
-                            0.25,
-                            0.25,
-                            1.0
-                          ]
-                        },
-                        "AlbedoTexture": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "EmissiveColor": {
-                          "ID": const Uuid().v4(),
-                          "Data": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0
-                          ]
-                        },
-                        "EmissiveMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "NormalMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "NormalScale": {
-                          "ID": const Uuid().v4(),
-                          "Data": 1.0
-                        },
-                        "OcclusionMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "Culling": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Off"
-                        },
-                        "AlphaHandling": {
-                          "ID": const Uuid().v4(),
-                          "Data": "Opaque"
-                        },
-                        "AlphaClip": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "OffsetFactor": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "OffsetUnits": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "RenderQueue": {
-                          "ID": const Uuid().v4(),
-                          "Data": -1
-                        },
-                        "Metallic": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.0
-                        },
-                        "Smoothness": {
-                          "ID": const Uuid().v4(),
-                          "Data": 0.8
-                        },
-                        "MetallicMap": {
-                          "ID": const Uuid().v4(),
-                          "Data": null
-                        },
-                        "_regular-ID": const Uuid().v4(),
-                        "_transparent-ID": const Uuid().v4()
-                      }
-                    }
-                  ]
-                },
-                "Name": {
-                  "ID": const Uuid().v4(),
-                  "Data": "TypeMaterial"
-                },
-                "Tag": {
-                  "ID": const Uuid().v4(),
-                  "Data": ""
-                },
-                "Active": {
-                  "ID": const Uuid().v4(),
-                  "Data": true
-                },
-                "Persistent-ID": const Uuid().v4(),
-                "Position": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0
-                  ]
-                },
-                "Rotation": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0
-                  ]
-                },
-                "Scale": {
-                  "ID": const Uuid().v4(),
-                  "Data": [
-                    0.000407140964,
-                    0.000407139567,
-                    0.000407140964
-                  ]
-                },
-                "OrderOffset": {
-                  "ID": const Uuid().v4(),
-                  "Data": 0
-                },
-                "ParentReference": const Uuid().v4(),
-                "Children": []
-              }
-            ]
-          }
-        ]
-      },
-      "Assets": [
-        {
-          "Type": "FrooxEngine.StaticMesh",
-          "Data": {
-            "ID": var7,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///3738bf6fc560f7d08d872ce12b06f4d9337ac5da415b6de6008a49ca128658ec"
-            },
-            "Readable": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            }
-          }
-        },
-        {
-          "Type": "FrooxEngine.FontChain",
-          "Data": {
-            "ID": var8,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "HighPriorityIntegration": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            },
-            "MainFont": {
-              "ID": const Uuid().v4(),
-              "Data": var16
-            },
-            "FallbackFonts": {
-              "ID": const Uuid().v4(),
+            "Components": {
+              "ID": "00000018-0000-0000-0000-000000000000",
               "Data": [
                 {
-                  "ID": const Uuid().v4(),
-                  "Data": var17
+                  "Type": 2,
+                  "Data": {
+                    "ID": "00000019-0000-0000-0000-000000000000",
+                    "Enabled": {
+                      "ID": "0000001c-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "PreferredFormat": {
+                      "ID": "00000023-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "IsNormalMap": {
+                      "ID": "00000026-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "WrapModeV": {
+                      "ID": "00000028-0000-0000-0000-000000000000",
+                      "Data": "Clamp"
+                    },
+                    "MaxSize": {
+                      "ID": "0000002c-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "MipMaps": {
+                      "ID": "0000002d-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "URL": {
+                      "ID": "0000001d-0000-0000-0000-000000000000",
+                      "Data": "@$imageResDb"
+                    },
+                    "AnisotropicLevel": {
+                      "ID": "0000001f-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "Uncompressed": {
+                      "ID": "00000020-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "PreferredProfile": {
+                      "ID": "00000024-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "WrapModeU": {
+                      "ID": "00000027-0000-0000-0000-000000000000",
+                      "Data": "Clamp"
+                    },
+                    "MinSize": {
+                      "ID": "0000002b-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "MipMapFilter": {
+                      "ID": "0000002f-0000-0000-0000-000000000000",
+                      "Data": "Box"
+                    },
+                    "Readable": {
+                      "ID": "00000030-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "UpdateOrder": {
+                      "ID": "0000001b-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "MipMapBias": {
+                      "ID": "00000025-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "PowerOfTwoAlignThreshold": {
+                      "ID": "00000029-0000-0000-0000-000000000000",
+                      "Data": 0.05000000074505806
+                    },
+                    "CrunchCompressed": {
+                      "ID": "0000002a-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "persistent-ID": "0000001a-0000-0000-0000-000000000000",
+                    "FilterMode": {
+                      "ID": "0000001e-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "DirectLoad": {
+                      "ID": "00000021-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "ForceExactVariant": {
+                      "ID": "00000022-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "KeepOriginalMipMaps": {
+                      "ID": "0000002e-0000-0000-0000-000000000000",
+                      "Data": false
+                    }
+                  }
                 },
                 {
-                  "ID": const Uuid().v4(),
-                  "Data": var18
+                  "Type": 3,
+                  "Data": {
+                    "UpdateOrder": {
+                      "Data": 0,
+                      "ID": "00000033-0000-0000-0000-000000000000"
+                    },
+                    "Enabled": {
+                      "ID": "00000034-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Texture": {
+                      "ID": "00000035-0000-0000-0000-000000000000",
+                      "Data": "00000019-0000-0000-0000-000000000000"
+                    },
+                    "ID": "00000031-0000-0000-0000-000000000000",
+                    "persistent-ID": "00000032-0000-0000-0000-000000000000"
+                  }
                 },
                 {
-                  "ID": const Uuid().v4(),
-                  "Data": var19
+                  "Type": 4,
+                  "Data": {
+                    "UpdateOrder": {
+                      "ID": "00000038-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Enabled": {
+                      "ID": "00000039-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Texture": {
+                      "ID": "0000003a-0000-0000-0000-000000000000",
+                      "Data": "00000019-0000-0000-0000-000000000000"
+                    },
+                    "Crop": {
+                      "ID": "0000003b-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "ID": "00000036-0000-0000-0000-000000000000",
+                    "persistent-ID": "00000037-0000-0000-0000-000000000000"
+                  }
                 },
                 {
-                  "ID": const Uuid().v4(),
-                  "Data": var20
+                  "Type": 5,
+                  "Data": {
+                    "ID": "0000003c-0000-0000-0000-000000000000",
+                    "persistent-ID": "0000003d-0000-0000-0000-000000000000",
+                    "UpdateOrder": {
+                      "ID": "0000003e-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Enabled": {
+                      "Data": true,
+                      "ID": "0000003f-0000-0000-0000-000000000000"
+                    },
+                    "Normal": {
+                      "ID": "00000040-0000-0000-0000-000000000000",
+                      "Data": [0, 0, 1]
+                    },
+                    "SnapParent": {
+                      "Data": null,
+                      "ID": "00000041-0000-0000-0000-000000000000"
+                    }
+                  }
+                },
+                {
+                  "Type": 6,
+                  "Data": {
+                    "SpawnInstanceOnTrigger": {
+                      "ID": "00000047-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "ID": "00000042-0000-0000-0000-000000000000",
+                    "persistent-ID": "00000043-0000-0000-0000-000000000000",
+                    "UpdateOrder": {
+                      "ID": "00000044-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Enabled": {
+                      "ID": "00000045-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Reference": {
+                      "ID": "00000046-0000-0000-0000-000000000000",
+                      "Data": "00000019-0000-0000-0000-000000000000"
+                    }
+                  }
+                },
+                {
+                  "Type": 7,
+                  "Data": {
+                    "ID": "00000048-0000-0000-0000-000000000000",
+                    "persistent-ID": "00000049-0000-0000-0000-000000000000",
+                    "UpdateOrder": {
+                      "ID": "0000004a-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Enabled": {
+                      "Data": true,
+                      "ID": "0000004b-0000-0000-0000-000000000000"
+                    },
+                    "AssetReference": {
+                      "ID": "0000004c-0000-0000-0000-000000000000",
+                      "Data": "00000019-0000-0000-0000-000000000000"
+                    }
+                  }
+                },
+                {
+                  "Type": 8,
+                  "Data": {
+                    "__legacyPresentUsers-ID": "0000006e-0000-0000-0000-000000000000",
+                    "StereoLayout": {
+                      "ID": "00000073-0000-0000-0000-000000000000",
+                      "Data": "None"
+                    },
+                    "Enabled": {
+                      "ID": "00000050-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "TakenGlobalPosition": {
+                      "ID": "0000005e-0000-0000-0000-000000000000",
+                      "Data": [
+                        0.1488455832004547, -0.0002761205250862986,
+                        -1.3219715356826782
+                      ]
+                    },
+                    "UserInfos": {
+                      "ID": "00000063-0000-0000-0000-000000000000",
+                      "Data": [
+                        {
+                          "IsPresent": {
+                            "Data": true,
+                            "ID": "0000006a-0000-0000-0000-000000000000"
+                          },
+                          "HeadPosition": {
+                            "ID": "0000006b-0000-0000-0000-000000000000",
+                            "Data": [
+                              0.13439173996448517, 1.663012146949768,
+                              -1.2103259563446045
+                            ]
+                          },
+                          "HeadOrientation": {
+                            "ID": "0000006c-0000-0000-0000-000000000000",
+                            "Data": [
+                              0.06871938705444336, -0.10541222244501114,
+                              0.0019961402285844088, 0.9920493960380554
+                            ]
+                          },
+                          "SessionJoinTimestamp": {
+                            "Data": "2026-07-05T10:08:56.132Z",
+                            "ID": "0000006d-0000-0000-0000-000000000000"
+                          },
+                          "ID": "00000064-0000-0000-0000-000000000000",
+                          "User": {
+                            "User": {
+                              "ID": "00000066-0000-0000-0000-000000000000",
+                              "Data": null
+                            },
+                            "_machineId": {
+                              "ID": "00000067-0000-0000-0000-000000000000",
+                              "Data": machineId
+                            },
+                            "_userId": {
+                              "ID": "00000068-0000-0000-0000-000000000000",
+                              "Data": null
+                            },
+                            "ID": "00000065-0000-0000-0000-000000000000"
+                          },
+                          "IsInVR": {
+                            "Data": false,
+                            "ID": "00000069-0000-0000-0000-000000000000"
+                          }
+                        }
+                      ]
+                    },
+                    "CameraManufacturer": {
+                      "ID": "0000006f-0000-0000-0000-000000000000",
+                      "Data": "Resonite"
+                    },
+                    "CameraFOV": {
+                      "ID": "00000071-0000-0000-0000-000000000000",
+                      "Data": 85
+                    },
+                    "_exportedUsers-ID": "00000074-0000-0000-0000-000000000000",
+                    "ID": "0000004d-0000-0000-0000-000000000000",
+                    "UpdateOrder": {
+                      "Data": 0,
+                      "ID": "0000004f-0000-0000-0000-000000000000"
+                    },
+                    "LocationURL": {
+                      "ID": "00000052-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "LocationHost": {
+                      "_userId": {
+                        "Data": null,
+                        "ID": "00000056-0000-0000-0000-000000000000"
+                      },
+                      "ID": "00000053-0000-0000-0000-000000000000",
+                      "User": {
+                        "ID": "00000054-0000-0000-0000-000000000000",
+                        "Data": null
+                      },
+                      "_machineId": {
+                        "ID": "00000055-0000-0000-0000-000000000000",
+                        "Data": machineId,
+                      }
+                    },
+                    "LocationHiddenFromListing": {
+                      "ID": "00000058-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "TakenGlobalRotation": {
+                      "ID": "0000005f-0000-0000-0000-000000000000",
+                      "Data": [0, 0.000553934252820909, 0, 0.9999998211860657]
+                    },
+                    "TakenGlobalScale": {
+                      "Data": [1, 1, 1],
+                      "ID": "00000060-0000-0000-0000-000000000000"
+                    },
+                    "AppVersion": {
+                      "ID": "00000061-0000-0000-0000-000000000000",
+                      "Data": "2026.6.24.835"
+                    },
+                    "LocationAccessLevel": {
+                      "ID": "00000057-0000-0000-0000-000000000000",
+                      "Data": "Private"
+                    },
+                    "TimeTaken": {
+                      "ID": "00000059-0000-0000-0000-000000000000",
+                      "Data": "2026-07-05T10:10:01.042Z"
+                    },
+                    "TakenBy": {
+                      "ID": "0000005a-0000-0000-0000-000000000000",
+                      "User": {
+                        "Data": null,
+                        "ID": "0000005b-0000-0000-0000-000000000000"
+                      },
+                      "_machineId": {
+                        "ID": "0000005c-0000-0000-0000-000000000000",
+                        "Data": machineId
+                      },
+                      "_userId": {
+                        "ID": "0000005d-0000-0000-0000-000000000000",
+                        "Data": null
+                      }
+                    },
+                    "RendererName": {
+                      "ID": "00000062-0000-0000-0000-000000000000",
+                      "Data": "Renderite.Renderer.Unity 2026.6.23.743 (2019.4.19f1)"
+                    },
+                    "CameraModel": {
+                      "ID": "00000070-0000-0000-0000-000000000000",
+                      "Data": "PhotoCaptureManager"
+                    },
+                    "Is360": {
+                      "ID": "00000072-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "persistent-ID": "0000004e-0000-0000-0000-000000000000",
+                    "LocationName": {
+                      "ID": "00000051-0000-0000-0000-000000000000",
+                      "Data": "Local"
+                    }
+                  }
+                },
+                {
+                  "Type": 9,
+                  "Data": {
+                    "ReparentOnRelease": {
+                      "ID": "00000079-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "GrabPriorityWhenGrabbed": {
+                      "ID": "0000007d-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "AllowSteal": {
+                      "ID": "00000080-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "UpdateOrder": {
+                      "ID": "00000077-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "CustomCanGrabCheck": {
+                      "ID": "0000007e-0000-0000-0000-000000000000",
+                      "Data": { "Target": null }
+                    },
+                    "DropOnDisable": {
+                      "ID": "00000081-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "ActiveUserFilter": {
+                      "ID": "00000082-0000-0000-0000-000000000000",
+                      "Data": "Disabled"
+                    },
+                    "OnlyUsers": {
+                      "ID": "00000083-0000-0000-0000-000000000000",
+                      "Data": []
+                    },
+                    "Enabled": {
+                      "Data": true,
+                      "ID": "00000078-0000-0000-0000-000000000000"
+                    },
+                    "PreserveUserSpace": {
+                      "ID": "0000007a-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Scalable": {
+                      "ID": "00000084-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "_grabber": {
+                      "ID": "00000087-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "__legacyActiveUserRootOnly-ID": "0000008a-0000-0000-0000-000000000000",
+                    "DestroyOnRelease": {
+                      "ID": "0000007b-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "GrabPriority": {
+                      "ID": "0000007c-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "EditModeOnly": {
+                      "ID": "0000007f-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "Receivable": {
+                      "ID": "00000085-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "AllowOnlyPhysicalGrab": {
+                      "ID": "00000086-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "_lastParent": {
+                      "ID": "00000088-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "_lastParentIsUserSpace": {
+                      "Data": false,
+                      "ID": "00000089-0000-0000-0000-000000000000"
+                    },
+                    "ID": "00000075-0000-0000-0000-000000000000",
+                    "persistent-ID": "00000076-0000-0000-0000-000000000000"
+                  }
+                },
+                {
+                  "Type": 10,
+                  "Data": {
+                    "Materials": {
+                      "ID": "00000091-0000-0000-0000-000000000000",
+                      "Data": [
+                        {
+                          "ID": "00000092-0000-0000-0000-000000000000",
+                          "Data": "00000093-0000-0000-0000-000000000000"
+                        }
+                      ]
+                    },
+                    "MaterialPropertyBlocks": {
+                      "ID": "00000094-0000-0000-0000-000000000000",
+                      "Data": []
+                    },
+                    "MotionVectorMode": {
+                      "ID": "00000096-0000-0000-0000-000000000000",
+                      "Data": "Object"
+                    },
+                    "ShadowCastMode": {
+                      "ID": "00000095-0000-0000-0000-000000000000",
+                      "Data": "On"
+                    },
+                    "SortingOrder": {
+                      "ID": "00000097-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "ID": "0000008b-0000-0000-0000-000000000000",
+                    "persistent-ID": "0000008c-0000-0000-0000-000000000000",
+                    "UpdateOrder": {
+                      "Data": 0,
+                      "ID": "0000008d-0000-0000-0000-000000000000"
+                    },
+                    "Enabled": {
+                      "ID": "0000008e-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Mesh": {
+                      "ID": "0000008f-0000-0000-0000-000000000000",
+                      "Data": "00000090-0000-0000-0000-000000000000"
+                    }
+                  }
+                },
+                {
+                  "Type": 11,
+                  "Data": {
+                    "persistent-ID": "00000098-0000-0000-0000-000000000000",
+                    "Enabled": {
+                      "ID": "0000009a-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Size": {
+                      "ID": "000000a0-0000-0000-0000-000000000000",
+                      "Data": [0.8715755343437195, 0.4902612566947937]
+                    },
+                    "LowerLeftColor": {
+                      "ID": "000000a7-0000-0000-0000-000000000000",
+                      "Data": [1, 1, 1, 1, "sRGB"]
+                    },
+                    "UpdateOrder": {
+                      "ID": "00000099-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "OverrideBoundingBox": {
+                      "ID": "0000009c-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "Profile": {
+                      "ID": "0000009e-0000-0000-0000-000000000000",
+                      "Data": "Linear"
+                    },
+                    "UVOffset": {
+                      "ID": "000000a1-0000-0000-0000-000000000000",
+                      "Data": [0, 0]
+                    },
+                    "UVScale": {
+                      "Data": [1, 1],
+                      "ID": "000000a2-0000-0000-0000-000000000000"
+                    },
+                    "DualSided": {
+                      "ID": "000000a4-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "UpperLeftColor": {
+                      "Data": [1, 1, 1, 1, "sRGB"],
+                      "ID": "000000a6-0000-0000-0000-000000000000"
+                    },
+                    "LowerRightColor": {
+                      "ID": "000000a8-0000-0000-0000-000000000000",
+                      "Data": [1, 1, 1, 1, "sRGB"]
+                    },
+                    "ID": "00000090-0000-0000-0000-000000000000",
+                    "Rotation": {
+                      "ID": "0000009f-0000-0000-0000-000000000000",
+                      "Data": [0, 0, 0, 1]
+                    },
+                    "ScaleUVWithSize": {
+                      "ID": "000000a3-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "UseVertexColors": {
+                      "Data": true,
+                      "ID": "000000a5-0000-0000-0000-000000000000"
+                    },
+                    "UpperRightColor": {
+                      "ID": "000000a9-0000-0000-0000-000000000000",
+                      "Data": [1, 1, 1, 1, "sRGB"]
+                    },
+                    "HighPriorityIntegration": {
+                      "ID": "0000009b-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "OverridenBoundingBox": {
+                      "Data": { "Max": [0, 0, 0], "Min": [0, 0, 0] },
+                      "ID": "0000009d-0000-0000-0000-000000000000"
+                    }
+                  }
+                },
+                {
+                  "Data": {
+                    "UpdateOrder": {
+                      "ID": "000000ab-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "TintColor": {
+                      "ID": "000000ae-0000-0000-0000-000000000000",
+                      "Data": [1, 1, 1, 1, "sRGB"]
+                    },
+                    "MaskTexture": {
+                      "ID": "000000b2-0000-0000-0000-000000000000",
+                      "Data": null
+                    },
+                    "StereoTextureTransform": {
+                      "Data": false,
+                      "ID": "000000c2-0000-0000-0000-000000000000"
+                    },
+                    "_unlit-ID": "000000ce-0000-0000-0000-000000000000",
+                    "TextureOffset": {
+                      "ID": "000000b1-0000-0000-0000-000000000000",
+                      "Data": [0, 0]
+                    },
+                    "MaskOffset": {
+                      "Data": [0, 0],
+                      "ID": "000000b4-0000-0000-0000-000000000000"
+                    },
+                    "BlendMode": {
+                      "ID": "000000b6-0000-0000-0000-000000000000",
+                      "Data": "Opaque"
+                    },
+                    "OffsetMagnitude": {
+                      "ID": "000000bd-0000-0000-0000-000000000000",
+                      "Data": [0, 0]
+                    },
+                    "OffsetTextureScale": {
+                      "ID": "000000be-0000-0000-0000-000000000000",
+                      "Data": [1, 1]
+                    },
+                    "UsePerBillboardScale": {
+                      "Data": false,
+                      "ID": "000000c7-0000-0000-0000-000000000000"
+                    },
+                    "_unlitBillboard-ID": "000000cf-0000-0000-0000-000000000000",
+                    "MaskMode": {
+                      "ID": "000000b5-0000-0000-0000-000000000000",
+                      "Data": "MultiplyAlpha"
+                    },
+                    "AlphaCutoff": {
+                      "ID": "000000b7-0000-0000-0000-000000000000",
+                      "Data": 0.5
+                    },
+                    "OffsetTextureOffset": {
+                      "ID": "000000bf-0000-0000-0000-000000000000",
+                      "Data": [0, 0]
+                    },
+                    "RightEyeTextureOffset": {
+                      "ID": "000000c4-0000-0000-0000-000000000000",
+                      "Data": [0, 0]
+                    },
+                    "OffsetUnits": {
+                      "ID": "000000cc-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "ID": "00000093-0000-0000-0000-000000000000",
+                    "MaskScale": {
+                      "ID": "000000b3-0000-0000-0000-000000000000",
+                      "Data": [1, 1]
+                    },
+                    "Sidedness": {
+                      "ID": "000000ba-0000-0000-0000-000000000000",
+                      "Data": "Double"
+                    },
+                    "DecodeAsNormalMap": {
+                      "ID": "000000c5-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "UsePerBillboardRotation": {
+                      "ID": "000000c8-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "HighPriorityIntegration": {
+                      "ID": "000000ad-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "TextureScale": {
+                      "ID": "000000b0-0000-0000-0000-000000000000",
+                      "Data": [1, 1]
+                    },
+                    "ZWrite": {
+                      "ID": "000000bb-0000-0000-0000-000000000000",
+                      "Data": "Auto"
+                    },
+                    "OffsetTexture": {
+                      "Data": null,
+                      "ID": "000000bc-0000-0000-0000-000000000000"
+                    },
+                    "PolarUVmapping": {
+                      "Data": false,
+                      "ID": "000000c0-0000-0000-0000-000000000000"
+                    },
+                    "OffsetFactor": {
+                      "ID": "000000cb-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "PolarPower": {
+                      "ID": "000000c1-0000-0000-0000-000000000000",
+                      "Data": 1
+                    },
+                    "BillboardSize": {
+                      "ID": "000000ca-0000-0000-0000-000000000000",
+                      "Data": [0.004999999888241291, 0.004999999888241291]
+                    },
+                    "Texture": {
+                      "Data": "00000019-0000-0000-0000-000000000000",
+                      "ID": "000000af-0000-0000-0000-000000000000"
+                    },
+                    "UseVertexColors": {
+                      "Data": true,
+                      "ID": "000000b8-0000-0000-0000-000000000000"
+                    },
+                    "VertexColorInterpolationSpace": {
+                      "ID": "000000b9-0000-0000-0000-000000000000",
+                      "Data": "Linear"
+                    },
+                    "UsePerBillboardUV": {
+                      "ID": "000000c9-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "RenderQueue": {
+                      "ID": "000000cd-0000-0000-0000-000000000000",
+                      "Data": -1
+                    },
+                    "persistent-ID": "000000aa-0000-0000-0000-000000000000",
+                    "Enabled": {
+                      "Data": true,
+                      "ID": "000000ac-0000-0000-0000-000000000000"
+                    },
+                    "RightEyeTextureScale": {
+                      "ID": "000000c3-0000-0000-0000-000000000000",
+                      "Data": [1, 1]
+                    },
+                    "UseBillboardGeometry": {
+                      "Data": false,
+                      "ID": "000000c6-0000-0000-0000-000000000000"
+                    }
+                  },
+                  "Type": 12
+                },
+                {
+                  "Type": 13,
+                  "Data": {
+                    "persistent-ID": "000000d1-0000-0000-0000-000000000000",
+                    "Enabled": {
+                      "ID": "000000d3-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Target": {
+                      "ID": "000000d5-0000-0000-0000-000000000000",
+                      "Data": "000000a0-0000-0000-0000-000000000000"
+                    },
+                    "Premultiply": {
+                      "ID": "000000d7-0000-0000-0000-000000000000",
+                      "Data": [1, 1]
+                    },
+                    "Ratio": {
+                      "ID": "000000d8-0000-0000-0000-000000000000",
+                      "Data": [1, 1]
+                    },
+                    "MaxSize": {
+                      "ID": "000000d9-0000-0000-0000-000000000000",
+                      "Data": [3.4028234663852886e38, 3.4028234663852886e38]
+                    },
+                    "ID": "000000d0-0000-0000-0000-000000000000",
+                    "UpdateOrder": {
+                      "ID": "000000d2-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Texture": {
+                      "ID": "000000d4-0000-0000-0000-000000000000",
+                      "Data": "00000019-0000-0000-0000-000000000000"
+                    },
+                    "DriveMode": {
+                      "ID": "000000d6-0000-0000-0000-000000000000",
+                      "Data": "Normalized"
+                    }
+                  }
+                },
+                {
+                  "Type": 14,
+                  "Data": {
+                    "ID": "000000da-0000-0000-0000-000000000000",
+                    "persistent-ID": "000000db-0000-0000-0000-000000000000",
+                    "Offset": {
+                      "ID": "000000de-0000-0000-0000-000000000000",
+                      "Data": [0, 0, 0]
+                    },
+                    "Type": {
+                      "Data": "NoCollision",
+                      "ID": "000000df-0000-0000-0000-000000000000"
+                    },
+                    "Mass": {
+                      "ID": "000000e0-0000-0000-0000-000000000000",
+                      "Data": 1
+                    },
+                    "IgnoreRaycasts": {
+                      "ID": "000000e2-0000-0000-0000-000000000000",
+                      "Data": false
+                    },
+                    "Size": {
+                      "ID": "000000e3-0000-0000-0000-000000000000",
+                      "Data": [0.8715755343437195, 0.4902612566947937, 0]
+                    },
+                    "UpdateOrder": {
+                      "ID": "000000dc-0000-0000-0000-000000000000",
+                      "Data": 1000000
+                    },
+                    "Enabled": {
+                      "ID": "000000dd-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "CharacterCollider": {
+                      "ID": "000000e1-0000-0000-0000-000000000000",
+                      "Data": false
+                    }
+                  }
+                },
+                {
+                  "Type": 15,
+                  "Data": {
+                    "X": {
+                      "ID": "000000ea-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Y": {
+                      "Data": 1,
+                      "ID": "000000eb-0000-0000-0000-000000000000"
+                    },
+                    "UpdateOrder": {
+                      "ID": "000000e6-0000-0000-0000-000000000000",
+                      "Data": 0
+                    },
+                    "Target": {
+                      "ID": "000000e9-0000-0000-0000-000000000000",
+                      "Data": "000000e3-0000-0000-0000-000000000000"
+                    },
+                    "Z": {
+                      "ID": "000000ec-0000-0000-0000-000000000000",
+                      "Data": -1
+                    },
+                    "ID": "000000e4-0000-0000-0000-000000000000",
+                    "persistent-ID": "000000e5-0000-0000-0000-000000000000",
+                    "Enabled": {
+                      "ID": "000000e7-0000-0000-0000-000000000000",
+                      "Data": true
+                    },
+                    "Source": {
+                      "ID": "000000e8-0000-0000-0000-000000000000",
+                      "Data": "000000a0-0000-0000-0000-000000000000"
+                    }
+                  }
                 }
               ]
             }
           }
+        ],
+        "Name": { "ID": "0000000f-0000-0000-0000-000000000000", "Data": "Holder" },
+        "Persistent-ID": "00000012-0000-0000-0000-000000000000",
+        "Rotation": {
+          "ID": "00000014-0000-0000-0000-000000000000",
+          "Data": [
+            0.17878229916095734, 0.11211946606636047, 0.6981614828109741,
+            0.6841321587562561
+          ]
         },
-        {
-          "Type": "FrooxEngine.StaticFont",
-          "Data": {
-            "ID": var16,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
+        "OrderOffset": { "Data": 0, "ID": "00000016-0000-0000-0000-000000000000" },
+        "ParentReference": "000000f6-0000-0000-0000-000000000000",
+        "ID": "00000000-0000-0000-0000-000000000000",
+        "Components": {
+          "ID": "00000001-0000-0000-0000-000000000000",
+          "Data": [
+            {
+              "Data": {
+                "MaxDepth": {
+                  "ID": "00000007-0000-0000-0000-000000000000",
+                  "Data": 1
+                },
+                "ID": "00000002-0000-0000-0000-000000000000",
+                "persistent-ID": "00000003-0000-0000-0000-000000000000",
+                "UpdateOrder": {
+                  "Data": 0,
+                  "ID": "00000004-0000-0000-0000-000000000000"
+                },
+                "Enabled": {
+                  "ID": "00000005-0000-0000-0000-000000000000",
+                  "Data": true
+                },
+                "DontReparent": {
+                  "ID": "00000006-0000-0000-0000-000000000000",
+                  "Data": true
+                }
+              },
+              "Type": 0
             },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///c801b8d2522fb554678f17f4597158b1af3f9be3abd6ce35d5a3112a81e2bf39"
-            },
-            "Padding": {
-              "ID": const Uuid().v4(),
-              "Data": 1
-            },
-            "PixelRange": {
-              "ID": const Uuid().v4(),
-              "Data": 4
-            },
-            "GlyphEmSize": {
-              "ID": const Uuid().v4(),
-              "Data": 32
+            {
+              "Type": 1,
+              "Data": {
+                "UpdateOrder": {
+                  "ID": "0000000a-0000-0000-0000-000000000000",
+                  "Data": 0
+                },
+                "Enabled": {
+                  "ID": "0000000b-0000-0000-0000-000000000000",
+                  "Data": true
+                },
+                "RelativeToUserRoot": {
+                  "ID": "0000000c-0000-0000-0000-000000000000",
+                  "Data": true
+                },
+                "SavedRotation": {
+                  "ID": "0000000d-0000-0000-0000-000000000000",
+                  "Data": [
+                    7.440260851865332e-9, -0.08889392763376236,
+                    1.8630576192890658e-8, 0.9960411787033081
+                  ]
+                },
+                "SavedScale": {
+                  "ID": "0000000e-0000-0000-0000-000000000000",
+                  "Data": [1, 1, 1]
+                },
+                "ID": "00000008-0000-0000-0000-000000000000",
+                "persistent-ID": "00000009-0000-0000-0000-000000000000"
+              }
             }
-          }
+          ]
         },
-        {
-          "Type": "FrooxEngine.StaticFont",
-          "Data": {
-            "ID": var17,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///4cac521169034ddd416c6deffe2eb16234863761837df677a910697ec5babd25"
-            },
-            "Padding": {
-              "ID": const Uuid().v4(),
-              "Data": 1
-            },
-            "PixelRange": {
-              "ID": const Uuid().v4(),
-              "Data": 4
-            },
-            "GlyphEmSize": {
-              "ID": const Uuid().v4(),
-              "Data": 32
-            }
-          }
-        },
-        {
-          "Type": "FrooxEngine.StaticFont",
-          "Data": {
-            "ID": var18,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///23e7ad7cb0a5a4cf75e07c9e0848b1eb06bba15e8fa9b8cb0579fc823c532927"
-            },
-            "Padding": {
-              "ID": const Uuid().v4(),
-              "Data": 1
-            },
-            "PixelRange": {
-              "ID": const Uuid().v4(),
-              "Data": 4
-            },
-            "GlyphEmSize": {
-              "ID": const Uuid().v4(),
-              "Data": 32
-            }
-          }
-        },
-        {
-          "Type": "FrooxEngine.StaticFont",
-          "Data": {
-            "ID": var19,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///415dc6290378574135b64c808dc640c1df7531973290c4970c51fdeb849cb0c5"
-            },
-            "Padding": {
-              "ID": const Uuid().v4(),
-              "Data": 1
-            },
-            "PixelRange": {
-              "ID": const Uuid().v4(),
-              "Data": 4
-            },
-            "GlyphEmSize": {
-              "ID": const Uuid().v4(),
-              "Data": 32
-            }
-          }
-        },
-        {
-          "Type": "FrooxEngine.StaticFont",
-          "Data": {
-            "ID": var20,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///bcda0bcc22bab28ea4fedae800bfbf9ec76d71cc3b9f851779a35b7e438a839d"
-            },
-            "Padding": {
-              "ID": const Uuid().v4(),
-              "Data": 1
-            },
-            "PixelRange": {
-              "ID": const Uuid().v4(),
-              "Data": 4
-            },
-            "GlyphEmSize": {
-              "ID": const Uuid().v4(),
-              "Data": 32
-            }
-          }
-        },
-        {
-          "Type": "FrooxEngine.TextUnlitMaterial",
-          "Data": {
-            "ID": var9,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "HighPriorityIntegration": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            },
-            "_shader-ID": const Uuid().v4(),
-            "FontAtlas": {
-              "ID": const Uuid().v4(),
-              "Data": null
-            },
-            "TintColor": {
-              "ID": const Uuid().v4(),
-              "Data": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-              ]
-            },
-            "OutlineColor": {
-              "ID": const Uuid().v4(),
-              "Data": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-              ]
-            },
-            "BackgroundColor": {
-              "ID": const Uuid().v4(),
-              "Data": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-              ]
-            },
-            "AutoBackgroundColor": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "GlyphRenderMethod": {
-              "ID": const Uuid().v4(),
-              "Data": "MSDF"
-            },
-            "PixelRange": {
-              "ID": const Uuid().v4(),
-              "Data": 4.0
-            },
-            "FaceDilate": {
-              "ID": const Uuid().v4(),
-              "Data": 0.0
-            },
-            "OutlineThickness": {
-              "ID": const Uuid().v4(),
-              "Data": 0.0
-            },
-            "FaceSoftness": {
-              "ID": const Uuid().v4(),
-              "Data": 0.0
-            },
-            "BlendMode": {
-              "ID": const Uuid().v4(),
-              "Data": "Alpha"
-            },
-            "Sidedness": {
-              "ID": const Uuid().v4(),
-              "Data": "Double"
-            },
-            "ZWrite": {
-              "ID": const Uuid().v4(),
-              "Data": "Auto"
-            },
-            "ZTest": {
-              "ID": const Uuid().v4(),
-              "Data": "LessOrEqual"
-            },
-            "OffsetFactor": {
-              "ID": const Uuid().v4(),
-              "Data": 0.0
-            },
-            "OffsetUnits": {
-              "ID": const Uuid().v4(),
-              "Data": 0.0
-            },
-            "RenderQueue": {
-              "ID": const Uuid().v4(),
-              "Data": -1
-            }
-          }
-        },
-        {
-          "Type": "FrooxEngine.StaticTexture2D",
-          "Data": {
-            "ID": var15,
-            "persistent": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "UpdateOrder": {
-              "ID": const Uuid().v4(),
-              "Data": 0
-            },
-            "Enabled": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "URL": {
-              "ID": const Uuid().v4(),
-              "Data": "@resdb:///274f0d4ea4bce93abc224c9ae9f9a97a9a396b382c5338f71c738d1591dd5c35.webp"
-            },
-            "FilterMode": {
-              "ID": const Uuid().v4(),
-              "Data": "Anisotropic"
-            },
-            "AnisotropicLevel": {
-              "ID": const Uuid().v4(),
-              "Data": 8
-            },
-            "Uncompressed": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            },
-            "DirectLoad": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            },
-            "ForceExactVariant": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            },
-            "PreferredFormat": {
-              "ID": const Uuid().v4(),
-              "Data": null
-            },
-            "MipMapBias": {
-              "ID": const Uuid().v4(),
-              "Data": 0.0
-            },
-            "IsNormalMap": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            },
-            "WrapModeU": {
-              "ID": const Uuid().v4(),
-              "Data": "Repeat"
-            },
-            "WrapModeV": {
-              "ID": const Uuid().v4(),
-              "Data": "Repeat"
-            },
-            "PowerOfTwoAlignThreshold": {
-              "ID": const Uuid().v4(),
-              "Data": 0.05
-            },
-            "CrunchCompressed": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "MaxSize": {
-              "ID": const Uuid().v4(),
-              "Data": null
-            },
-            "MipMaps": {
-              "ID": const Uuid().v4(),
-              "Data": true
-            },
-            "MipMapFilter": {
-              "ID": const Uuid().v4(),
-              "Data": "Box"
-            },
-            "Readable": {
-              "ID": const Uuid().v4(),
-              "Data": false
-            }
-          }
-        }
-      ],
-      "TypeVersions": {
-        "FrooxEngine.Grabbable": 2,
-        "FrooxEngine.BoxCollider": 1,
-        "FrooxEngine.TextRenderer": 5
-      }
+        "Tag": { "ID": "00000010-0000-0000-0000-000000000000", "Data": null },
+        "Active": { "Data": true, "ID": "00000011-0000-0000-0000-000000000000" }
+      },
+      "VersionNumber": "2026.6.24.835",
+      "FeatureFlags": {
+        "NetCore": 0,
+        "TEXTURE_QUALITY": 0,
+        "TypeManagement": 0,
+        "PhotonDust": 0,
+        "RESONITE_LINK": 0,
+        "ColorManagement": 0,
+        "ResetGUID": 0,
+        "ProtoFlux": 0,
+        "ALIGNER_FILTERING": 0,
+        "Awwdio": 0
+      },
+      "Types": [
+        "[FrooxEngine]FrooxEngine.GrabbableReparentBlock",
+        "[FrooxEngine]FrooxEngine.InventoryItem",
+        "[FrooxEngine]FrooxEngine.StaticTexture2D",
+        "[FrooxEngine]FrooxEngine.TextureExportable",
+        "[FrooxEngine]FrooxEngine.ItemTextureThumbnailSource",
+        "[FrooxEngine]FrooxEngine.SnapPlane",
+        "[FrooxEngine]FrooxEngine.ReferenceProxy",
+        "[FrooxEngine]FrooxEngine.AssetProxy<[FrooxEngine]FrooxEngine.Texture2D>",
+        "[FrooxEngine]FrooxEngine.PhotoMetadata",
+        "[FrooxEngine]FrooxEngine.Grabbable",
+        "[FrooxEngine]FrooxEngine.MeshRenderer",
+        "[FrooxEngine]FrooxEngine.QuadMesh",
+        "[FrooxEngine]FrooxEngine.UnlitMaterial",
+        "[FrooxEngine]FrooxEngine.TextureSizeDriver",
+        "[FrooxEngine]FrooxEngine.BoxCollider",
+        "[FrooxEngine]FrooxEngine.Float2ToFloat3SwizzleDriver"
+      ]
     };
-    return JsonTemplate(data: data);
+    return data;
   }
 }

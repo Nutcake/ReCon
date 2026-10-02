@@ -36,11 +36,7 @@ void main() async {
     log("Failed to initialize JustAudioMediaKit, audio features will be unavailable. Error: $e");
   }
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemStatusBarContrastEnforced: true,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-    ),
+    const SystemUiOverlayStyle(systemStatusBarContrastEnforced: true, systemNavigationBarColor: Colors.transparent, systemNavigationBarDividerColor: Colors.transparent),
   );
 
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: [SystemUiOverlay.top]);
@@ -48,15 +44,13 @@ void main() async {
   await Hive.initFlutter();
 
   final dateFormat = DateFormat.Hms();
-  Logger.root.onRecord.listen(
-    (event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time),
-  );
+  Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   Logger.root.level = Level.WARNING;
   final settingsClient = SettingsClient();
   await settingsClient.loadSettings();
   final newSettings = settingsClient.currentSettings.copyWith(machineId: settingsClient.currentSettings.machineId.valueOrDefault);
   await settingsClient.changeSettings(newSettings); // Save generated machineId to disk
-
+  final packageInfo = await PackageInfo.fromPlatform();
   var cachedAuth = AuthenticationData.unauthenticated();
   try {
     cachedAuth = await ApiClient.tryCachedLogin();
@@ -64,14 +58,15 @@ void main() async {
     // Ignore
   }
 
-  runApp(ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth));
+  runApp(ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth, packageInfo: packageInfo));
 }
 
 class ReCon extends StatefulWidget {
-  const ReCon({required this.settingsClient, required this.cachedAuthentication, super.key});
+  const ReCon({required this.settingsClient, required this.cachedAuthentication, required this.packageInfo, super.key});
 
   final SettingsClient settingsClient;
   final AuthenticationData cachedAuthentication;
+  final PackageInfo packageInfo;
 
   @override
   State<ReCon> createState() => _ReConState();
@@ -120,10 +115,7 @@ class _ReConState extends State<ReCon> {
         await showDialog(
           context: navigator.overlay!.context,
           builder: (context) {
-            return UpdateNotifier(
-              remoteVersion: remoteSem,
-              localVersion: currentSem,
-            );
+            return UpdateNotifier(remoteVersion: remoteSem, localVersion: currentSem);
           },
         );
       }
@@ -156,10 +148,7 @@ class _ReConState extends State<ReCon> {
 
   // Workaround for issue https://github.com/material-foundation/flutter-packages/issues/582
   // Dynamic color schemes do not generate new additional surface container colours so we have to do it manually
-  (ColorScheme light, ColorScheme dark) _generateDynamicColourSchemes(
-    ColorScheme lightDynamic,
-    ColorScheme darkDynamic,
-  ) {
+  (ColorScheme light, ColorScheme dark) _generateDynamicColourSchemes(ColorScheme lightDynamic, ColorScheme darkDynamic) {
     final lightBase = ColorScheme.fromSeed(seedColor: lightDynamic.primary);
     final darkBase = ColorScheme.fromSeed(seedColor: darkDynamic.primary, brightness: Brightness.dark);
 
@@ -173,41 +162,39 @@ class _ReConState extends State<ReCon> {
   }
 
   List<Color> _extractAdditionalColours(ColorScheme scheme) => [
-        scheme.surface,
-        scheme.surfaceDim,
-        scheme.surfaceBright,
-        scheme.surfaceContainerLowest,
-        scheme.surfaceContainerLow,
-        scheme.surfaceContainer,
-        scheme.surfaceContainerHigh,
-        scheme.surfaceContainerHighest,
-      ];
+    scheme.surface,
+    scheme.surfaceDim,
+    scheme.surfaceBright,
+    scheme.surfaceContainerLowest,
+    scheme.surfaceContainerLow,
+    scheme.surfaceContainer,
+    scheme.surfaceContainerHigh,
+    scheme.surfaceContainerHighest,
+  ];
 
   ColorScheme _insertAdditionalColours(ColorScheme scheme, List<Color> additionalColours) => scheme.copyWith(
-        surface: additionalColours[0],
-        surfaceDim: additionalColours[1],
-        surfaceBright: additionalColours[2],
-        surfaceContainerLowest: additionalColours[3],
-        surfaceContainerLow: additionalColours[4],
-        surfaceContainer: additionalColours[5],
-        surfaceContainerHigh: additionalColours[6],
-        surfaceContainerHighest: additionalColours[7],
-      );
+    surface: additionalColours[0],
+    surfaceDim: additionalColours[1],
+    surfaceBright: additionalColours[2],
+    surfaceContainerLowest: additionalColours[3],
+    surfaceContainerLow: additionalColours[4],
+    surfaceContainer: additionalColours[5],
+    surfaceContainerHigh: additionalColours[6],
+    surfaceContainerHighest: additionalColours[7],
+  );
 
   @override
   Widget build(BuildContext context) {
     return Phoenix(
       child: Builder(
         builder: (context) {
-          final apiClient = ApiClient(authenticationData: _authData)
-            ..addLogoutListener(
-              () {
-                setState(() {
-                  _authData = AuthenticationData.unauthenticated();
-                });
-                Phoenix.rebirth(context);
-              },
-            );
+          final apiClient = ApiClient(authenticationData: _authData, pkgInfo: widget.packageInfo)
+            ..addLogoutListener(() {
+              setState(() {
+                _authData = AuthenticationData.unauthenticated();
+              });
+              Phoenix.rebirth(context);
+            });
           return ClientHolder(
             settingsClient: widget.settingsClient,
             apiClient: apiClient,
@@ -246,21 +233,12 @@ class _ReConState extends State<ReCon> {
                                   ),
                                 ),
                                 ChangeNotifierProvider(
-                                  create: (context) => SessionClient(
-                                    apiClient: clientHolder.apiClient,
-                                    settingsClient: clientHolder.settingsClient,
-                                  ),
+                                  create: (context) => SessionClient(apiClient: clientHolder.apiClient, settingsClient: clientHolder.settingsClient),
                                 ),
-                                ChangeNotifierProvider(
-                                  create: (context) => InventoryClient(
-                                    apiClient: clientHolder.apiClient,
-                                  ),
-                                ),
+                                ChangeNotifierProvider(create: (context) => InventoryClient(apiClient: clientHolder.apiClient)),
                               ],
                               child: AnnotatedRegion<SystemUiOverlayStyle>(
-                                value: SystemUiOverlayStyle(
-                                  statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                ),
+                                value: SystemUiOverlayStyle(statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest),
                                 child: const Home(),
                               ),
                             )
