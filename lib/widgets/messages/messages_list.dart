@@ -88,8 +88,8 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: const Text("Ask for session invite"),
-                            content: Text("Do you want to ask ${friend.contactUsername} for a session invite?"),
+                            title: const Text("messaging.invite.askForInviteHeader").tr(),
+                            content: Text("messaging.invite.askForInviteDescription").tr(args: [friend.contactUsername]),
                             actionsAlignment: MainAxisAlignment.spaceBetween,
                             actions: [
                               TextButton(

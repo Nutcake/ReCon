@@ -65,6 +65,8 @@
 		"removeAttachments": "Remove all attachments",
 		"removeAttachments.description": "This will remove all attachments, are you sure?",
 		"invite": {
+			"askForInviteHeader": "Ask for session invite",
+			"askForInviteDescription": "Do you want to ask {} for a session invite?",
 			"requestedSelf": "Requested invite",
 			"granted": "Granted {} invite to session {}", 
 			"addAsContact": "Adding {} as a contact of the headless",
