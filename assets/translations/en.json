@@ -1,0 +1,184 @@
+{
+	"navigation": {
+		"chat": "Chat",
+		"settings": "@:settings.title",
+		"sessions": "@:sessions.title",
+		"worlds": "@:worlds.title",
+		"inventory": "@:inventory.title",
+		"findUsers": "Find Users",
+		"myProfile": "My Profile"
+	},
+	"settings": {
+		"title": "Settings",
+		"notifications": {
+			"title": "Notifications",
+			"enabled": "Enable Notifications",
+			"showusernames": "Show Usernames"
+		},
+		"appearance": {
+			"title": "Appearance",
+			"theme": "Theme Mode"
+		},
+		"system": {
+			"title": "System",
+			"language": "Language",
+			"signout": "Sign out",
+			"signout.confirm": "Are you sure you want to sign out?",
+			"about": "About ReCon",
+			"failedToOpenLink": "Failed to open link."
+		},
+		"developer": {
+			"title": "Developer Options"
+		}
+	},
+	"general": {
+		"yes": "Yes",
+		"no": "No",
+		"confirm": "Confirm",
+		"cancel": "Cancel",
+		"retry": "Retry",
+		"search": "Search",
+		"enabled": "Enabled",
+		"disabled": "Disabled"
+	},
+	"contacts": {
+		"status": {
+			"sociable": "Sociable",
+			"online": "Online",
+			"away": "Away",
+			"busy": "Busy",
+			"invisible": "Invisible",
+			"offline": "Offline"
+		},
+		"headlessHost": "Headless Host",
+		"inWorld": "{} in ",
+		"inWorldNoDetails": "{} in {} World",
+		"onVersion": "{} on version {}",
+		"bot": "Bot"
+	},
+	"messaging": {
+		"placeholder": "Message {}...",
+		"noMessages": "There are no messages here\nWhy not say hello?",
+		"failedSend": "Failed to send a message: {}",
+		"recording": "Recording: {}",
+		"cancelRecording": "Cancel Recording",
+		"removeAttachments": "Remove all attachments",
+		"removeAttachments.description": "This will remove all attachments, are you sure?",
+		"invite": {
+			"askForInviteHeader": "Ask for session invite",
+			"askForInviteDescription": "Do you want to ask {} for a session invite?",
+			"requestedSelf": "Requested invite",
+			"granted": "Granted {} invite to session {}", 
+			"addAsContact": "Adding {} as a contact of the headless",
+			"unknownResponse": "Unknown response: {} for invite request",
+			"requestForwarded": "{} wants to invite {} to {}",
+			"requestToYou": "{} would like to join you in '{}'",
+			"requestGeneric": "{} would like to join you",
+			"hostedBy": "Hosted by {}"
+		},
+		"send": "Send",
+		"copiedToClipboard": "Copied to clipboard"
+	},
+	"sessions": {
+		"title": "Sessions",
+		"preview": "Session Preview",
+		"headless": "Headless:",
+		"access": "Access:",
+		"users": "Users:",
+		"sessionUsers": "{} / {} Online",
+		"noSessionsFound": "No Sessions Found",
+		"noSessionsFound.description": "Try to adjust your filters",
+		"noLongerValid": "Session is no longer valid",
+		"accessLevel": {
+			"unknown": "Unknown",
+			"private": "Private",
+			"lan": "LAN",
+			"contacts": "Contacts",
+			"contactsPlus": "Contacts+",
+			"registeredUsers": "Registered users",
+			"anyone": "Public"
+		},
+		"user":{
+			"active": "Active",
+			"inactive": "Inactive"
+		}
+	},
+	"worlds": {
+		"title": "Worlds",
+		"preview": "World Preview",
+		"search": "Search for worlds",
+		"inputTags": "Enter tags",
+		"failedToLoad": "Failed to load Worlds",
+		"noWorldsFound": "No Worlds Found",
+		"noWorldsFound.description": "Try to adjust your filters",
+		"description": "Description:",
+		"noDescription": "No description",
+		"details": "Details:",
+		"tags": "Tags:",
+		"noTags": "None",
+		"createdAt": "Created at:",
+		"lastModified": "Last modified:",
+		"visits": "Visits:",
+		"rating": "Rating:",
+		"sorting": {
+			"ascending": "Ascending",
+			"descending": "Descending",
+			"creationDate": "Created",
+			"lastUpdateDate": "Last Updated",
+			"firstPublishTime": "First Published",
+			"totalVisits": "Total Visits",
+			"name": "Name",
+			"random": "Random"
+		}
+	},
+	"inventory": {
+		"title": "Inventory",
+		"selection": "{} Selected",
+		"sorting": {
+			"ascending": "Ascending",
+			"descending": "Descending",
+			"name": "Name",
+			"date": "Date",
+			"resonite": "Resonite"
+		},
+		"download": {
+			"title": "What would you like to download?",
+			"selectionAborted": "Selection aborted",
+			"selectionInvalid": "Selected directory is invalid",
+			"downloadSuccess": "Downloaded {}",
+			"downloadFailed": "Failed to download {} : {}",
+			"downloadError": "Unknown Error"
+		},
+		"delete": {
+			"deleteHeader": "Really delete this record?",
+			"deleteHeaderPlural": "Really delete {} records?",
+			"warning": "This action cannot be undone!",
+			"confirm": "Delete",
+			"success": "Deleted {}",
+			"failed": "Failed to delete one or more records: {}",
+		}
+	},
+	"login": {
+		"title": "Login",
+		"signin": "Sign In",
+		"username": "Username",
+		"password": "Password",
+		"totp": "2FA Code",
+		"invalidCredentials": "Please enter a valid username/password combination.",
+		"invalidServerResponse":"Login unsuccessful: Server sent invalid response.",
+		"totpRequired": "Please enter your 2FA-Code",
+		"invalidTotp": "The given 2FA code is not valid.",
+		"unsuccessful": "Login unsuccessful: {}"
+	},
+	"update": {
+		"title": "Update Available",
+		"description": "There is a new version available for download!",
+		"localVersion": "Your version: {}",
+		"remoteVersion": "New version: {}",
+		"openDownload": "Get it on Github",
+		"dismiss": "I'll do it later."
+	},
+	"uncategorized": {
+		"featureUnavailable": "Sorry, this feature is not yet available"
+	}
+}

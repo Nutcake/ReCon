@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
@@ -88,7 +88,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "2FA: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.twoFactor ? "Enabled" : "Disabled")
+                      Text(profile.twoFactor ? "general.enabled" : "general.disabled").tr()
                     ],
                   ),
                   Row(
@@ -98,7 +98,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "Patreon Supporter: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.isPatreonSupporter ? "Yes" : "No")
+                      Text(profile.isPatreonSupporter ? "general.yes" : "general.no").tr()
                     ],
                   ),
                   Row(
@@ -108,7 +108,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
                         "Stripe Supporter: ",
                         style: tt.labelLarge,
                       ),
-                      Text(profile.isStripeSupporter ? "Yes" : "No")
+                      Text(profile.isStripeSupporter ? "general.yes" : "general.no").tr()
                     ],
                   ),
                   if (profile.publicBanExpiration?.isAfter(DateTime.now()) ?? false)
