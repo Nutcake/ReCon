@@ -76,7 +76,7 @@ class MessageSessionInvite extends StatelessWidget {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('messaging.hostedBy'.tr(args: [sessionInfo.hostUsername]), overflow: TextOverflow.ellipsis, style: Theme
+                    Text('messaging.invite.hostedBy'.tr(args: [sessionInfo.hostUsername]), overflow: TextOverflow.ellipsis, style: Theme
                         .of(context)
                         .textTheme
                         .bodySmall
