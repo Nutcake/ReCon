@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/models/session.dart';
@@ -59,7 +60,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       insetPadding: const EdgeInsets.all(24),
-      title: const Text("Filter"),
+      title: Text('sessions.filter.title').tr(),
       content: SizedBox(
         width: double.infinity,
         child: SingleChildScrollView(
@@ -80,7 +81,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(32),
                     ),
-                    labelText: 'Session Name',
+                    labelText: 'sessions.filter.sessionName'.tr(),
                   ),
                 ),
               ),
@@ -96,14 +97,14 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(32),
                     ),
-                    labelText: 'Host Name',
+                    labelText: 'sessions.filter.hostName'.tr(),
                   ),
                 ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  const Text("Minimum Users"),
+                  Text('sessions.filter.minimumUsers'.tr()),
                   const Spacer(),
                   IconButton(
                     onPressed: () {
@@ -130,7 +131,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                 ],
               ),
               SessionFilterCheckbox(
-                label: "Include Ended",
+                label: 'sessions.filter.includeEnded'.tr(),
                 value: _currentFilter.includeEnded,
                 onChanged: (value) {
                   setState(() {
@@ -139,7 +140,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                 },
               ),
               SessionFilterCheckbox(
-                label: "Include Empty Headless",
+                label: 'sessions.filter.includeEmptyHeadless'.tr(),
                 value: _currentFilter.includeEmptyHeadless && _currentFilter.minActiveUsers == 0,
                 onChanged: _currentFilter.minActiveUsers > 0
                     ? null
@@ -150,7 +151,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                       },
               ),
               SessionFilterCheckbox(
-                label: "Include Incompatible",
+                label: 'sessions.filter.includeIncompatible'.tr(),
                 value: _currentFilter.includeIncompatible,
                 onChanged: (value) {
                   setState(() {
@@ -167,7 +168,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text("Cancel"),
+          child: Text('general.cancel'.tr()),
         ),
         TextButton(
           onPressed: () async {
@@ -175,7 +176,7 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
             Navigator.of(context).pop();
             await _updateSettings();
           },
-          child: const Text("Okay"),
+          child: Text('general.confirm'.tr()),
         ),
       ],
     );

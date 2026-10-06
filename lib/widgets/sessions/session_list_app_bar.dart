@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/clients/session_client.dart';
@@ -14,7 +15,7 @@ class _SessionListAppBarState extends State<SessionListAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text("Sessions"),
+      title: Text('sessions.title').tr(),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),

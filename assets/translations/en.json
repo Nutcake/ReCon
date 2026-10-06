@@ -101,6 +101,15 @@
 		"user":{
 			"active": "Active",
 			"inactive": "Inactive"
+		},
+		"filter": {
+			"title": "Filter Sessions",
+			"sessionName": "Session Name",
+			"hostName": "Host Name",
+			"minimumUsers": "Minimum Users",
+			"includeEnded": "Include Ended Sessions",
+			"includeEmptyHeadless": "Include Empty Headless",
+			"includeIncompatible": "Include Incompatible"
 		}
 	},
 	"worlds": {
