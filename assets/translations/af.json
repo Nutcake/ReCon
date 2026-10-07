@@ -19,12 +19,16 @@
 			"title": "xxx",
 			"theme": "xxx"
 		},
-		"other": {
+		"system": {
 			"title": "xxx",
+			"language": "xxx",
 			"signout": "xxx",
 			"signout.confirm": "xxx",
 			"about": "xxx",
-			"error": "xxx"
+			"failedToOpenLink": "xxx"
+		},
+		"developer": {
+			"title": "xxx"
 		}
 	},
 	"general": {
@@ -61,10 +65,11 @@
 		"removeAttachments": "xxx",
 		"removeAttachments.description": "xxx",
 		"invite": {
+			"askForInviteHeader": "xxx",
+			"askForInviteDescription": "xxx",
 			"requestedSelf": "xxx",
 			"granted": "xxx",
 			"addAsContact": "xxx",
-			"requested": "xxx",
 			"unknownResponse": "xxx",
 			"requestForwarded": "xxx",
 			"requestToYou": "xxx",
@@ -74,12 +79,23 @@
 		"send": "xxx",
 		"copiedToClipboard": "xxx"
 	},
+	"notifications": {
+		"newMessage": "xxx",
+		"unknown": "xxx",
+		"audioMessage": "xxx",
+		"sessionInvite": "xxx",
+		"sessionInviteDetailed": "xxx",
+		"userRequestedInvite": "xxx",
+		"userRequestedInviteDetailed": "xxx"
+	},
 	"sessions": {
 		"title": "xxx",
+		"preview": "xxx",
 		"headless": "xxx",
 		"access": "xxx",
 		"users": "xxx",
 		"sessionUsers": "xxx",
+		"sessionActiveUsers": "xxx",
 		"noSessionsFound": "xxx",
 		"noSessionsFound.description": "xxx",
 		"noLongerValid": "xxx",
@@ -91,6 +107,19 @@
 			"contactsPlus": "xxx",
 			"registeredUsers": "xxx",
 			"anyone": "xxx"
+		},
+		"user": {
+			"active": "xxx",
+			"inactive": "xxx"
+		},
+		"filter": {
+			"title": "xxx",
+			"sessionName": "xxx",
+			"hostName": "xxx",
+			"minimumUsers": "xxx",
+			"includeEnded": "xxx",
+			"includeEmptyHeadless": "xxx",
+			"includeIncompatible": "xxx"
 		}
 	},
 	"worlds": {
@@ -138,6 +167,15 @@
 			"downloadSuccess": "xxx",
 			"downloadFailed": "xxx",
 			"downloadError": "xxx"
+		},
+		"delete": {
+			"deleteHeader": "xxx",
+			"deleteHeaderPlural": "xxx",
+			"warning": "xxx",
+			"confirm": "xxx",
+			"success": "xxx",
+			"failed": "xxx",
+			"error": "xxx"
 		}
 	},
 	"login": {
