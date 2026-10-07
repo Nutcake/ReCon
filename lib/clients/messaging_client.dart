@@ -24,7 +24,7 @@ import 'package:recon/models/users/user_status.dart';
 class MessagingClient extends ChangeNotifier {
   static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
   static const Duration _statusHeartbeatDuration = Duration(seconds: 150);
-  static const String _messageBoxKey = "message-box";
+  static const String _friendCacheBoxKey = "message-box";
   static const String _lastUpdateKey = "__last-update-time";
 
   final ApiClient _apiClient;
@@ -55,7 +55,7 @@ class MessagingClient extends ChangeNotifier {
         _settingsClient = settingsClient {
     debugPrint("mClient created: $hashCode");
     _apiClient.addLogoutListener(dispose);
-    Hive.openBox(_messageBoxKey).then((box) async {
+    Hive.openBox(_friendCacheBoxKey).then((box) async {
       await box.delete(_lastUpdateKey);
       final sessions = await SessionApi.getSessions(_apiClient);
       _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
@@ -82,7 +82,7 @@ class MessagingClient extends ChangeNotifier {
 
   bool messageIsUnread(Message message) => _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
 
-  Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_messageBoxKey).get(userId));
+  Friend? getAsFriend(String userId) => Friend.fromMapOrNull(Hive.box(_friendCacheBoxKey).get(userId));
 
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
@@ -224,7 +224,13 @@ class MessagingClient extends ChangeNotifier {
     }
     messages.sort();
     _sortFriendsCache();
-    _notificationClient.showUnreadMessagesNotification(messages.reversed);
+    final usernames = <String, String>{};
+    for (final msg in messages) {
+      final uid = msg.senderId;
+      usernames[uid] = getAsFriend(uid)?.contactUsername ?? uid;
+    }
+
+    _notificationClient.showUnreadMessagesNotification(messages.reversed, usernames);
     notifyListeners();
   }
 
@@ -315,7 +321,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> _updateContacts(List<Friend> friends) async {
-    final box = Hive.box(_messageBoxKey);
+    final box = Hive.box(_friendCacheBoxKey);
     for (final friend in friends) {
       await box.put(friend.contactUserId, friend.toMap());
       final lastStatusUpdate = box.get(_lastUpdateKey);
@@ -336,7 +342,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> _updateContact(Friend friend) async {
-    final box = Hive.box(_messageBoxKey);
+    final box = Hive.box(_friendCacheBoxKey);
     await box.put(friend.contactUserId, friend.toMap());
     final lastStatusUpdate = box.get(_lastUpdateKey);
     if (lastStatusUpdate == null || friend.userStatus.lastStatusChange.isAfter(lastStatusUpdate)) {
