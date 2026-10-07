@@ -5,9 +5,10 @@ import 'dart:typed_data';
 
 import 'package:bson/bson.dart';
 import 'package:collection/collection.dart';
+import 'package:dart_lz4/dart_lz4.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/models/records/asset_chunk.dart';
 import 'package:recon/models/records/asset_diff.dart';
@@ -18,7 +19,6 @@ import 'package:recon/models/records/json_template.dart';
 import 'package:recon/models/records/preprocess_status.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:recon/models/records/search_sort.dart';
-import 'package:image/image.dart' as img;
 
 class RecordApi {
   static Future<Record> getUserRecord(ApiClient client, {required String recordId, String? user}) async {
@@ -157,33 +157,43 @@ class RecordApi {
 
   static Future<Record> uploadImage(ApiClient client, {required File image, required String machineId, String? messageId, void Function(double progress)? progressCallback}) async {
     progressCallback?.call(0);
-    final imageData = await image.readAsBytes();
+    var imageData = await image.readAsBytes();
+    progressCallback?.call(0.1);
     final cmd = img.Command()
       ..decodeImage(imageData)
       ..copyResize(width: 512)
-      ..encodeJpg(quality: 90);
+      ..encodeWebP();
     final res = await cmd.executeThread();
+    progressCallback?.call(0.2);
+    imageData =
+        (await (img.Command()
+                  ..decodeImage(imageData)
+                  ..encodeWebP())
+                .executeThread())
+            .outputBytes!;
+    progressCallback?.call(0.3);
     final thumbnail = res.outputBytes!;
     final imageManifest = AssetManifest.fromData(imageData);
     final thumbnailManifest = AssetManifest.fromData(thumbnail);
-    final assetUri = "resdb:///${imageManifest.hash}${extension(image.path)}";
-    final dataTree = JsonTemplate.image(imageResDb: assetUri, machineId: machineId);
-    // Prefix FrDT header
-    final bson = Uint8List.fromList([70, 114, 68, 84, 0, 0, 0, 0] + BsonCodec.serialize(dataTree).byteList);
-    final bsonManifest = AssetManifest.fromData(bson);
-    final assetManifest = {imageManifest: imageData, thumbnailManifest: thumbnail, bsonManifest: bson};
+    final imageUri = "resdb:///${imageManifest.hash}.webp";
+
+    final objectBson = BsonCodec.serialize(JsonTemplate.image(imageResDb: imageUri, machineId: machineId)).byteList;
+    final objectBytes = Uint8List.fromList([70, 114, 68, 84, 0, 0, 0, 0, 1] + lz4Compress(objectBson));
+    final objectManifest = AssetManifest.fromData(objectBytes);
+    final assetManifest = {imageManifest: imageData, thumbnailManifest: thumbnail, objectManifest: objectBytes};
 
     final record = Record.local(
       name: "Photo from ReCon",
       recordType: RecordType.object,
       ownerId: client.userId,
       assetManifest: assetManifest.keys.toList(),
-      assetUri: assetUri,
-      tags: ["holder", "photo", "camera_photo", "texture_asset:$assetUri", "message_item", "message_id:$messageId"],
+      assetUri: "resdb:///${objectManifest.hash}.lz4bson",
+      tags: ["holder", "photo", "camera_photo", "texture_asset:$imageUri", "message_item", "message_id:$messageId"],
       lastModifyingMachineId: machineId,
-    ).copyWith(thumbnailUri: () => "resdb:///${thumbnailManifest.hash}${extension(image.path)}");
-
+    ).copyWith(thumbnailUri: () => "resdb:///${thumbnailManifest.hash}.webp");
+    progressCallback?.call(0.4);
     var preproc = await preprocessRecord(client, record: record);
+    progressCallback?.call(0.5);
     while (preproc.state != RecordPreprocessState.success) {
       preproc = await getPreprocessStatus(client, preprocessStatus: preproc);
       if (preproc.state == RecordPreprocessState.failed) {

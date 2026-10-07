@@ -67,7 +67,7 @@ dependencies:
   just_audio_media_kit: ^2.1.0
   media_kit_libs_linux: ^1.2.1
   media_kit_libs_windows_audio: ^1.0.9
-  es_compression: ^2.0.15
+  dart_lz4: ^1.2.0
   bson: ^5.0.8
   image: ^4.9.1
 
