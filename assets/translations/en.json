@@ -79,6 +79,15 @@
 		"send": "Send",
 		"copiedToClipboard": "Copied to clipboard"
 	},
+	"notifications": {
+		"newMessage": "New Message from {}",
+		"unknown": "Unknown Message Type",
+		"audioMessage": "Audio Message",
+		"sessionInvite": "Session Invite",
+		"sessionInviteDetailed": "Session Invite to {}",
+		"userRequestedInvite": "{} requested an invite",
+		"userRequestedInviteDetailed": "{} requested an invite"
+	},
 	"sessions": {
 		"title": "Sessions",
 		"preview": "Session Preview",
@@ -86,6 +95,7 @@
 		"access": "Access:",
 		"users": "Users:",
 		"sessionUsers": "{} / {} Online",
+		"sessionActiveUsers": "{} / {} Active users",
 		"noSessionsFound": "No Sessions Found",
 		"noSessionsFound.description": "Try to adjust your filters",
 		"noLongerValid": "Session is no longer valid",
@@ -165,6 +175,7 @@
 			"confirm": "Delete",
 			"success": "Deleted {}",
 			"failed": "Failed to delete one or more records: {}",
+			"error": "Unknown Error"
 		}
 	},
 	"login": {

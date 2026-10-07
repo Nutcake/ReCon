@@ -424,7 +424,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                 ? null
                                 : () {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: const Text('general.featureUnavailable').tr()),
+                                      SnackBar(content: const Text('uncategorized.featureUnavailable').tr()),
                                     );
                                     return;
                                     // setState(() {
