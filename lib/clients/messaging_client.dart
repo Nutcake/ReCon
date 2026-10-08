@@ -402,9 +402,9 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _onMessagesRead(List args) {
-    args = args as List<Map>;
-    final messageIds = args[0]["ids"] as List;
-    final recipientId = args[0]["recipientId"];
+    final maps = args.cast<Map>();
+    final messageIds = maps[0]["ids"] as List;
+    final recipientId = maps[0]["recipientId"];
     if (recipientId == null) return;
     final cache = getUserMessageCache(recipientId);
     if (cache == null) return;
