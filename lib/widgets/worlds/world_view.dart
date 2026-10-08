@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:recon/widgets/formatted_text.dart';
@@ -41,7 +44,13 @@ class _WorldViewState extends State<WorldView> {
           IconButton(
             icon: const Icon(Icons.share),
             onPressed: () {
-              Share.share("resrec:///${widget.world.ownerId}/${widget.world.id}");
+              final text = "resrec:///${widget.world.ownerId}/${widget.world.id}";
+              if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+                Clipboard.setData(ClipboardData(text: text));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied to clipboard.")));
+              } else {
+                SharePlus.instance.share(ShareParams(text: text));
+              }
             },
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:background_downloader/background_downloader.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -144,7 +145,13 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                     if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
                       IconButton(
                         onPressed: () {
-                          Share.share(iClient.selectedRecords.first.assetUri);
+                          final text = iClient.selectedRecords.first.assetUri;
+                          if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+                            Clipboard.setData(ClipboardData(text: text));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied asset URL to clipboard.")));
+                          } else {
+                            SharePlus.instance.share(ShareParams(text: text));
+                          }
                         },
                         icon: const Icon(Icons.share),
                       ),
@@ -275,7 +282,11 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               builder: (context, setState) {
                                 return AlertDialog(
                                   icon: const Icon(Icons.delete),
-                                  title: Text(iClient.selectedRecordCount == 1 ? 'inventory.delete.deleteHeader'.tr() : 'inventory.delete.deleteHeaderPlural'.tr(args: [iClient.selectedRecordCount.toString()])),
+                                  title: Text(
+                                    iClient.selectedRecordCount == 1
+                                        ? 'inventory.delete.deleteHeader'.tr()
+                                        : 'inventory.delete.deleteHeaderPlural'.tr(args: [iClient.selectedRecordCount.toString()]),
+                                  ),
                                   content: const Text('inventory.delete.warning').tr(),
                                   actionsAlignment: MainAxisAlignment.spaceBetween,
                                   actions: [
