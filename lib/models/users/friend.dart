@@ -29,6 +29,10 @@ class Friend implements Comparable {
 
   bool get isHeadless => userStatus.sessionType == UserSessionType.headless;
 
+  bool get isOnChatClient => userStatus.sessionType == UserSessionType.chatClient;
+
+  bool get isOnReCon => userStatus.appVersion.contains("ReCon");
+
   bool get isBot => userStatus.sessionType == UserSessionType.bot || contactUserId == _resoniteBotId;
 
   bool get isSociable => (userStatus.onlineStatus == OnlineStatus.sociable) && !isBot && !isHeadless;
