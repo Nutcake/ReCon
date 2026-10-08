@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
-import 'package:recon/auxiliary.dart';
 import 'package:recon/models/invite_request.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
@@ -24,26 +23,26 @@ class NotificationClient {
   );
 
   final fln.FlutterLocalNotificationsPlugin _notifier = fln.FlutterLocalNotificationsPlugin()
-    ..initialize(settings: const fln.InitializationSettings(
-      windows: fln.WindowsInitializationSettings(
-        appName: "ReCon",
-        appUserModelId: "me.voidspace.recon",
-        guid: 'a8100a1f-4794-4a6b-8ed6-c52efc766fc7',
+    ..initialize(
+      settings: const fln.InitializationSettings(
+        windows: fln.WindowsInitializationSettings(
+          appName: "ReCon",
+          appUserModelId: "me.voidspace.recon",
+          guid: 'a8100a1f-4794-4a6b-8ed6-c52efc766fc7',
+        ),
+        android: fln.AndroidInitializationSettings("ic_notification"),
+        iOS: fln.DarwinInitializationSettings(),
+        macOS: fln.DarwinInitializationSettings(),
+        linux: fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
       ),
-      android: fln.AndroidInitializationSettings("ic_notification"),
-      iOS: fln.DarwinInitializationSettings(),
-      macOS: fln.DarwinInitializationSettings(),
-      linux: fln.LinuxInitializationSettings(defaultActionName: "Open ReCon"),
-    ));
+    );
 
-  Future<void> showUnreadMessagesNotification(Iterable<Message> messages) async {
+  Future<void> showUnreadMessagesNotification(Iterable<Message> messages, Map<String, String> usernames) async {
     if (messages.isEmpty) return;
 
     final bySender = groupBy(messages, (p0) => p0.senderId);
-
     for (final entry in bySender.entries) {
-      final uname = entry.key.stripUid();
-      //TODO: get actual username instead of using uid and stripping U-ID
+      final uname = usernames[entry.key] ?? entry.key;
       await _notifier.show(
         id: uname.hashCode,
         title: null,

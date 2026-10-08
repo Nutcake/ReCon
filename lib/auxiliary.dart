@@ -27,10 +27,6 @@ extension StringX on String {
     return htmlparser.parse(document.body?.text).documentElement?.text ?? "";
   }
 
-  // This won't be accurate since userIds can't contain certain characters that usernames can
-  // but it's fine for just having a name to display
-  String stripUid() => startsWith("U-") ? substring(2) : this;
-
   String? get asNullable => isEmpty ? null : this;
 }
 
