@@ -331,14 +331,12 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               onPressed: _isSending
                                   ? null
                                   : () async {
-                                      final result = await FilePicker.pickFiles(type: FileType.image, allowMultiple: true);
-                                      if (result != null) {
-                                        setState(() {
-                                          _loadedFiles.addAll(
-                                            result.files.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null).nonNulls,
-                                          );
-                                        });
-                                      }
+                                      final result = await FilePicker.pickFiles(type: FileType.image);
+                                      setState(() {
+                                        _loadedFiles.addAll(
+                                          result.map((e) => e.path != null ? (FileType.image, File(e.path!)) : null).nonNulls,
+                                        );
+                                      });
                                     },
                               icon: const Icon(Icons.image),
                               label: const Text("Gallery"),
@@ -372,14 +370,12 @@ class _MessageInputBarState extends State<MessageInputBar> {
                               onPressed: _isSending
                                   ? null
                                   : () async {
-                                      final result = await FilePicker.pickFiles(type: FileType.any, allowMultiple: true);
-                                      if (result != null) {
-                                        setState(() {
-                                          _loadedFiles.addAll(
-                                            result.files.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null).nonNulls,
-                                          );
-                                        });
-                                      }
+                                      final result = await FilePicker.pickFiles(type: FileType.any);
+                                      setState(() {
+                                        _loadedFiles.addAll(
+                                          result.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null).nonNulls,
+                                        );
+                                      });
                                     },
                               icon: const Icon(Icons.file_present_rounded),
                               label: const Text("Document"),
