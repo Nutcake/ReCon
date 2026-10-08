@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart' as fln;
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/invite_request.dart';
@@ -42,10 +43,11 @@ class NotificationClient {
 
     for (final entry in bySender.entries) {
       final uname = entry.key.stripUid();
+      //TODO: get actual username instead of using uid and stripping U-ID
       await _notifier.show(
         id: uname.hashCode,
         title: null,
-        body: "New message from $uname",
+        body: 'notifications.newMessage'.tr(args: [uname]),
         notificationDetails: fln.NotificationDetails(
           android: fln.AndroidNotificationDetails(
             _messageChannel.id,
@@ -65,20 +67,20 @@ class NotificationClient {
                 String content;
                 switch (message.type) {
                   case MessageType.unknown:
-                    content = "Unknown Message Type";
+                    content = 'notifications.unknown'.tr();
                     break;
                   case MessageType.text:
                     content = message.formattedContent.toString();
                     break;
                   case MessageType.sound:
-                    content = "Audio Message";
+                    content = 'notifications.audioMessage'.tr();
                     break;
                   case MessageType.sessionInvite:
                     try {
                       final session = Session.fromMap(jsonDecode(message.content));
-                      content = "Session Invite to ${session.formattedName}";
+                      content = 'notifications.sessionInviteDetailed'.tr(args: [session.formattedName.toString()]);
                     } catch (e) {
-                      content = "Session Invite";
+                      content = 'notifications.sessionInvite'.tr();
                     }
                     break;
                   case MessageType.object:
@@ -87,9 +89,9 @@ class NotificationClient {
                   case MessageType.inviteRequest:
                     try {
                       final request = InviteRequest.fromMap(jsonDecode(message.content));
-                      content = "${request.usernameToInvite} Requested an Invite";
+                      content = 'notifications.userRequestedInviteDetailed'.tr(args: [request.usernameToInvite]);
                     } catch (e) {
-                      content = "Invite Request";
+                      content = 'notifications.userRequestedInvite'.tr();
                     }
                     break;
                 }

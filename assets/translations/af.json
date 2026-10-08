@@ -1,0 +1,204 @@
+{
+	"navigation": {
+		"chat": "xxx",
+		"settings": "xxx",
+		"sessions": "xxx",
+		"worlds": "xxx",
+		"inventory": "xxx",
+		"findUsers": "xxx",
+		"myProfile": "xxx"
+	},
+	"settings": {
+		"title": "xxx",
+		"notifications": {
+			"title": "xxx",
+			"enabled": "xxx",
+			"showusernames": "xxx"
+		},
+		"appearance": {
+			"title": "xxx",
+			"theme": "xxx"
+		},
+		"system": {
+			"title": "xxx",
+			"language": "xxx",
+			"signout": "xxx",
+			"signout.confirm": "xxx",
+			"about": "xxx",
+			"failedToOpenLink": "xxx"
+		},
+		"developer": {
+			"title": "xxx"
+		}
+	},
+	"general": {
+		"yes": "xxx",
+		"no": "xxx",
+		"confirm": "xxx",
+		"cancel": "xxx",
+		"retry": "xxx",
+		"search": "xxx",
+		"enabled": "xxx",
+		"disabled": "xxx"
+	},
+	"contacts": {
+		"status": {
+			"sociable": "xxx",
+			"online": "xxx",
+			"away": "xxx",
+			"busy": "xxx",
+			"invisible": "xxx",
+			"offline": "xxx"
+		},
+		"headlessHost": "xxx",
+		"inWorld": "xxx",
+		"inWorldNoDetails": "xxx",
+		"onVersion": "xxx",
+		"bot": "xxx"
+	},
+	"messaging": {
+		"placeholder": "xxx",
+		"noMessages": "xxx",
+		"failedSend": "xxx",
+		"recording": "xxx",
+		"cancelRecording": "xxx",
+		"removeAttachments": "xxx",
+		"removeAttachments.description": "xxx",
+		"invite": {
+			"askForInviteHeader": "xxx",
+			"askForInviteDescription": "xxx",
+			"requestedSelf": "xxx",
+			"granted": "xxx",
+			"addAsContact": "xxx",
+			"unknownResponse": "xxx",
+			"requestForwarded": "xxx",
+			"requestToYou": "xxx",
+			"requestGeneric": "xxx",
+			"hostedBy": "xxx"
+		},
+		"send": "xxx",
+		"copiedToClipboard": "xxx"
+	},
+	"notifications": {
+		"newMessage": "xxx",
+		"unknown": "xxx",
+		"audioMessage": "xxx",
+		"sessionInvite": "xxx",
+		"sessionInviteDetailed": "xxx",
+		"userRequestedInvite": "xxx",
+		"userRequestedInviteDetailed": "xxx"
+	},
+	"sessions": {
+		"title": "xxx",
+		"preview": "xxx",
+		"headless": "xxx",
+		"access": "xxx",
+		"users": "xxx",
+		"sessionUsers": "xxx",
+		"sessionActiveUsers": "xxx",
+		"noSessionsFound": "xxx",
+		"noSessionsFound.description": "xxx",
+		"noLongerValid": "xxx",
+		"accessLevel": {
+			"unknown": "xxx",
+			"private": "xxx",
+			"lan": "xxx",
+			"contacts": "xxx",
+			"contactsPlus": "xxx",
+			"registeredUsers": "xxx",
+			"anyone": "xxx"
+		},
+		"user": {
+			"active": "xxx",
+			"inactive": "xxx"
+		},
+		"filter": {
+			"title": "xxx",
+			"sessionName": "xxx",
+			"hostName": "xxx",
+			"minimumUsers": "xxx",
+			"includeEnded": "xxx",
+			"includeEmptyHeadless": "xxx",
+			"includeIncompatible": "xxx"
+		}
+	},
+	"worlds": {
+		"title": "xxx",
+		"preview": "xxx",
+		"search": "xxx",
+		"inputTags": "xxx",
+		"failedToLoad": "xxx",
+		"noWorldsFound": "xxx",
+		"noWorldsFound.description": "xxx",
+		"description": "xxx",
+		"noDescription": "xxx",
+		"details": "xxx",
+		"tags": "xxx",
+		"noTags": "xxx",
+		"createdAt": "xxx",
+		"lastModified": "xxx",
+		"visits": "xxx",
+		"rating": "xxx",
+		"sorting": {
+			"ascending": "xxx",
+			"descending": "xxx",
+			"creationDate": "xxx",
+			"lastUpdateDate": "xxx",
+			"firstPublishTime": "xxx",
+			"totalVisits": "xxx",
+			"name": "xxx",
+			"random": "xxx"
+		}
+	},
+	"inventory": {
+		"title": "xxx",
+		"selection": "xxx",
+		"sorting": {
+			"ascending": "xxx",
+			"descending": "xxx",
+			"name": "xxx",
+			"date": "xxx",
+			"resonite": "xxx"
+		},
+		"download": {
+			"title": "xxx",
+			"selectionAborted": "xxx",
+			"selectionInvalid": "xxx",
+			"downloadSuccess": "xxx",
+			"downloadFailed": "xxx",
+			"downloadError": "xxx"
+		},
+		"delete": {
+			"deleteHeader": "xxx",
+			"deleteHeaderPlural": "xxx",
+			"warning": "xxx",
+			"confirm": "xxx",
+			"success": "xxx",
+			"failed": "xxx",
+			"error": "xxx"
+		}
+	},
+	"login": {
+		"title": "xxx",
+		"signin": "xxx",
+		"username": "xxx",
+		"password": "xxx",
+		"totp": "xxx",
+		"invalidCredentials": "xxx",
+		"invalidServerResponse": "xxx",
+		"totpRequired": "xxx",
+		"invalidTotp": "xxx",
+		"unsuccessful": "xxx"
+	},
+	"update": {
+		"title": "xxx",
+		"description": "xxx",
+		"localVersion": "xxx",
+		"remoteVersion": "xxx",
+		"openDownload": "xxx",
+		"dismiss": "xxx"
+	},
+	"uncategorized": {
+		"featureUnavailable": "xxx"
+	}
+}

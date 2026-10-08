@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -81,7 +82,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: const Text("No"),
+                                        child: const Text('general.no').tr(),
                                       ),
                                       TextButton(
                                         onPressed: () async {
@@ -91,7 +92,7 @@ class _MessageAttachmentListState extends State<MessageAttachmentList> {
                                           });
                                           await widget.onChange(_loadedFiles);
                                         },
-                                        child: const Text("Yes"),
+                                        child: const Text('general.yes').tr(),
                                       )
                                     ],
                                   ),

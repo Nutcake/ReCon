@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:recon/widgets/formatted_text.dart';
@@ -62,7 +62,7 @@ class _WorldViewState extends State<WorldView> {
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
                             appBar: AppBar(
-                              title: const Text("Session Preview"),
+                              title: const Text('worlds.preview').tr(),
                             ),
                             body: Center(
                               child: Panorama(
@@ -108,34 +108,34 @@ class _WorldViewState extends State<WorldView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const ListSectionHeader(
-                  leadingText: "Description:",
+                ListSectionHeader(
+                  leadingText: 'worlds.description'.tr(),
                   showLine: false,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
                   child: widget.world.formattedDescription.isEmpty
-                      ? Text("No description", style: Theme.of(context).textTheme.labelLarge)
+                      ? Text('worlds.noDescription', style: Theme.of(context).textTheme.labelLarge).tr()
                       : FormattedText(
                           widget.world.formattedDescription,
                           style: Theme.of(context).textTheme.labelLarge?.apply(fontStyle: FontStyle.italic),
                         ),
                 ),
-                const ListSectionHeader(
-                  leadingText: "Tags:",
+                ListSectionHeader(
+                  leadingText: 'worlds.tags'.tr(),
                   showLine: false,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
                   child: Text(
-                    widget.world.tags.isEmpty ? "None" : widget.world.tags.join(", "),
+                    widget.world.tags.isEmpty ? 'worlds.noTags'.tr() : widget.world.tags.join(", "),
                     style: Theme.of(context).textTheme.labelMedium,
                     textAlign: TextAlign.start,
                     softWrap: true,
                   ),
                 ),
-                const ListSectionHeader(
-                  leadingText: "Details:",
+                ListSectionHeader(
+                  leadingText: 'worlds.details'.tr(),
                   showLine: false,
                 ),
                 Padding(
@@ -144,7 +144,7 @@ class _WorldViewState extends State<WorldView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Created at: ",
+                        'worlds.createdAt'.tr(),
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       Text(
@@ -160,7 +160,7 @@ class _WorldViewState extends State<WorldView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Last modified at: ",
+                        'worlds.lastModified'.tr(),
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       Text(
@@ -176,7 +176,7 @@ class _WorldViewState extends State<WorldView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Visits: ",
+                        'worlds.visits'.tr(),
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       Text(
@@ -192,7 +192,7 @@ class _WorldViewState extends State<WorldView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Rating: ",
+                        'worlds.rating'.tr(),
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       Text(
