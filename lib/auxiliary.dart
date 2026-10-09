@@ -46,6 +46,10 @@ extension Format on Duration {
 extension DateTimeX on DateTime {
   static DateTime epoch = DateTime.fromMillisecondsSinceEpoch(0);
   static DateTime one = DateTime(1);
+
+  bool isOnSameDay(DateTime other) {
+    return year == other.year && month == other.month && day == other.day;
+  }
 }
 
 extension ColorX on Color {
