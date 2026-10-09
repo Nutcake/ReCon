@@ -246,17 +246,16 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
                             itemCount: cache.messages.length + 1,
                             separatorBuilder: (context, index) {
-                              if (index == 0) return const SizedBox.shrink();
                               DateTime sendTime;
-                              if (index == cache.messages.length-1) {
+                              if (index == cache.messages.length - 1) {
                                 sendTime = cache.messages[index - 1].sendTime;
                               } else {
                                 final entry = cache.messages[index];
-                                final prevEntry = cache.messages[index - 1];
-                                if (entry.sendTime.isOnSameDay(prevEntry.sendTime)) {
+                                final nextEntry = cache.messages[index + 1];
+                                if (entry.sendTime.isOnSameDay(nextEntry.sendTime)) {
                                   return const SizedBox.shrink();
                                 }
-                                sendTime = prevEntry.sendTime;
+                                sendTime = entry.sendTime;
                               }
                               return Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -270,7 +269,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                       ),
                                     ),
                                     Text(
-                                      _dateFormat.format(sendTime),
+                                      _dateFormat.format(sendTime.toLocal()),
                                       style: Theme.of(context).textTheme.labelMedium?.apply(color: Theme.of(context).dividerColor),
                                       textAlign: TextAlign.center,
                                     ),
