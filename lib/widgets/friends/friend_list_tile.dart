@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/messaging_client.dart';
@@ -57,11 +57,10 @@ class FriendListTile extends StatelessWidget {
           const SizedBox(
             width: 4,
           ),
-          if (!(friend.isOffline || friend.isHeadless)) ...[
-            Text(toBeginningOfSentenceCase(friend.userStatus.onlineStatus.name) ?? "Unknown"),
+          if (!(friend.isOffline || friend.isHeadless || friend.isBot)) ...[
             if (currentSession != null) ...[
-              const Text(" in "),
-              if (currentSession.name.isNotEmpty)
+              if (currentSession.name.isNotEmpty) ...[
+                Text('contacts.inWorld'.tr(args: ['contacts.status.${friend.userStatus.onlineStatus.name}'.tr()])),
                 Expanded(
                   child: FormattedText(
                     currentSession.formattedName,
@@ -69,10 +68,11 @@ class FriendListTile extends StatelessWidget {
                     maxLines: 1,
                   ),
                 )
+              ]
               else
                 Expanded(
                   child: Text(
-                    "${currentSession.accessLevel.toReadableString()} World",
+                    'contacts.inWorldNoDetails'.tr(args: ['contacts.status.${friend.userStatus.onlineStatus.name}'.tr(), 'sessions.accessLevel.${currentSession.accessLevel.name}'.tr()]),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
@@ -80,23 +80,30 @@ class FriendListTile extends StatelessWidget {
             ] else if (friend.userStatus.appVersion.isNotEmpty)
               Expanded(
                 child: Text(
-                  " on version ${friend.userStatus.appVersion}",
+                  'contacts.onVersion'.tr(args: ['contacts.status.${friend.userStatus.onlineStatus.name}'.tr(), friend.userStatus.appVersion]),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
               ),
           ] else if (friend.isOffline)
             Text(
-              "Offline",
+              'contacts.status.offline'.tr(),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: OnlineStatus.offline.color(context),
               ),
             )
+          else if (friend.isBot)
+            Text(
+              'contacts.bot'.tr(),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              
+            )
           else
             Text(
-              "Headless Host",
+              'contacts.headlessHost'.tr(),
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
               style: theme.textTheme.bodyMedium?.copyWith(

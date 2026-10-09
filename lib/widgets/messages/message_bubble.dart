@@ -1,11 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/widgets/messages/message_asset.dart';
 import 'package:recon/widgets/messages/message_audio_player.dart';
-import 'package:recon/widgets/messages/message_session_invite.dart';
 import 'package:recon/widgets/messages/message_invite_request.dart';
+import 'package:recon/widgets/messages/message_session_invite.dart';
 import 'package:recon/widgets/messages/message_text.dart';
-import 'package:flutter/material.dart';
 
 class MessageBubble extends StatelessWidget {
   const MessageBubble({required this.message, super.key});

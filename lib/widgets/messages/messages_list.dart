@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/apis/user_api.dart';
+import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/audio_cache_client.dart';
 import 'package:recon/clients/messaging_client.dart';
@@ -21,8 +23,8 @@ class MessagesList extends StatefulWidget {
 }
 
 class _MessagesListState extends State<MessagesList> with SingleTickerProviderStateMixin {
-  final ScrollController _sessionListScrollController = ScrollController();
-
+  final _sessionListScrollController = ScrollController();
+  final _dateFormat = DateFormat("EEEE, MMMM d, yyyy");
   bool _showSessionListScrollChevron = false;
   bool _sessionListOpen = true;
 
@@ -87,17 +89,17 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: const Text("Ask for session invite"),
-                            content: Text("Do you want to ask ${friend.contactUsername} for a session invite?"),
+                            title: const Text("messaging.invite.askForInviteHeader").tr(),
+                            content: const Text("messaging.invite.askForInviteDescription").tr(args: [friend.contactUsername]),
                             actionsAlignment: MainAxisAlignment.spaceBetween,
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context, false),
-                                child: const Text("Cancel"),
+                                child: const Text("general.cancel").tr(),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
-                                child: const Text("Send"),
+                                child: const Text('messaging.send').tr(),
                               ),
                             ],
                           );
@@ -227,7 +229,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                                 Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 24),
                                   child: Text(
-                                    "There are no messages here\nWhy not say hello?",
+                                    'messaging.noMessages'.tr(),
                                     textAlign: TextAlign.center,
                                     style: Theme.of(context).textTheme.titleMedium,
                                   ),
@@ -238,11 +240,54 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         }
                         return Provider(
                           create: (context) => AudioCacheClient(),
-                          child: ListView.builder(
+                          child: ListView.separated(
+                            padding: EdgeInsets.zero,
                             reverse: true,
                             physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
-                            itemCount: cache.messages.length,
+                            itemCount: cache.messages.length + 1,
+                            separatorBuilder: (context, index) {
+                              if (index == 0) return const SizedBox.shrink();
+                              DateTime sendTime;
+                              if (index == cache.messages.length-1) {
+                                sendTime = cache.messages[index - 1].sendTime;
+                              } else {
+                                final entry = cache.messages[index];
+                                final prevEntry = cache.messages[index - 1];
+                                if (entry.sendTime.isOnSameDay(prevEntry.sendTime)) {
+                                  return const SizedBox.shrink();
+                                }
+                                sendTime = prevEntry.sendTime;
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                child: Row(
+                                  spacing: 12,
+                                  children: [
+                                    Expanded(
+                                      child: Container(
+                                        height: 2,
+                                        color: Theme.of(context).dividerColor.withAlpha(30),
+                                      ),
+                                    ),
+                                    Text(
+                                      _dateFormat.format(sendTime),
+                                      style: Theme.of(context).textTheme.labelMedium?.apply(color: Theme.of(context).dividerColor),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    Expanded(
+                                      child: Container(
+                                        height: 2,
+                                        color: Theme.of(context).dividerColor.withAlpha(30),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                             itemBuilder: (context, index) {
+                              if (index == cache.messages.length) {
+                                return const SizedBox(height: 8);
+                              }
                               final entry = cache.messages[index];
                               if (index == cache.messages.length - 1) {
                                 return Padding(
