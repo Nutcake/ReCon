@@ -240,6 +240,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                         return Provider(
                           create: (context) => AudioCacheClient(),
                           child: ListView.builder(
+                            padding: EdgeInsets.zero,
                             reverse: true,
                             physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
                             itemCount: cache.messages.length,

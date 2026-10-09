@@ -309,6 +309,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
           child: SafeArea(
             top: false,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (_isSending && _sendProgress != null) LinearProgressIndicator(value: _sendProgress),
                 DecoratedBox(
