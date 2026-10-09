@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -30,6 +31,7 @@ import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
   await EasyLocalization.ensureInitialized();
   try {
     JustAudioMediaKit.ensureInitialized(); // Windows and Linux are enabled by default.
@@ -47,7 +49,6 @@ void main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: [SystemUiOverlay.top]);
 
   await Hive.initFlutter();
-
   final dateFormat = DateFormat.Hms();
   Logger.root.onRecord.listen(
     (event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time),
