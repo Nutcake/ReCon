@@ -37,7 +37,7 @@ dependencies:
   uuid: any
   intl: any
   http_parser: ^4.1.2
-  flutter_secure_storage: ^10.3.1
+  flutter_secure_storage: ^11.2.0
   logging: ^1.3.0
   cached_network_image: ^3.4.1
   web_socket_channel: ^3.0.3
