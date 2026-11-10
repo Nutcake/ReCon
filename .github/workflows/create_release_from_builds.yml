@@ -39,7 +39,7 @@ jobs:
 
   build_linux_appimage:
     name: Build Linux (AppImage)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
@@ -63,7 +63,7 @@ jobs:
             desktop-file-utils \
             fakeroot \
             fuse \
-            libgdk-pixbuf-xlib-2.0-dev \
+            libgdk-pixbuf2.0-dev \
             patchelf \
             python3-pip \
             python3-setuptools \
