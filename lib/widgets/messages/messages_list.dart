@@ -248,7 +248,12 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                             separatorBuilder: (context, index) {
                               DateTime sendTime;
                               if (index == cache.messages.length - 1) {
-                                sendTime = cache.messages[index - 1].sendTime;
+                                if (cache.messages.length == 1) {
+                                  sendTime = cache.messages[index].sendTime;
+                                } else {
+                                  sendTime = cache.messages[index - 1].sendTime;
+
+                                }
                               } else {
                                 final entry = cache.messages[index];
                                 final nextEntry = cache.messages[index + 1];

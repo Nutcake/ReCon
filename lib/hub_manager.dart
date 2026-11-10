@@ -18,6 +18,7 @@ class HubManager {
   final Map<String, dynamic> _headers = {};
   final Map<EventTarget, dynamic Function(List arguments)> _handlers = {};
   final Map<String, void Function(dynamic)> _responseHandlers = {};
+  final Map<String, StreamController<dynamic>> _streams = {};
   bool _disposed = false;
   FutureOr<void> Function() onConnected = () {};
   WebSocket? _wsChannel;
@@ -33,6 +34,12 @@ class HubManager {
   }
 
   Future<void> _onDisconnected(dynamic error) async {
+    final openStreams = _streams.values.toList();
+    _streams.clear();
+    for (final stream in openStreams) {
+      stream.addError(error);
+      unawaited(stream.close());
+    }
     _wsChannel = null;
     _logger.warning("Hub connection died with error '$error', reconnecting...");
     await start();
@@ -50,6 +57,37 @@ class HubManager {
     _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
     _wsChannel!.add(_negotiationPacket);
     await onConnected();
+  }
+
+  Stream<dynamic> stream(String target, {List args = const []}) {
+    final id = const Uuid().v4();
+    late final StreamController<dynamic> controller;
+    controller = StreamController(
+      onListen: () {
+        if (_wsChannel == null) {
+          controller
+            ..addError("Resonite Hub is not connected")
+            ..close();
+          return;
+        }
+        _streams[id] = controller;
+        _wsChannel!.add(
+          jsonEncode({
+                "type": EventType.streamInvocation.index,
+                "invocationId": id,
+                "target": target,
+                "arguments": args,
+              }) +
+              _eofChar,
+        );
+      },
+      onCancel: () {
+        if (_streams.remove(id) != null) {
+          _wsChannel?.add(jsonEncode({"type": EventType.cancelInvocation.index, "invocationId": id}) + _eofChar);
+        }
+      },
+    );
+    return controller.stream;
   }
 
   Future<WebSocket> _tryConnect() async {
@@ -85,9 +123,19 @@ class HubManager {
       }
       switch (EventType.values[rawType]) {
         case EventType.streamItem:
+          _streams[body["invocationId"]]?.add(body["item"]);
+          break;
         case EventType.completion:
-          final handler = _responseHandlers[body["invocationId"]];
-          handler?.call(body["result"] ?? {});
+          final id = body["invocationId"];
+          final stream = _streams.remove(id);
+          if (stream != null) {
+            if (body["error"] != null) {
+              stream.addError(body["error"]);
+            }
+            stream.close();
+          } else {
+            _responseHandlers.remove(id)?.call(body["result"] ?? {});
+          }
           _logger.info("Received completion event: $rawType: $body");
           break;
         case EventType.cancelInvocation:
