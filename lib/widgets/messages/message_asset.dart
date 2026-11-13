@@ -22,6 +22,7 @@ class MessageAsset extends StatelessWidget {
     final formattedName = FormatNode.fromText(content["name"]);
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
           SizedBox(

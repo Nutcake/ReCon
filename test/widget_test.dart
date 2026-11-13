@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/clients/settings_client.dart';
 import 'package:recon/main.dart';
 import 'package:recon/models/authentication_data.dart';
@@ -17,6 +18,7 @@ void main() {
     await tester.pumpWidget(ReCon(
       settingsClient: SettingsClient(),
       cachedAuthentication: AuthenticationData.unauthenticated(),
+      packageInfo: await PackageInfo.fromPlatform(),
     ));
 
     // Verify that our counter starts at 0.
