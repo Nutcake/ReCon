@@ -68,6 +68,8 @@ dependencies:
   media_kit_libs_linux: ^1.2.1
   media_kit_libs_windows_audio: ^1.0.9
   easy_localization: ^3.0.8
+  bson: ^5.0.8
+  dart_lz4: ^1.4.0
 
 dev_dependencies:
   flutter_test:

@@ -52,6 +52,15 @@ class AssetUploadData {
     required this.createdOn,
   });
 
+  static String _fixTimeNotation(String s) {
+    // the server sends the createdOn time string with trailing zeroes trimmed, but expects it back with those trimmed zeroes intact for the HMAC verification,
+    // so we add back the trimmed zeroes here so the server is happy :3
+    final m = RegExp(r'^(.+T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})?$').firstMatch(s);
+    if (m == null) return s;
+    final frac = (m[2] ?? '').padRight(7, '0');
+    return '${m[1]}.$frac${m[3] ?? ''}';
+  }
+
   factory AssetUploadData.fromMap(Map<String, dynamic> map) => AssetUploadData(
         hash: map["hash"],
         variant: map["variant"],
@@ -66,7 +75,7 @@ class AssetUploadData {
         isDirectUpload: map["isDirectUpload"],
         maxUploadConcurrency: map["maxUploadConcurrency"],
         chunks: (map["chunks"] as List?)?.cast<Map<String, dynamic>>().map(AssetChunk.fromMap).toList() ?? [],
-        createdOn: map["createdOn"],
+        createdOn: _fixTimeNotation(map["createdOn"]),
       );
 
   Map<String, dynamic> toMap() => {

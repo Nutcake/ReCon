@@ -243,7 +243,6 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
                           child: ListView.separated(
                             padding: EdgeInsets.zero,
                             reverse: true,
-                            padding: EdgeInsets.zero,
                             physics: const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast),
                             itemCount: cache.messages.length + 1,
                             separatorBuilder: (context, index) {

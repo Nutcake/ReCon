@@ -105,7 +105,7 @@ class RecordApi {
   }
 
   static Future<AssetUploadData> getUploadInfo(ApiClient client, {required AssetUploadData uploadData}) async {
-    final response = await client.patch("/users/${client.userId}/assets/${uploadData.hash}/upload/${uploadData.id}", body: jsonEncode(uploadData.toMap()));
+    final response = await client.get("/users/${uploadData.ownerId}/assets/${uploadData.hash}/upload/${uploadData.id}");
     client.checkResponse(response);
     final body = jsonDecode(response.body);
     return AssetUploadData.fromMap(body);
