@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/widgets/messages/message_asset.dart';
@@ -14,7 +14,7 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool mine = message.senderId == ClientHolder.of(context).apiClient.userId;
+    final mine = message.senderId == ClientHolder.of(context).apiClient.userId;
     final colorScheme = Theme.of(context).colorScheme;
     final foregroundColor = mine ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant;
     final backgroundColor = mine ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest;

@@ -79,7 +79,7 @@ class SupporterMetadata {
   SupporterMetadata();
 
   factory SupporterMetadata.fromMap(Map map) {
-    final type = map["\$type"];
+    final type = map[r"$type"];
     return switch (type) {
       "patreon" => PatreonSupporter.fromMap(map),
       "stripe" => StripeSupporter.fromMap(map),

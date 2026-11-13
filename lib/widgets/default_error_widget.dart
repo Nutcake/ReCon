@@ -1,5 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class DefaultErrorWidget extends StatelessWidget {
   const DefaultErrorWidget({this.title, this.message, this.onRetry, this.iconOverride, super.key});

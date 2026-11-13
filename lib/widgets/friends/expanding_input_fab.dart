@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ExpandingInputFab extends StatefulWidget {
   const ExpandingInputFab({this.onExpansionChanged, this.onInputChanged, super.key});

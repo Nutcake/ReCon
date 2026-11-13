@@ -62,7 +62,7 @@ class UserStatus {
         onlineStatus: OnlineStatus.online,
         hashSalt: CryptoHelper.cryptoToken(),
         outputDevice: "Unknown",
-        userSessionId: const Uuid().v4().toString(),
+        userSessionId: const Uuid().v4(),
         sessionType: UserSessionType.chatClient,
         isPresent: true,
       );

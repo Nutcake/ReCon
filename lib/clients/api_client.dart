@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 import 'package:logging/logging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/authentication_data.dart';
 import 'package:uuid/uuid.dart';
@@ -19,13 +22,14 @@ class ApiClient {
   static const String passwordKey = "password";
   static const String uidKey = "uid";
 
-  ApiClient({required AuthenticationData authenticationData}) : _authenticationData = authenticationData;
+  ApiClient({required this._authenticationData, required this._pkgInfo});
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
 
   final _logoutNotifier = EventNotifier();
-  final http.Client _client = http.Client();
+  late final _client = IOClient(HttpClient()..userAgent = "${_pkgInfo.appName}/${_pkgInfo.version}");
+  final PackageInfo _pkgInfo;
 
   AuthenticationData get authenticationData => _authenticationData;
 
@@ -35,32 +39,15 @@ class ApiClient {
 
   void addLogoutListener(VoidCallback listener) => _logoutNotifier.addListener(listener);
 
-  static Future<AuthenticationData> tryLogin({
-    required String username,
-    required String password,
-    bool rememberMe = true,
-    bool rememberPass = true,
-    String? oneTimePad,
-  }) async {
+  static Future<AuthenticationData> tryLogin({required String username, required String password, bool rememberMe = true, bool rememberPass = true, String? oneTimePad}) async {
     final body = {
       (username.contains("@") ? "email" : "username"): username.trim(),
-      "authentication": {
-        r"$type": "password",
-        "password": password,
-      },
+      "authentication": {r"$type": "password", "password": password},
       "rememberMe": rememberMe,
       "secretMachineId": const Uuid().v4(),
     };
     final uid = const Uuid().v4().replaceAll("-", "");
-    final response = await http.post(
-      buildFullUri("/userSessions"),
-      headers: {
-        "Content-Type": "application/json",
-        "UID": uid,
-        if (oneTimePad != null) totpKey: oneTimePad,
-      },
-      body: jsonEncode(body),
-    );
+    final response = await http.post(buildFullUri("/userSessions"), headers: {"Content-Type": "application/json", "UID": uid, totpKey: ?oneTimePad}, body: jsonEncode(body));
     if (response.statusCode == 403 && response.body == totpKey) {
       throw totpKey;
     }
@@ -72,9 +59,7 @@ class ApiClient {
     (data["entity"] as Map)["uid"] = uid;
     final authData = AuthenticationData.fromMap(data);
     if (authData.isAuthenticated) {
-      const storage = FlutterSecureStorage(
-        aOptions: AndroidOptions(encryptedSharedPreferences: true),
-      );
+      const storage = FlutterSecureStorage(aOptions: AndroidOptions.defaultOptions);
       await storage.write(key: userIdKey, value: authData.userId);
       await storage.write(key: machineIdKey, value: authData.secretMachineIdHash);
       await storage.write(key: tokenKey, value: authData.token);
@@ -85,9 +70,7 @@ class ApiClient {
   }
 
   static Future<AuthenticationData> tryCachedLogin() async {
-    const storage = FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    );
+    const storage = FlutterSecureStorage(aOptions: AndroidOptions.defaultOptions);
     var userId = await storage.read(key: userIdKey);
     final machineId = await storage.read(key: machineIdKey);
     final token = await storage.read(key: tokenKey);
@@ -99,21 +82,9 @@ class ApiClient {
     }
 
     if (token != null) {
-      final response = await http.patch(
-        buildFullUri("/userSessions"),
-        headers: {
-          "Authorization": "res $userId:$token",
-          "UID": uid,
-        },
-      );
+      final response = await http.patch(buildFullUri("/userSessions"), headers: {"Authorization": "res $userId:$token", "UID": uid});
       if (response.statusCode < 300) {
-        return AuthenticationData(
-          userId: userId,
-          token: token,
-          secretMachineIdHash: machineId,
-          isAuthenticated: true,
-          uid: uid,
-        );
+        return AuthenticationData(userId: userId, token: token, secretMachineIdHash: machineId, isAuthenticated: true, uid: uid);
       }
     }
 
@@ -131,9 +102,7 @@ class ApiClient {
 
   Future<void> logout() async {
     //TODO: Fix messaging/hub clients not being disposed on logout
-    const storage = FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    );
+    const storage = FlutterSecureStorage(aOptions: AndroidOptions.defaultOptions);
     await storage.delete(key: userIdKey);
     await storage.delete(key: machineIdKey);
     await storage.delete(key: tokenKey);
@@ -162,20 +131,16 @@ class ApiClient {
   static void checkResponseCode(http.Response response) {
     if (response.statusCode < 300) return;
 
-    final error = "${response.request?.method ?? "Unknown Method"}|${response.request?.url ?? "Unknown URL"}: ${switch (response.statusCode) {
-      429 => "You are being rate limited.",
-      403 => "You are not authorized to do that.",
-      404 => "Resource not found.",
-      500 => "Internal server error.",
-      _ => "Unknown Error."
-    }} (${response.statusCode}${kDebugMode && response.body.isNotEmpty ? "|${response.body}" : ""})";
+    final error =
+        "${response.request?.method ?? "Unknown Method"}|${response.request?.url ?? "Unknown URL"}: ${switch (response.statusCode) {
+          429 => "You are being rate limited.",
+          403 => "You are not authorized to do that.",
+          404 => "Resource not found.",
+          500 => "Internal server error.",
+          _ => "Unknown Error.",
+        }} (${response.statusCode}${kDebugMode && response.body.isNotEmpty ? "|${response.body}" : ""})";
 
-    FlutterError.reportError(
-      FlutterErrorDetails(
-        exception: error,
-        stack: StackTrace.current,
-      ),
-    );
+    FlutterError.reportError(FlutterErrorDetails(exception: error, stack: StackTrace.current));
     throw error;
   }
 
@@ -183,10 +148,23 @@ class ApiClient {
 
   static Uri buildFullUri(String path) => Uri.parse("${Config.apiBaseUrl}$path");
 
+  Future<http.Response> _requestWrapper(Future<http.Response> Function() requestFunc) async {
+    int responseCode;
+    var attempts = 0;
+    http.Response response;
+    do {
+      await Future.delayed(Duration(seconds: attempts));
+      response = await requestFunc();
+      attempts++;
+      responseCode = response.statusCode;
+    } while (responseCode == 429 && attempts < 5);
+    return response;
+  }
+
   Future<http.Response> get(String path, {Map<String, String>? headers}) async {
     headers ??= {};
     headers.addAll(authorizationHeader);
-    final response = await _client.get(buildFullUri(path), headers: headers);
+    final response = await _requestWrapper(() async => _client.get(buildFullUri(path), headers: headers));
     _logger.info("GET $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -195,7 +173,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    final response = await _client.post(buildFullUri(path), headers: headers, body: body);
+    final response = await _requestWrapper(() async => _client.post(buildFullUri(path), headers: headers, body: body));
     _logger.info("PST $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -204,7 +182,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    final response = await _client.put(buildFullUri(path), headers: headers, body: body);
+    final response = await _requestWrapper(() async => _client.put(buildFullUri(path), headers: headers, body: body));
     _logger.info("PUT $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -212,7 +190,7 @@ class ApiClient {
   Future<http.Response> delete(String path, {Map<String, String>? headers}) async {
     headers ??= {};
     headers.addAll(authorizationHeader);
-    final response = await _client.delete(buildFullUri(path), headers: headers);
+    final response = await _requestWrapper(() async => _client.delete(buildFullUri(path), headers: headers));
     _logger.info("DEL $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }
@@ -221,7 +199,7 @@ class ApiClient {
     headers ??= {};
     headers["Content-Type"] = "application/json";
     headers.addAll(authorizationHeader);
-    final response = await _client.patch(buildFullUri(path), headers: headers, body: body);
+    final response = await _requestWrapper(() async => _client.patch(buildFullUri(path), headers: headers, body: body));
     _logger.info("PAT $path => ${response.statusCode}${response.statusCode >= 300 ? ": ${response.body}" : ""}");
     return response;
   }

@@ -68,7 +68,6 @@ linter:
     - use_colored_box
     - use_decorated_box
     - use_enums
-    - use_if_null_to_convert_nulls_to_bools
     - use_is_even_rather_than_modulo
     - use_late_for_private_fields_and_variables
     - use_named_constants
@@ -77,5 +76,14 @@ linter:
 
 formatter:
   page_width: 180
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

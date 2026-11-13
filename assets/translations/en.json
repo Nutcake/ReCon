@@ -59,6 +59,7 @@
 	"messaging": {
 		"placeholder": "Message {}...",
 		"noMessages": "There are no messages here\nWhy not say hello?",
+		"notAnImage": "Attached file is not an image",
 		"failedSend": "Failed to send a message: {}",
 		"recording": "Recording: {}",
 		"cancelRecording": "Cancel Recording",

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/session.dart';
 import 'package:recon/widgets/formatted_text.dart';

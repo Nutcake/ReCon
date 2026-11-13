@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/message.dart';
@@ -18,10 +18,11 @@ class MessageAsset extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = jsonDecode(message.content);
+    final content = jsonDecode(message.content) as Map;
     final formattedName = FormatNode.fromText(content["name"]);
     return Container(
       constraints: const BoxConstraints(maxWidth: 300),
+      padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
           SizedBox(

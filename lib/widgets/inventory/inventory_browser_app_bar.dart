@@ -2,10 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -190,7 +191,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                       },
                                       leading: const Icon(Icons.image),
                                       title: Text(
-                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.map(extension).toList().unique().join(", ")})",
+                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.nonNulls.map(extension).toList().unique().join(", ")})",
                                       ),
                                     ),
                                   ],
@@ -224,7 +225,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
 
                           for (final record in selectedRecords) {
                             final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
-                            final filename = "${record.id.split("-")[1]}-${record.formattedName}${extension(uri)}";
+                            final filename =
+                                "${record.id.split("-")[1]}-${record.formattedName}${extension(uri ?? "")}";
                             try {
                               final downloadTask = DownloadTask(
                                 url: Aux.resdbToHttp(uri),
@@ -236,7 +238,9 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               final downloadStatus = await FileDownloader().download(downloadTask);
                               if (downloadStatus.status == TaskStatus.complete) {
                                 final tempDirectory = await _tempDirectoryFuture;
-                                final file = File("${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${extension(uri)}");
+                                final file = File(
+                                  "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${extension(uri ?? "")}",
+                                );
                                 if (file.existsSync()) {
                                   final newFile = File("$directory/$filename");
                                   await file.copy(newFile.absolute.path);

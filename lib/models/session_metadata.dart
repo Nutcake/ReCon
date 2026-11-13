@@ -1,5 +1,5 @@
-import 'package:recon/models/session.dart';
 import 'package:intl/intl.dart';
+import 'package:recon/models/session.dart';
 
 class SessionMetadata {
   final String sessionHash;

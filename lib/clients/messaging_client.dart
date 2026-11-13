@@ -50,12 +50,10 @@ class MessagingClient extends ChangeNotifier {
   bool _areContactsLoaded = false;
 
   MessagingClient({
-    required ApiClient apiClient,
-    required NotificationClient notificationClient,
-    required SettingsClient settingsClient,
-  })  : _apiClient = apiClient,
-        _notificationClient = notificationClient,
-        _settingsClient = settingsClient {
+    required this._apiClient,
+    required this._notificationClient,
+    required this._settingsClient,
+  }) {
     _apiClient.addLogoutListener(dispose);
 
     SessionApi.getSessions(_apiClient).then(

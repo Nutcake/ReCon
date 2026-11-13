@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:recon/widgets/formatted_text.dart';
@@ -123,10 +123,10 @@ class _WorldViewState extends State<WorldView> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8),
-                  child: widget.world.formattedDescription.isEmpty
+                  child: widget.world.formattedDescription?.isEmpty ?? true
                       ? Text('worlds.noDescription', style: Theme.of(context).textTheme.labelLarge).tr()
                       : FormattedText(
-                          widget.world.formattedDescription,
+                          widget.world.formattedDescription!,
                           style: Theme.of(context).textTheme.labelLarge?.apply(fontStyle: FontStyle.italic),
                         ),
                 ),

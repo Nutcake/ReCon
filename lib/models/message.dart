@@ -162,9 +162,7 @@ class MessageCache {
 
   List<Message> get messages => _messages;
 
-  MessageCache({required ApiClient apiClient, required String userId})
-      : _apiClient = apiClient,
-        _userId = userId;
+  MessageCache({required this._apiClient, required this._userId});
 
   /// Adds a message to the cache, ensuring integrity of the message cache.
   /// Returns true if the message was inserted into the cache and false if an existing message was overwritten.

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/models/sem_ver.dart';
 import 'package:recon/models/users/online_status.dart';
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class SettingsEntry<T> {
@@ -30,7 +30,7 @@ class SettingsEntry<T> {
   SettingsEntry<T> withValue({required T newValue}) => SettingsEntry(value: newValue, deflt: deflt);
 
   SettingsEntry<T> passThrough(T? newValue) {
-    return newValue == null ? this : this.withValue(newValue: newValue);
+    return newValue == null ? this : withValue(newValue: newValue);
   }
 }
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/invite_request.dart';
 import 'package:recon/models/message.dart';
@@ -17,8 +17,8 @@ class MessageInviteRequest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inviteInfo = InviteRequest.fromMap(jsonDecode(message.content));
-    final bool fromSelf = message.senderId == ClientHolder.of(context).apiClient.userId;
-    final bool selfRequest = fromSelf && inviteInfo.forSessionName == null;
+    final fromSelf = message.senderId == ClientHolder.of(context).apiClient.userId;
+    final selfRequest = fromSelf && inviteInfo.forSessionName == null;
     String text;
     if (selfRequest) {
       //if the sender is the logged in user and the session name isn't included; this is the user requesting for an invite themselves.

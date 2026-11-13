@@ -1,5 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/widgets/friends/friends_list.dart';
 import 'package:recon/widgets/friends/friends_list_app_bar.dart';
 import 'package:recon/widgets/inventory/inventory_browser.dart';

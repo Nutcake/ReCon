@@ -10,8 +10,8 @@ class PhotoAsset {
   PhotoAsset({required this.locationName, required this.userIds, required this.timestamp, required this.imageUri});
 
   factory PhotoAsset.fromTags(List<String> tags) {
-    final List<String> userIds = [];
-    Map<String, String> parsedTags = Map.fromEntries(tags.map((e) {
+    final userIds = <String>[];
+    final parsedTags = Map<String, String>.fromEntries(tags.map((e) {
       final delimIdx = e.indexOf(":");
       if (delimIdx == -1) return null;
       final key = e.substring(0, delimIdx);

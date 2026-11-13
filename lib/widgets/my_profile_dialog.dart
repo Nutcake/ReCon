@@ -1,5 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/apis/user_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/client_holder.dart';
@@ -20,7 +20,7 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
   Future<StorageQuota>? _storageQuotaFuture;
 
   @override
-  void didChangeDependencies() async {
+  void didChangeDependencies() {
     super.didChangeDependencies();
     final clientHolder = ClientHolder.of(context);
     if (_clientHolder != clientHolder) {
@@ -34,13 +34,13 @@ class _MyProfileDialogState extends State<MyProfileDialog> {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    DateFormat dateFormat = DateFormat.yMd();
+    final dateFormat = DateFormat.yMd();
     return Dialog(
       child: FutureBuilder(
         future: _personalProfileFuture,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            final profile = snapshot.data as PersonalProfile;
+            final profile = snapshot.data!;
             return Padding(
               padding: const EdgeInsets.all(24),
               child: Column(

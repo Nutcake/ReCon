@@ -205,11 +205,14 @@
 // warnings
 
 
+// ignore_for_file: cascade_invocations
+
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
+
 import 'package:flutter_cube/flutter_cube.dart';
+import 'package:material_ui/material_ui.dart';
 
 class Panorama extends StatefulWidget {
   const Panorama({
@@ -347,22 +350,22 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
   ImageStream? _imageStream;
 
   void _handleTapUp(TapUpDetails details) {
-    final Vector3 o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
+    final o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
     widget.onTap!(degrees(o.x), degrees(-o.y), degrees(o.z));
   }
 
   void _handleLongPressStart(LongPressStartDetails details) {
-    final Vector3 o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
+    final o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
     widget.onLongPressStart!(degrees(o.x), degrees(-o.y), degrees(o.z));
   }
 
   void _handleLongPressMoveUpdate(LongPressMoveUpdateDetails details) {
-    final Vector3 o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
+    final o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
     widget.onLongPressMoveUpdate!(degrees(o.x), degrees(-o.y), degrees(o.z));
   }
 
   void _handleLongPressEnd(LongPressEndDetails details) {
-    final Vector3 o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
+    final o = positionToLatLon(details.localPosition.dx, details.localPosition.dy);
     widget.onLongPressEnd!(degrees(o.x), degrees(-o.y), degrees(o.z));
   }
 
@@ -399,7 +402,7 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
     longitude += _animateDirection * longitudeDelta * _dampingFactor * widget.sensitivity;
     longitudeDelta *= 1 - _dampingFactor * widget.sensitivity;
     // animate zomming
-    final double zoom = scene!.camera.zoom + zoomDelta * _dampingFactor;
+    final zoom = scene!.camera.zoom + zoomDelta * _dampingFactor;
     zoomDelta *= 1 - _dampingFactor;
     scene!.camera.zoom = zoom.clamp(widget.minZoom, widget.maxZoom);
     // stop animation if not needed
@@ -410,20 +413,20 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
     }
 
     // rotate for screen orientation
-    Quaternion q = Quaternion.axisAngle(Vector3(0, 0, 1), screenOrientation);
+    var q = Quaternion.axisAngle(Vector3(0, 0, 1), screenOrientation);
     // rotate for device orientation
     q *= Quaternion.euler(-orientation.z, -orientation.y, -orientation.x);
     // rotate to latitude zero
     q *= Quaternion.axisAngle(Vector3(1, 0, 0), math.pi * 0.5);
 
     // check and limit the rotation range
-    Vector3 o = quaternionToOrientation(q);
-    final double minLat = radians(math.max(-89.9, widget.minLatitude));
-    final double maxLat = radians(math.min(89.9, widget.maxLatitude));
-    final double minLon = radians(widget.minLongitude);
-    final double maxLon = radians(widget.maxLongitude);
-    final double lat = (-o.y).clamp(minLat, maxLat);
-    final double lon = o.x.clamp(minLon, maxLon);
+    var o = quaternionToOrientation(q);
+    final minLat = radians(math.max(-89.9, widget.minLatitude));
+    final maxLat = radians(math.min(89.9, widget.maxLatitude));
+    final minLon = radians(widget.minLongitude);
+    final maxLon = radians(widget.maxLongitude);
+    final lat = (-o.y).clamp(minLat, maxLat);
+    final lon = o.x.clamp(minLon, maxLon);
     if (lat + latitude < minLat) latitude = minLat - lat;
     if (lat + latitude > maxLat) latitude = maxLat - lat;
     if (maxLon - minLon < math.pi * 2) {
@@ -439,8 +442,8 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
         }
       }
     }
-    o.x = lon;
-    o.y = -lat;
+    o..x = lon
+    ..y = -lat;
     q = orientationToQuaternion(o);
 
     // rotate to longitude zero
@@ -471,8 +474,8 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
   void _loadTexture(ImageProvider? provider) {
     if (provider == null) return;
     _imageStream?.removeListener(ImageStreamListener(_updateTexture));
-    _imageStream = provider.resolve(const ImageConfiguration());
-    ImageStreamListener listener = ImageStreamListener(_updateTexture);
+    _imageStream = provider.resolve(ImageConfiguration.empty);
+    final listener = ImageStreamListener(_updateTexture);
     _imageStream!.addListener(listener);
   }
 
@@ -484,7 +487,7 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
     scene.camera.zoom = widget.zoom;
     scene.camera.position.setFrom(Vector3(0, 0, 0.1));
     if (widget.child != null) {
-      final Mesh mesh = generateSphereMesh(
+      final mesh = generateSphereMesh(
           radius: _radius,
           latSegments: widget.latSegments,
           lonSegments: widget.lonSegments,
@@ -504,7 +507,7 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
 
   Vector3 positionToLatLon(double x, double y) {
     // transform viewport coordinate to NDC, values between -1 and 1
-    final Vector4 v =
+    final v =
         Vector4(2.0 * x / scene!.camera.viewportWidth - 1.0, 1.0 - 2.0 * y / scene!.camera.viewportHeight, 1.0, 1.0);
     // create projection matrix
     final Matrix4 m = scene!.camera.projectionMatrix * scene!.camera.lookAtMatrix;
@@ -514,16 +517,17 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
     // apply perspective division
     v.scale(1 / v.w);
     // get rotation from two vectors
-    final Quaternion q = Quaternion.fromTwoVectors(v.xyz, Vector3(0.0, 0.0, -_radius));
+    final q = Quaternion.fromTwoVectors(v.xyz, Vector3(0.0, 0.0, -_radius));
     // get euler angles from rotation
     return quaternionToOrientation(q * Quaternion.axisAngle(Vector3(0, 1, 0), math.pi * 0.5));
   }
 
   Vector3 positionFromLatLon(double lat, double lon) {
     // create projection matrix
+    // ignore: avoid_dynamic_calls
     final Matrix4 m = scene!.camera.projectionMatrix * scene!.camera.lookAtMatrix * matrixFromLatLon(lat, lon);
     // apply projection matrix
-    final Vector4 v = Vector4(0.0, 0.0, -_radius, 1.0)..applyMatrix4(m);
+    final v = Vector4(0.0, 0.0, -_radius, 1.0)..applyMatrix4(m);
     // apply perspective division and transform NDC to the viewport coordinate
     return Vector3(
       (1.0 + v.x / v.w) * scene!.camera.viewportWidth / 2,
@@ -533,11 +537,11 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
   }
 
   Widget buildHotspotWidgets(List<Hotspot>? hotspots) {
-    final List<Widget> widgets = <Widget>[];
+    final widgets = <Widget>[];
     if (hotspots != null && scene != null) {
-      for (Hotspot hotspot in hotspots) {
-        final Vector3 pos = positionFromLatLon(hotspot.latitude, hotspot.longitude);
-        final Offset orgin = Offset(hotspot.width * hotspot.orgin.dx, hotspot.height * hotspot.orgin.dy);
+      for (final hotspot in hotspots) {
+        final pos = positionFromLatLon(hotspot.latitude, hotspot.longitude);
+        final orgin = Offset(hotspot.width * hotspot.orgin.dx, hotspot.height * hotspot.orgin.dy);
         final Matrix4 transform = scene!.camera.lookAtMatrix * matrixFromLatLon(hotspot.latitude, hotspot.longitude);
         final Widget child = Positioned(
           left: pos.x - orgin.dx,
@@ -607,12 +611,12 @@ class _PanoramaState extends State<Panorama> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    Widget pano = Stack(
+    final Widget pano = Stack(
       children: [
         Cube(interactive: false, onSceneCreated: _onSceneCreated),
         StreamBuilder(
           stream: _stream,
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
+          builder: (context, snapshot) {
             return buildHotspotWidgets(widget.hotspots);
           },
         ),
@@ -673,20 +677,20 @@ Mesh generateSphereMesh(
     Rect croppedArea = const Rect.fromLTWH(0.0, 0.0, 1.0, 1.0),
     double croppedFullWidth = 1.0,
     double croppedFullHeight = 1.0}) {
-  int count = (latSegments + 1) * (lonSegments + 1);
-  List<Vector3> vertices = List<Vector3>.filled(count, Vector3.zero());
-  List<Offset> texcoords = List<Offset>.filled(count, Offset.zero);
-  List<Polygon> indices = List<Polygon>.filled(latSegments * lonSegments * 2, Polygon(0, 0, 0));
+  final count = (latSegments + 1) * (lonSegments + 1);
+  final vertices = List<Vector3>.filled(count, Vector3.zero());
+  final texcoords = List<Offset>.filled(count, Offset.zero);
+  final indices = List<Polygon>.filled(latSegments * lonSegments * 2, Polygon(0, 0, 0));
 
-  int i = 0;
-  for (int y = 0; y <= latSegments; ++y) {
-    final double tv = y / latSegments;
-    final double v = (croppedArea.top + croppedArea.height * tv) / croppedFullHeight;
-    final double sv = math.sin(v * math.pi);
-    final double cv = math.cos(v * math.pi);
-    for (int x = 0; x <= lonSegments; ++x) {
-      final double tu = x / lonSegments;
-      final double u = (croppedArea.left + croppedArea.width * tu) / croppedFullWidth;
+  var i = 0;
+  for (var y = 0; y <= latSegments; ++y) {
+    final tv = y / latSegments;
+    final v = (croppedArea.top + croppedArea.height * tv) / croppedFullHeight;
+    final sv = math.sin(v * math.pi);
+    final cv = math.cos(v * math.pi);
+    for (var x = 0; x <= lonSegments; ++x) {
+      final tu = x / lonSegments;
+      final u = (croppedArea.left + croppedArea.width * tu) / croppedFullWidth;
       vertices[i] =
           Vector3(radius * math.cos(u * math.pi * 2.0) * sv, radius * cv, radius * math.sin(u * math.pi * 2.0) * sv);
       texcoords[i] = Offset(tu, 1.0 - tv);
@@ -695,16 +699,16 @@ Mesh generateSphereMesh(
   }
 
   i = 0;
-  for (int y = 0; y < latSegments; ++y) {
-    final int base1 = (lonSegments + 1) * y;
-    final int base2 = (lonSegments + 1) * (y + 1);
-    for (int x = 0; x < lonSegments; ++x) {
+  for (var y = 0; y < latSegments; ++y) {
+    final base1 = (lonSegments + 1) * y;
+    final base2 = (lonSegments + 1) * (y + 1);
+    for (var x = 0; x < lonSegments; ++x) {
       indices[i++] = Polygon(base1 + x, base1 + x + 1, base2 + x);
       indices[i++] = Polygon(base1 + x + 1, base2 + x + 1, base2 + x);
     }
   }
 
-  final Mesh mesh = Mesh(vertices: vertices, texcoords: texcoords, indices: indices, texture: texture);
+  final mesh = Mesh(vertices: vertices, texcoords: texcoords, indices: indices, texture: texture);
   return mesh;
 }
 
@@ -712,18 +716,18 @@ Vector3 quaternionToOrientation(Quaternion q) {
   // final Matrix4 m = Matrix4.compose(Vector3.zero(), q, Vector3.all(1.0));
   // return Vector3(v.z, v.y, v.x);
   final storage = q.storage;
-  final double x = storage[0];
-  final double y = storage[1];
-  final double z = storage[2];
-  final double w = storage[3];
-  final double roll = math.atan2(-2 * (x * y - w * z), 1.0 - 2 * (x * x + z * z));
-  final double pitch = math.asin(2 * (y * z + w * x));
-  final double yaw = math.atan2(-2 * (x * z - w * y), 1.0 - 2 * (x * x + y * y));
+  final x = storage[0];
+  final y = storage[1];
+  final z = storage[2];
+  final w = storage[3];
+  final roll = math.atan2(-2 * (x * y - w * z), 1.0 - 2 * (x * x + z * z));
+  final pitch = math.asin(2 * (y * z + w * x));
+  final yaw = math.atan2(-2 * (x * z - w * y), 1.0 - 2 * (x * x + y * y));
   return Vector3(yaw, pitch, roll);
 }
 
 Quaternion orientationToQuaternion(Vector3 v) {
-  final Matrix4 m = Matrix4.identity();
+  final m = Matrix4.identity();
   m.rotateZ(v.z);
   m.rotateX(v.y);
   m.rotateY(v.x);
