@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bson/bson.dart';
@@ -155,6 +156,37 @@ class RecordApi {
     return Record.fromMap(body);
   }
 
+  static Uint8List _encodeDataTreeLz4(Uint8List bson) {
+    const blockSize = 1024 * 1024; // lz4net default
+    final out = BytesBuilder(copy: false)
+      ..add(const [0x46, 0x72, 0x44, 0x54]) // "FrDT"
+      ..add(const [0, 0, 0, 0])             // version (int32)
+      ..addByte(1);                         // compression: LZ4
+    for (var offset = 0; offset < bson.length; offset += blockSize) {
+      final chunk = Uint8List.sublistView(bson, offset, min(offset + blockSize, bson.length));
+      final compressed = lz4Compress(chunk);
+      if (compressed.length < chunk.length) {
+        _writeVarInt(out, 1); // compressed
+        _writeVarInt(out, chunk.length);
+        _writeVarInt(out, compressed.length);
+        out.add(compressed);
+      } else {
+        _writeVarInt(out, 0); // uncompressed
+        _writeVarInt(out, chunk.length);
+        out.add(chunk);
+      }
+    }
+    return out.takeBytes();
+  }
+
+  static void _writeVarInt(BytesBuilder b, int v) {
+    while (v >= 0x80) {
+      b.addByte((v & 0x7f) | 0x80);
+      v >>= 7;
+    }
+    b.addByte(v);
+  }
+
   static Future<Record> uploadImage(ApiClient client, {required File image, required String machineId, String? messageId, void Function(double progress)? progressCallback}) async {
     progressCallback?.call(0);
     var imageData = await image.readAsBytes();
@@ -178,7 +210,7 @@ class RecordApi {
     final imageUri = "resdb:///${imageManifest.hash}.webp";
 
     final objectBson = BsonCodec.serialize(JsonTemplate.image(imageResDb: imageUri, machineId: machineId)).byteList;
-    final objectBytes = Uint8List.fromList([70, 114, 68, 84, 0, 0, 0, 0, 1] + lz4Compress(objectBson));
+    final objectBytes = _encodeDataTreeLz4(Uint8List.fromList(objectBson));
     final objectManifest = AssetManifest.fromData(objectBytes);
     final assetManifest = {imageManifest: imageData, thumbnailManifest: thumbnail, objectManifest: objectBytes};
 
