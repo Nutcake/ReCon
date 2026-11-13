@@ -1,6 +1,6 @@
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/models/records/record.dart';
 import 'package:recon/widgets/formatted_text.dart';
-import 'package:flutter/material.dart';
 
 class PathInventoryTile extends StatelessWidget {
   const PathInventoryTile({required this.record, this.selected = false, this.onTap, this.onLongPress, super.key});

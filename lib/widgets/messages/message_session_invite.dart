@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/models/session.dart';
@@ -8,7 +9,6 @@ import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/generic_avatar.dart';
 import 'package:recon/widgets/messages/message_state_indicator.dart';
 import 'package:recon/widgets/sessions/session_view.dart';
-import 'package:flutter/material.dart';
 
 class MessageSessionInvite extends StatelessWidget {
   const MessageSessionInvite({required this.message, this.foregroundColor, super.key});

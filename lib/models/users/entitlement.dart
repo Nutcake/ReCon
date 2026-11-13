@@ -4,7 +4,7 @@ class Entitlement {
   Entitlement();
 
   factory Entitlement.fromMap(Map map) {
-    final type = map["\$type"];
+    final type = map[r"$type"];
 
     return switch (type) {
       "storageSpace" => StorageSpace.fromMap(map),

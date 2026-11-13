@@ -21,7 +21,7 @@ class ResoniteDirectory {
 
   bool get isRoot => record.isRoot;
 
-  String get absolutePath => "${parent?.absolutePath ?? ""}/${(record.name)}";
+  String get absolutePath => "${parent?.absolutePath ?? ""}/${record.name}";
 
   List<String> get absolutePathSegments => (parent?.absolutePathSegments ?? []) + [record.formattedName.toString()];
 

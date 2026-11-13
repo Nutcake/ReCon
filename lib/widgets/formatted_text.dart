@@ -1,5 +1,5 @@
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/string_formatter.dart';
-import 'package:flutter/material.dart';
 
 class FormattedText extends StatelessWidget {
   const FormattedText(this.formatTree, {

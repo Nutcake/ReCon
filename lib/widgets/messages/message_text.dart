@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/models/message.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/messages/message_state_indicator.dart';

@@ -1,11 +1,11 @@
 import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:provider/provider.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/models/session.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SessionFilterDialog extends StatefulWidget {
   const SessionFilterDialog({required this.lastFilter, super.key});

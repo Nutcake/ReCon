@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class GenericAvatar extends StatelessWidget {
   const GenericAvatar({this.imageUri = "", super.key, this.placeholderIcon = Icons.person, this.radius, this.foregroundColor});

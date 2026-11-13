@@ -10,6 +10,6 @@ class GithubApi {
     if (response.statusCode != 200) return "";
     final body = jsonDecode(response.body) as List;
     if (body.isEmpty) return "";
-    return body.first["tag_name"] ?? "";
+    return body.cast<Map>().first["tag_name"] ?? "";
   }
 }

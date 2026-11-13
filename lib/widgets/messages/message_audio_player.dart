@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/audio_cache_client.dart';
@@ -144,8 +144,8 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                                       }
                                       break;
                                     case ProcessingState.completed:
-                                      _audioPlayer.seek(Duration.zero);
-                                      _audioPlayer.play();
+                                      _audioPlayer..seek(Duration.zero)
+                                      ..play();
                                       break;
                                   }
                                 }

@@ -1,7 +1,7 @@
+import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/message.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class MessageStateIndicator extends StatelessWidget {
   MessageStateIndicator({required this.message, this.foregroundColor, super.key});
