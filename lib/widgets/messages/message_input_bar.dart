@@ -103,20 +103,6 @@ class _MessageInputBarState extends State<MessageInputBar> {
     mClient.sendMessage(message);
   }
 
-  Future<void> sendRawFileMessage(ApiClient client, MessagingClient mClient, File file, String machineId, void Function(double progress) progressCallback) async {
-    final record = await RecordApi.uploadRawFile(client, file: file, machineId: machineId, progressCallback: progressCallback);
-    final message = Message(
-      id: record.extractMessageId() ?? Message.generateId(),
-      recipientId: widget.recipient.contactUserId,
-      senderId: client.userId,
-      type: MessageType.object,
-      content: jsonEncode(record.toMap()),
-      sendTime: DateTime.now().toUtc(),
-      state: MessageState.local,
-    );
-    mClient.sendMessage(message);
-  }
-
   Future<void> _sendCurrentMessage() async {
     setState(() {
       _isSending = true;
@@ -143,13 +129,7 @@ class _MessageInputBarState extends State<MessageInputBar> {
             }),
           );
         } else {
-          await sendRawFileMessage(
-            cHolder.apiClient,
-            mClient,
-            file.$2,
-            settings.machineId.valueOrDefault,
-            (progress) => setState(() => _sendProgress = totalProgress + progress * 1 / toSend.length),
-          );
+          throw "messaging.notAnImage".tr();
         }
       }
       setState(() {
@@ -333,9 +313,6 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                   : () async {
                                       final picture = await _imagePicker.pickImage(source: ImageSource.camera);
                                       if (picture == null) {
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to get image path")));
-                                        }
                                         return;
                                       }
                                       final file = File(picture.path);
@@ -351,20 +328,6 @@ class _MessageInputBarState extends State<MessageInputBar> {
                                     },
                               icon: const Icon(Icons.camera),
                               label: const Text("Camera"),
-                            ),
-                            TextButton.icon(
-                              onPressed: _isSending
-                                  ? null
-                                  : () async {
-                                      final result = await FilePicker.pickFiles(type: FileType.any);
-                                      setState(() {
-                                        _loadedFiles.addAll(
-                                          result.map((e) => e.path != null ? (FileType.any, File(e.path!)) : null).nonNulls,
-                                        );
-                                      });
-                                    },
-                              icon: const Icon(Icons.file_present_rounded),
-                              label: const Text("Document"),
                             ),
                           ],
                         ),
