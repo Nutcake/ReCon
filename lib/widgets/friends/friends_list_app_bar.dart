@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/clients/messaging_client.dart';
@@ -38,7 +38,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                         color: client.userStatus.onlineStatus.color(context),
                       ),
                     ),
-                    Text(toBeginningOfSentenceCase(client.userStatus.onlineStatus.name) ?? "Unknown"),
+                    Text('contacts.status.${client.userStatus.onlineStatus.name}').tr(),
                   ],
                 ),
               ),
@@ -75,7 +75,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                           const SizedBox(
                             width: 8,
                           ),
-                          Text(toBeginningOfSentenceCase(item.name)!),
+                          Text('contacts.status.${item.name}').tr(),
                         ],
                       ),
                     ),
@@ -93,7 +93,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
             },
             itemBuilder: (context) => [
               MenuItemDefinition(
-                name: "Find Users",
+                name: 'navigation.findUsers'.tr(),
                 icon: Icons.person_add,
                 onTap: () async {
                   final mClient = Provider.of<MessagingClient>(context, listen: false);
@@ -108,7 +108,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                 },
               ),
               MenuItemDefinition(
-                name: "My Profile",
+                name: 'navigation.myProfile'.tr(),
                 icon: Icons.person,
                 onTap: () async {
                   await showDialog(
@@ -120,7 +120,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                 },
               ),
               MenuItemDefinition(
-                name: "Settings",
+                name: 'navigation.settings'.tr(),
                 icon: Icons.settings,
                 onTap: () {
                   Navigator.of(context).push(

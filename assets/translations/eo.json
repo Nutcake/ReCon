@@ -1,0 +1,81 @@
+{
+	"navigation": {
+		"chat": "Kontaktoj"
+	},
+	"settings": {
+		"title": "Agordoj",
+		"other": {
+			"title": "Alia"
+		}
+	},
+	"general": {
+		"yes": "Jes",
+		"no": "Ne",
+		"confirm": "Ĉu vere",
+		"cancel": "Nuligi",
+		"retry": "Retry",
+		"search": "Serĉi",
+		"enabled": "Ebligita",
+		"disabled": "Malŝaltita"
+	},
+	"contacts": {
+		"status": {
+			"sociable": "Sociema",
+			"online": "Enrete",
+			"away": "For",
+			"busy": "Okupata",
+			"invisible": "Nevidebla",
+			"offline": "Eksterrete"
+		},
+		"headlessHost": "Senkapa Gastigo",
+		"bot": "Robot-konto"
+	},
+	"messaging": {
+		"send": "Sendi",
+		"copiedToClipboard": "Kopiita al tondejo"
+	},
+	"sessions": {
+		"access": "Videblo:",
+		"users": "Uzantoj:",
+		"sessionUsers": "{} / {} Uzantoj",
+		"accessLevel": {
+			"unknown": "Neniu seanco",
+			"private": "Privata",
+			"lan": "Loka Reto",
+			"contacts": "Kontaktoj",
+			"contactsPlus": "Kontaktoj+",
+			"registeredUsers": "Registritaj Uzantoj",
+			"anyone": "Iu ajn"
+		}
+	},
+	"worlds": {
+		"title": "Mondoj",
+		"description": "Priskribo:",
+		"tags": "Etikedoj:",
+		"noTags": "Neniu",
+		"lastModified": "Laste ĝisdatigita:",
+		"visits": "Vizitoj:",
+		"sorting": {
+			"ascending": "Kreskante",
+			"descending": "Malkreskante",
+			"creationDate": "Dato de Kreo",
+			"lastUpdateDate": "Dato de Modifo",
+			"firstPublishTime": "Dato de Publikigo",
+			"totalVisits": "Vizitoj Entute",
+			"name": "Nomo",
+			"random": "Hazarde"
+		}
+	},
+	"inventory": {
+		"title": "Inventaro",
+		"sorting": {
+			"ascending": "Kreskante",
+			"descending": "Malkreskante",
+			"name": "Nomo",
+			"date": "Dato"
+		},
+		"download": {
+			"downloadError": "Nekonanta Eraro"
+		}
+	}
+}

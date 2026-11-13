@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/invite_request.dart';
@@ -25,12 +26,12 @@ class MessageInviteRequest extends StatelessWidget {
     } else if (fromSelf) {
       //Forwarded invite request
       if(inviteInfo.response == "SendInvite") {
-        text = '''Granted "${inviteInfo.usernameToInvite}" invite to session "${inviteInfo.forSessionName}"''';
+        text = 'messaging.invite.granted'.tr(args: [inviteInfo.usernameToInvite, inviteInfo.forSessionName.toString()]);
       } else if(inviteInfo.response == "AddAsContact") {
-        text = '''Adding ${inviteInfo.usernameToInvite} as a contact of the headless"''';
+        text = 'messaging.invite.addAsContact'.tr(args: [inviteInfo.usernameToInvite]);
       } else {
         //If new responses are added to the InviteRequestResponse enum.
-        text = '''Unknown response "${inviteInfo.response}" for invite request''';
+        text = 'messaging.invite.unknownResponse'.tr(args: [inviteInfo.response.toString()]);
       }
     } else if (inviteInfo.forSessionName != null) {
       //Another user requested an invite from you.

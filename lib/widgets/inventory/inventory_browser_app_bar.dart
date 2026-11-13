@@ -2,10 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +47,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
           child: !iClient.isAnyRecordSelected
               ? AppBar(
                   key: const ValueKey("default-appbar"),
-                  title: const Text("Inventory"),
+                  title: const Text('inventory.title').tr(),
                   actions: [
                     PopupMenuButton(
                       icon: const Icon(Icons.swap_vert),
@@ -67,7 +68,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   width: 8,
                                 ),
                                 Text(
-                                  "Ascending",
+                                  'inventory.sorting.ascending'.tr(),
                                   style: TextStyle(
                                     color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                   ),
@@ -84,7 +85,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   width: 8,
                                 ),
                                 Text(
-                                  "Descending",
+                                  'inventory.sorting.descending'.tr(),
                                   style: TextStyle(
                                     color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                   ),
@@ -117,7 +118,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                         width: 8,
                                       ),
                                       Text(
-                                        toBeginningOfSentenceCase(e.name) ?? e.name,
+                                        'inventory.sorting.${e.name}'.tr(),
                                         style: TextStyle(
                                           color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
                                         ),
@@ -134,7 +135,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                 )
               : AppBar(
                   key: const ValueKey("selection-appbar"),
-                  title: Text("${iClient.selectedRecordCount} Selected"),
+                  title: Text('inventory.selection'.tr(args: [iClient.selectedRecordCount.toString()])),
                   leading: IconButton(
                     onPressed: () {
                       iClient.clearSelectedRecords();
@@ -145,7 +146,13 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                     if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
                       IconButton(
                         onPressed: () {
-                          SharePlus.instance.share(ShareParams(text: iClient.selectedRecords.first.assetUri));
+                          final text = iClient.selectedRecords.first.assetUri;
+                          if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+                            Clipboard.setData(ClipboardData(text: text));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied asset URL to clipboard.")));
+                          } else {
+                            SharePlus.instance.share(ShareParams(text: text));
+                          }
                         },
                         icon: const Icon(Icons.share),
                       ),
@@ -162,7 +169,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                             builder: (context) {
                               return AlertDialog(
                                 icon: const Icon(Icons.download),
-                                title: const Text("Download what?"),
+                                title: const Text('inventory.download.title').tr(),
                                 content: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
@@ -198,8 +205,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           if (directory == null) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Selection aborted."),
+                                SnackBar(
+                                  content: const Text('inventory.download.selectionAborted').tr(),
                                 ),
                               );
                             }
@@ -208,8 +215,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                           if (directory == "/") {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Selected directory is invalid"),
+                                SnackBar(
+                                  content: const Text('inventory.download.selectionInvalid').tr(),
                                 ),
                               );
                             }
@@ -242,11 +249,11 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text("Downloaded ${record.formattedName}"),
+                                      content: Text('inventory.download.downloadSuccess'.tr(args: [record.formattedName.toString()])),
                                     ),
                                   );
                                 } else {
-                                  throw downloadStatus.exception ?? "Unknown Error";
+                                  throw downloadStatus.exception ?? 'inventory.download.downloadError'.tr();
                                 }
                               }
                             } catch (e, s) {
@@ -255,7 +262,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      "Failed to download '${record.formattedName}':\n$e",
+                                      'inventory.download.downloadFailed'.tr(args: [record.formattedName.toString(), e.toString()]),
                                     ),
                                   ),
                                 );
@@ -279,8 +286,12 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                               builder: (context, setState) {
                                 return AlertDialog(
                                   icon: const Icon(Icons.delete),
-                                  title: Text(iClient.selectedRecordCount == 1 ? "Really delete this Record?" : "Really delete ${iClient.selectedRecordCount} Records?"),
-                                  content: const Text("This action cannot be undone!"),
+                                  title: Text(
+                                    iClient.selectedRecordCount == 1
+                                        ? 'inventory.delete.deleteHeader'.tr()
+                                        : 'inventory.delete.deleteHeaderPlural'.tr(args: [iClient.selectedRecordCount.toString()]),
+                                  ),
+                                  content: const Text('inventory.delete.warning').tr(),
                                   actionsAlignment: MainAxisAlignment.spaceBetween,
                                   actions: [
                                     TextButton(
@@ -289,7 +300,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                           : () {
                                               Navigator.of(context).pop(false);
                                             },
-                                      child: const Text("Cancel"),
+                                      child: const Text('general.cancel').tr(),
                                     ),
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -315,7 +326,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     if (context.mounted) {
                                                       ScaffoldMessenger.of(context).showSnackBar(
                                                         SnackBar(
-                                                          content: Text("Failed to delete one or more records: $e"),
+                                                          content: Text('inventory.delete.failed'.tr(args: [e.toString()])),
                                                         ),
                                                       );
                                                     }
@@ -331,7 +342,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                           style: TextButton.styleFrom(
                                             foregroundColor: Theme.of(context).colorScheme.error,
                                           ),
-                                          child: const Text("Delete"),
+                                          child: const Text('inventory.delete.confirm').tr(),
                                         ),
                                       ],
                                     ),

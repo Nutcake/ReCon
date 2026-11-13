@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:recon/auxiliary.dart';
-import 'package:recon/models/photo_asset.dart';
 import 'package:recon/models/message.dart';
+import 'package:recon/models/photo_asset.dart';
 import 'package:recon/string_formatter.dart';
 import 'package:recon/widgets/formatted_text.dart';
 import 'package:recon/widgets/messages/message_state_indicator.dart';
-import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
 
 class MessageAsset extends StatelessWidget {
   const MessageAsset({required this.message, this.foregroundColor, super.key});

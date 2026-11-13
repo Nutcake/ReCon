@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:recon/models/message.dart';
@@ -19,12 +20,13 @@ class MessageText extends StatelessWidget {
       onLongPress: () async {
         await Clipboard.setData(ClipboardData(text: message.content));
         if (context.mounted) {
-          const content = Text("Copied to clipboard");
           ScaffoldMessenger.of(context).showSnackBar(
             Platform.isIOS
-                ? const SnackBar(content: content)
+                ? SnackBar(
+                  content: Text('messaging.copiedToClipboard').tr()
+                )
                 : SnackBar(
-                    content: content,
+                    content: Text('messaging.copiedToClipboard').tr(),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart' as htmlparser;
 import 'package:path/path.dart' as p;
@@ -29,10 +27,6 @@ extension StringX on String {
     return htmlparser.parse(document.body?.text).documentElement?.text ?? "";
   }
 
-  // This won't be accurate since userIds can't contain certain characters that usernames can
-  // but it's fine for just having a name to display
-  String stripUid() => startsWith("U-") ? substring(2) : this;
-
   String? get asNullable => isEmpty ? null : this;
 }
 
@@ -52,6 +46,10 @@ extension Format on Duration {
 extension DateTimeX on DateTime {
   static DateTime epoch = DateTime.fromMillisecondsSinceEpoch(0);
   static DateTime one = DateTime(1);
+
+  bool isOnSameDay(DateTime other) {
+    return year == other.year && month == other.month && day == other.day;
+  }
 }
 
 extension ColorX on Color {

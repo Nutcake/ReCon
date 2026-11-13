@@ -1,6 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:recon/client_holder.dart';
 import 'package:recon/models/sem_ver.dart';
-import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateNotifier extends StatelessWidget {
@@ -12,23 +13,23 @@ class UpdateNotifier extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Update Available", style: Theme
+      title: Text('update.title'.tr(), style: Theme
           .of(context)
           .textTheme
           .titleLarge),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text("There is a new version available for download!"),
+          Text('update.description'.tr()),
           const SizedBox(height: 8,),
           Row(
             children: [
-              Text("Your version: ${localVersion.toString()}"),
+              Text('update.localVersion'.tr(args: [localVersion.toString()])),
             ],
           ),
           Row(
             children: [
-              Text("New version: ${remoteVersion.toString()}"),
+              Text('update.remoteVersion'.tr(args: [remoteVersion.toString()])),
             ],
           ),
           const SizedBox(height: 24,),
@@ -54,7 +55,7 @@ class UpdateNotifier extends StatelessWidget {
                         .secondary
                 ),
                 icon: const Icon(Icons.download),
-                label: const Text("Get it on Github"),
+                label: Text('update.openDownload'.tr()),
               ),
             ],
           ),
@@ -69,7 +70,7 @@ class UpdateNotifier extends StatelessWidget {
             sClient.changeSettings(sClient.currentSettings.copyWith(lastDismissedVersion: remoteVersion.toString()));
             Navigator.of(context).pop();
           },
-          child: const Text("I'll do it later."),
+          child: Text('update.dismiss'.tr()),
         ),
       ],
     );

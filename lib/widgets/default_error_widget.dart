@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class DefaultErrorWidget extends StatelessWidget {
@@ -38,7 +39,7 @@ class DefaultErrorWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
               icon: const Icon(Icons.refresh),
-              label: const Text("Retry"),
+              label: Text('general.retry'.tr()),
             ),
           ],
         ),

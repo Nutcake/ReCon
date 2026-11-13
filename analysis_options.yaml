@@ -75,5 +75,7 @@ linter:
     - use_raw_strings
     - use_string_buffers
 
+formatter:
+  page_width: 180
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

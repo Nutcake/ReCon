@@ -10,7 +10,7 @@ class FriendOnlineStatusIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final userStatus = friend.userStatus;
     final onlineStatus = userStatus.onlineStatus;
-    return userStatus.appVersion.contains("ReCon") && friend.isOnline
+    return friend.isOnReCon && friend.isOnline
         ? Image.asset(
             "assets/images/logo-white.png",
             color: onlineStatus.color(context),

@@ -14,7 +14,7 @@ enum SearchSortParameter {
   firstPublishTime,
   totalVisits,
   name,
-  rand;
+  random;
 
   @override
   String toString() => const {
@@ -23,7 +23,7 @@ enum SearchSortParameter {
         SearchSortParameter.firstPublishTime: "First Published",
         SearchSortParameter.totalVisits: "Total Visits",
         SearchSortParameter.name: "Name",
-        SearchSortParameter.rand: "Random",
+        SearchSortParameter.random: "Random",
       }[this]!;
 
   String serialize() => toBeginningOfSentenceCase(this.name);

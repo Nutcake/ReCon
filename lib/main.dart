@@ -4,12 +4,13 @@ import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -30,6 +31,8 @@ import 'models/authentication_data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
+  await EasyLocalization.ensureInitialized();
   try {
     JustAudioMediaKit.ensureInitialized(); // Windows and Linux are enabled by default.
   } catch (e) {
@@ -42,7 +45,6 @@ void main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: [SystemUiOverlay.top]);
 
   await Hive.initFlutter();
-
   final dateFormat = DateFormat.Hms();
   Logger.root.onRecord.listen((event) => log("${dateFormat.format(event.time)}: ${event.message}", name: event.loggerName, time: event.time));
   Logger.root.level = Level.WARNING;
@@ -58,7 +60,26 @@ void main() async {
     // Ignore
   }
 
-  runApp(ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth, packageInfo: packageInfo));
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('af'), //testing only
+        Locale('en'),
+        Locale('eo'),
+        Locale('es'),
+        Locale('fr'),
+        Locale('de'),
+        Locale('ja'),
+        Locale('ko'),
+        Locale('ru'),
+        Locale('zh-cn')
+      ],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      useFallbackTranslations: true,
+      child: ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth, packageInfo: packageInfo)
+    )
+  );
 }
 
 class ReCon extends StatefulWidget {
@@ -217,6 +238,20 @@ class _ReConState extends State<ReCon> {
                     colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
                   ),
                   themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+                  locale: context.locale,
+                  localizationsDelegates: context.localizationDelegates,
+                  supportedLocales: const [
+                    Locale('af'), // testing only
+                    Locale('en'),
+                    //Locale('eo'), // Not supported by MaterialLocalizations
+                    Locale('es'),
+                    Locale('fr'),
+                    Locale('de'),
+                    Locale('ja'),
+                    Locale('ko'),
+                    Locale('ru'),
+                    Locale('zh') // only base supported, not zh-cn?
+                  ],
                   home: Builder(
                     // Builder is necessary here since we need a context which has access to the ClientHolder
                     builder: (context) {
