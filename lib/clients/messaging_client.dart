@@ -92,6 +92,8 @@ class MessagingClient extends ChangeNotifier {
 
   MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
 
+  List<Session> get knownSessions => _sessionMap.values.toList();
+
   Future<void> refreshFriendsListWithErrorHandler() async {
     try {
       await refreshFriendsList();

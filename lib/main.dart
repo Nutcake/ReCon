@@ -72,13 +72,13 @@ void main() async {
         Locale('ja'),
         Locale('ko'),
         Locale('ru'),
-        Locale('zh-cn')
+        Locale('zh-cn'),
       ],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       useFallbackTranslations: true,
-      child: ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth, packageInfo: packageInfo)
-    )
+      child: ReCon(settingsClient: settingsClient, cachedAuthentication: cachedAuth, packageInfo: packageInfo),
+    ),
   );
 }
 
@@ -250,42 +250,43 @@ class _ReConState extends State<ReCon> {
                     Locale('ja'),
                     Locale('ko'),
                     Locale('ru'),
-                    Locale('zh') // only base supported, not zh-cn?
+                    Locale('zh'), // only base supported, not zh-cn?
                   ],
                   home: Builder(
                     // Builder is necessary here since we need a context which has access to the ClientHolder
                     builder: (context) {
                       showUpdateDialogOnFirstBuild(context);
                       final clientHolder = ClientHolder.of(context);
-                      return _authData.isAuthenticated
-                          ? MultiProvider(
-                              providers: [
-                                ChangeNotifierProvider(
-                                  create: (context) => MessagingClient(
-                                    apiClient: clientHolder.apiClient,
-                                    settingsClient: clientHolder.settingsClient,
-                                    notificationClient: clientHolder.notificationClient,
-                                  ),
-                                ),
-                                ChangeNotifierProvider(
-                                  create: (context) => SessionClient(apiClient: clientHolder.apiClient, settingsClient: clientHolder.settingsClient),
-                                ),
-                                ChangeNotifierProvider(create: (context) => InventoryClient(apiClient: clientHolder.apiClient)),
-                              ],
-                              child: AnnotatedRegion<SystemUiOverlayStyle>(
-                                value: SystemUiOverlayStyle(statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest),
-                                child: const Home(),
-                              ),
-                            )
-                          : LoginScreen(
-                              onLoginSuccessful: (authData) async {
-                                if (authData.isAuthenticated) {
-                                  setState(() {
-                                    _authData = authData;
-                                  });
-                                }
-                              },
-                            );
+                      if (_authData.isAuthenticated) {
+                        final mClient = MessagingClient(
+                          apiClient: clientHolder.apiClient,
+                          settingsClient: clientHolder.settingsClient,
+                          notificationClient: clientHolder.notificationClient,
+                        );
+                        return MultiProvider(
+                          providers: [
+                            ChangeNotifierProvider.value(value: mClient),
+                            ChangeNotifierProvider(
+                              create: (context) => SessionClient(apiClient: clientHolder.apiClient, messagingClient: mClient, settingsClient: clientHolder.settingsClient),
+                            ),
+                            ChangeNotifierProvider(create: (context) => InventoryClient(apiClient: clientHolder.apiClient)),
+                          ],
+                          child: AnnotatedRegion<SystemUiOverlayStyle>(
+                            value: SystemUiOverlayStyle(statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest),
+                            child: const Home(),
+                          ),
+                        );
+                      } else {
+                        return LoginScreen(
+                          onLoginSuccessful: (authData) async {
+                            if (authData.isAuthenticated) {
+                              setState(() {
+                                _authData = authData;
+                              });
+                            }
+                          },
+                        );
+                      }
                     },
                   ),
                 );
