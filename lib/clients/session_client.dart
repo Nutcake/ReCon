@@ -24,7 +24,7 @@ class SessionClient extends ChangeNotifier {
       minActiveUsers: settingsClient.currentSettings.sessionViewLastMinimumUsers.valueOrDefault,
       includeEmptyHeadless: settingsClient.currentSettings.sessionViewLastIncludeEmpty.valueOrDefault,
     );
-    _sessionsFuture = Future.value(messagingClient.knownSessions.sorted((a, b) => b.totalJoinedUsers.compareTo(a.totalJoinedUsers)))
+    _sessionsFuture = Future.value(messagingClient.knownSessions.sorted((a, b) => b.sessionUsers.length.compareTo(a.sessionUsers.length)))
       ..whenComplete(() async {
         notifyListeners();
         await Future.delayed(const Duration(seconds: 1)); // need this or the API get's mad at me :c
