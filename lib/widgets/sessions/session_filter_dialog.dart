@@ -150,15 +150,6 @@ class _SessionFilterDialogState extends State<SessionFilterDialog> {
                         });
                       },
               ),
-              SessionFilterCheckbox(
-                label: 'sessions.filter.includeIncompatible'.tr(),
-                value: _currentFilter.includeIncompatible,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = _currentFilter.copyWith(includeIncompatible: value);
-                  });
-                },
-              ),
             ],
           ),
         ),

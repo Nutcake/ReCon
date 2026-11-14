@@ -14,6 +14,8 @@ class ResoniteDirectory {
     return ResoniteDirectory(record: record, parent: parent, children: []);
   }
 
+  String get ownerId => record.isLink ? record.linkOwnerId : record.ownerId;
+
   @override
   String toString() {
     return record.formattedName.toString();

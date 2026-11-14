@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -18,15 +19,6 @@ class SessionList extends StatefulWidget {
 
 class _SessionListState extends State<SessionList> with AutomaticKeepAliveClientMixin {
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final sClient = Provider.of<SessionClient>(context, listen: false);
-    if (sClient.sessionsFuture == null) {
-      sClient.initSessions();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
     return ChangeNotifierProvider.value(
@@ -36,7 +28,7 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
           return FutureBuilder<List<Session>>(
             future: sClient.sessionsFuture,
             builder: (context, snapshot) {
-              final data = snapshot.data ?? [];
+              final data = (snapshot.data ?? []).whereNot(sClient.shouldFilter).toList();
               return Stack(
                 children: [
                   RefreshIndicator(
@@ -69,9 +61,6 @@ class _SessionListState extends State<SessionList> with AutomaticKeepAliveClient
                               ),
                               itemBuilder: (context, index) {
                                 final session = data[index];
-                                if (session.id == null) {
-                                  return SizedBox.shrink();
-                                }
                                 return Card(
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(

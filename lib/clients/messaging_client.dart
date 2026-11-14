@@ -54,8 +54,6 @@ class MessagingClient extends ChangeNotifier {
     required this._notificationClient,
     required this._settingsClient,
   }) {
-    _apiClient.addLogoutListener(dispose);
-
     SessionApi.getSessions(_apiClient).then(
       (sessions) async {
         try {
@@ -91,6 +89,8 @@ class MessagingClient extends ChangeNotifier {
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
   MessageCache _createUserMessageCache(String userId) => MessageCache(apiClient: _apiClient, userId: userId);
+
+  List<Session> get knownSessions => _sessionMap.values.toList();
 
   Future<void> refreshFriendsListWithErrorHandler() async {
     try {

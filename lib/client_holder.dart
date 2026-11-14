@@ -6,12 +6,13 @@ import 'package:recon/clients/settings_client.dart';
 class ClientHolder extends InheritedWidget {
   final ApiClient apiClient;
   final SettingsClient settingsClient;
-  final NotificationClient notificationClient = NotificationClient();
+  final NotificationClient notificationClient;
 
   ClientHolder({
     super.key,
     required this.settingsClient,
     required this.apiClient,
+    required this.notificationClient,
     required super.child,
   });
 

@@ -82,14 +82,20 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                     final pathSegments = directory?.absolutePathSegments ?? [];
                     return Stack(
                       children: [
-                        ListView(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                              child: Wrap(
-                                children: pathSegments
-                                    .mapIndexed(
-                                      (idx, segment) => Row(
+                        CustomScrollView(
+                          key: PageStorageKey("${directory?.ownerId}/${directory?.record.id}"),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          slivers: [
+                            PinnedHeaderSliver(
+                              child: ColoredBox(
+                                color: Theme.of(context).colorScheme.surface,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                                  child: Wrap(
+                                    runSpacing: 8,
+                                    children: pathSegments
+                                        .mapIndexed(
+                                          (idx, segment) => Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (idx != 0) const Icon(Icons.chevron_right),
@@ -97,7 +103,13 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                             padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                             child: TextButton(
                                               style: TextButton.styleFrom(
-                                                foregroundColor: idx == pathSegments.length - 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                                  foregroundColor: idx == pathSegments.length - 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadiusGeometry.circular(16),
+                                                      side: BorderSide(
+                                                        color: idx == 0 ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                                                      )
+                                                  )
                                               ),
                                               onPressed: () {
                                                 iClient.navigateUp(times: pathSegments.length - 1 - idx);
@@ -118,94 +130,87 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                         ],
                                       ),
                                     )
-                                    .toList(),
+                                        .toList(),
+                                  ),
+                                ),
                               ),
                             ),
-                            GridView.builder(
+                            SliverPadding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              physics: const NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: paths.length,
-                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 256,
-                                childAspectRatio: 3.5,
-                                crossAxisSpacing: 0,
-                                mainAxisSpacing: 0,
-                              ),
-                              itemBuilder: (context, index) {
-                                final record = paths[index];
-                                return PathInventoryTile(
-                                  record: record,
-                                  selected: iClient.isRecordSelected(record),
-                                  onLongPress: () async {
-                                    iClient.toggleRecordSelected(record);
-                                  },
-                                  onTap: iClient.isAnyRecordSelected
-                                      ? () {
-                                          iClient.toggleRecordSelected(record);
+                              sliver: SliverGrid.builder(
+                                itemCount: paths.length,
+                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 256, childAspectRatio: 3.5),
+                                itemBuilder: (context, index)  {
+                                  final record = paths[index];
+                                  return PathInventoryTile(
+                                    record: record,
+                                    selected: iClient.isRecordSelected(record),
+                                    onLongPress: () async {
+                                      iClient.toggleRecordSelected(record);
+                                    },
+                                    onTap: iClient.isAnyRecordSelected
+                                        ? () {
+                                      iClient.toggleRecordSelected(record);
+                                    }
+                                        : () async {
+                                      try {
+                                        await iClient.navigateTo(record);
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text("Failed to open directory: $e")),
+                                          );
                                         }
-                                      : () async {
-                                          try {
-                                            await iClient.navigateTo(record);
-                                          } catch (e) {
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text("Failed to open directory: $e")),
-                                              );
-                                            }
-                                          }
-                                        },
-                                );
-                              },
+                                      }
+                                    },
+                                  );
+                                }
+
+                              ),
                             ),
-                            GridView.builder(
+                            SliverPadding(
                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              physics: const NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: objects.length,
-                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                maxCrossAxisExtent: 256,
-                                childAspectRatio: 1,
-                                crossAxisSpacing: 0,
-                                mainAxisSpacing: 0,
-                              ),
-                              itemBuilder: (context, index) {
-                                final record = objects[index];
-                                return ObjectInventoryTile(
-                                  record: record,
-                                  selected: iClient.isRecordSelected(record),
-                                  onTap: iClient.isAnyRecordSelected
-                                      ? () async {
-                                          iClient.toggleRecordSelected(record);
-                                        }
-                                      : () async {
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => Scaffold(
-                                                appBar: AppBar(
-                                                  title: Text(record.name),
-                                                  leading: IconButton(
-                                                    icon: Icon(Icons.arrow_back),
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                    },
-                                                  ),
-                                                ),
-                                                body: PhotoView(
-                                                  minScale: PhotoViewComputedScale.contained,
-                                                  imageProvider: CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
-                                                  heroAttributes: PhotoViewHeroAttributes(tag: record.id),
-                                                ),
+                              sliver: SliverGrid.builder(
+                                itemCount: objects.length,
+                                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 256, childAspectRatio: 1),
+                                itemBuilder: (context, index) {
+                                  final record = objects[index];
+                                  return ObjectInventoryTile(
+                                    record: record,
+                                    selected: iClient.isRecordSelected(record),
+                                    onTap: iClient.isAnyRecordSelected
+                                        ? () async {
+                                      iClient.toggleRecordSelected(record);
+                                    }
+                                        : () async {
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Scaffold(
+                                            appBar: AppBar(
+                                              title: Text(record.name),
+                                              leading: IconButton(
+                                                icon: Icon(Icons.arrow_back),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
                                               ),
                                             ),
-                                          );
-                                        },
-                                  onLongPress: () async {
-                                    iClient.toggleRecordSelected(record);
-                                  },
-                                );
-                              },
+                                            body: PhotoView(
+                                              minScale: PhotoViewComputedScale.contained,
+                                              imageProvider: CachedNetworkImageProvider(Aux.resdbToHttp(record.thumbnailUri)),
+                                              heroAttributes: PhotoViewHeroAttributes(tag: record.id),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    onLongPress: () async {
+                                      iClient.toggleRecordSelected(record);
+                                    },
+                                  );
+                                },
+                              ),
                             ),
                           ],
                         ),

@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart';
 import 'package:recon/clients/api_client.dart';
+import 'package:recon/models/inventory/membership.dart';
 import 'package:recon/models/records/asset_chunk.dart';
 import 'package:recon/models/records/asset_diff.dart';
 import 'package:recon/models/records/asset_manifest.dart';
@@ -22,15 +23,14 @@ import 'package:recon/models/records/record.dart';
 import 'package:recon/models/records/search_sort.dart';
 
 class RecordApi {
-  static Future<Record> getUserRecord(ApiClient client, {required String recordId, String? user}) async {
-    final response = await client.get("/users/${user ?? client.userId}/records/$recordId");
-    client.checkResponse(response);
-    final body = jsonDecode(response.body) as Map;
-    return Record.fromMap(body);
-  }
+  static String getOwnerPath(String ownerId) => switch (ownerId) {
+    _ when ownerId.startsWith("G-") => "groups",
+    _ when ownerId.startsWith("U-") => "users",
+    _ => throw "Invalid ownerId: $ownerId",
+  };
 
-  static Future<Record> getGroupRecordByPath(ApiClient client, {required String path, required String groupId}) async {
-    final response = await client.get("/groups/$groupId/records/$path");
+  static Future<Record> getRecord(ApiClient client, {required String ownerId, required String recordId, required bool includeDeleted}) async {
+    final response = await client.get("/${getOwnerPath(ownerId)}/$ownerId/records/$recordId${includeDeleted ? "?includeDeleted=true" : ""}");
     client.checkResponse(response);
     final body = jsonDecode(response.body) as Map;
     return Record.fromMap(body);
@@ -58,23 +58,39 @@ class RecordApi {
     return body.map((e) => Record.fromMap(e)).toList();
   }
 
-  static Future<List<Record>> getUserRecordsAt(ApiClient client, {required String path, String? user}) async {
+  static Future<List<Record>> getRecordsAt(ApiClient client, {required String ownerId, required String path}) async {
     final encodedPath = Uri.encodeComponent(path);
-    final response = await client.get("/users/${user ?? client.userId}/records?path=$encodedPath");
+    final response = await client.get("/${getOwnerPath(ownerId)}/$ownerId/records?path=$encodedPath");
     client.checkResponse(response);
     final body = jsonDecode(response.body) as List;
     return body.map((e) => Record.fromMap(e)).toList();
   }
 
-  static Future<List<Record>> getGroupRecordsAt(ApiClient client, {required String path, required String groupId}) async {
-    final response = await client.get("/groups/$groupId/records?path=$path");
+  static Future<Record> getRecordByUri(ApiClient client, {required String resrecUri}) async {
+    final segments = Uri.parse(resrecUri).pathSegments;
+    final ownerId = segments[0];
+    final rest = segments.skip(1);
+    final ownerPath = getOwnerPath(ownerId);
+    http.Response response;
+    if (segments.length == 2 && segments[1].startsWith("R-")) {
+      response = await client.get("/$ownerPath/$ownerId/records/${segments[1]}");
+    } else {
+      response = await client.get("/$ownerPath/$ownerId/records/root/${rest.map(Uri.encodeComponent).join("/")}");
+    }
     client.checkResponse(response);
-    final body = jsonDecode(response.body) as List;
-    return body.map((e) => Record.fromMap(e)).toList();
+    final body = jsonDecode(response.body) as Map;
+    return Record.fromMap(body);
   }
 
-  static Future<void> deleteRecord(ApiClient client, {required String recordId}) async {
-    final response = await client.delete("/users/${client.userId}/records/$recordId");
+  static Future<List<Membership>> getMemberships(ApiClient client) async {
+    final response = await client.get("/users/${client.userId}/memberships");
+    client.checkResponse(response);
+    final body = jsonDecode(response.body) as List;
+    return body.cast<Map>().map(Membership.fromMap).toList();
+  }
+
+  static Future<void> deleteRecord(ApiClient client, {required String ownerId, required String recordId}) async {
+    final response = await client.delete("/users/$ownerId/records/$recordId");
     client.checkResponse(response);
   }
 
@@ -149,8 +165,8 @@ class RecordApi {
     return chunkedUploads;
   }
 
-  static Future<Record> createRecord(ApiClient client, {required Record record, bool ensureFolder = false}) async {
-    final response = await client.put("/users/${client.userId}/records/${record.id}?ensureFolder=$ensureFolder", body: jsonEncode(record.toMap()));
+  static Future<Record> upsertRecord(ApiClient client, {required Record record, bool ensureFolder = false}) async {
+    final response = await client.put("/${getOwnerPath(record.ownerId)}/${record.ownerId}/records/${record.id}?ensureFolder=$ensureFolder", body: jsonEncode(record.toMap()));
     client.checkResponse(response);
     final body = jsonDecode(response.body);
     return Record.fromMap(body);
@@ -160,8 +176,8 @@ class RecordApi {
     const blockSize = 1024 * 1024; // lz4net default
     final out = BytesBuilder(copy: false)
       ..add(const [0x46, 0x72, 0x44, 0x54]) // "FrDT"
-      ..add(const [0, 0, 0, 0])             // version (int32)
-      ..addByte(1);                         // compression: LZ4
+      ..add(const [0, 0, 0, 0]) // version (int32)
+      ..addByte(1); // compression: LZ4
     for (var offset = 0; offset < bson.length; offset += blockSize) {
       final chunk = Uint8List.sublistView(bson, offset, min(offset + blockSize, bson.length));
       final compressed = lz4Compress(chunk);
@@ -251,7 +267,7 @@ class RecordApi {
       }
     }
 
-    await createRecord(client, record: record);
+    await upsertRecord(client, record: record);
 
     progressCallback?.call(1);
     return record;
@@ -306,15 +322,9 @@ class RecordApi {
       }
     }
 
-    await createRecord(client, record: record);
+    await upsertRecord(client, record: record);
 
     progressCallback?.call(1);
     return record;
-  }
-
-  static Future<Record> uploadRawFile(ApiClient client, {required File file, required String machineId, void Function(double progress)? progressCallback}) async {
-    progressCallback?.call(0);
-    progressCallback?.call(1);
-    return Record.inventoryRoot();
   }
 }

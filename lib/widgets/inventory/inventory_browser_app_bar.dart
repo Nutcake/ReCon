@@ -2,16 +2,19 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:recon/apis/record_api.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/inventory_client.dart';
+import 'package:recon/models/inventory/membership.dart';
+import 'package:recon/models/records/record.dart';
+import 'package:recon/widgets/inventory/share_dialog.dart';
 import 'package:share_plus/share_plus.dart';
 
 class InventoryBrowserAppBar extends StatefulWidget {
@@ -40,65 +43,72 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
       builder: (context, iClient, _) {
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
+          transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
           child: !iClient.isAnyRecordSelected
               ? AppBar(
                   key: const ValueKey("default-appbar"),
                   title: const Text('inventory.title').tr(),
                   actions: [
-                    PopupMenuButton(
-                      icon: const Icon(Icons.swap_vert),
-                      onSelected: (value) {
-                        iClient.sortReverse = value;
-                      },
-                      itemBuilder: (context) {
-                        return [
-                          PopupMenuItem(
-                            value: false,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.arrow_upward,
-                                  color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                ),
-                                const SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  'inventory.sorting.ascending'.tr(),
-                                  style: TextStyle(
-                                    color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                    if (iClient.memberships?.isNotEmpty ?? false)
+                      PopupMenuButton<Membership>(
+                        icon: const Icon(Icons.group),
+                        tooltip: "inventory.groupInvTooltip".tr(),
+                        onSelected: (value) {
+                          iClient.selectedGroup = value;
+                        },
+                        itemBuilder: (context) {
+                          final memberships =
+                              (iClient.memberships ?? []) +
+                              [Membership(userId: iClient.apiClient.userId, groupId: iClient.apiClient.userId, groupName: "My Inventory", isMigrated: true)];
+                          return memberships.map((e) {
+                            return PopupMenuItem<Membership>(value: e, child: Text(e.groupName));
+                          }).toList();
+                        },
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
+                      child: PopupMenuButton(
+                        tooltip: "inventory.sorting.orderTooltip".tr(),
+                        icon: const Icon(Icons.swap_vert),
+                        onSelected: (value) {
+                          iClient.sortReverse = value;
+                        },
+                        itemBuilder: (context) {
+                          return [
+                            PopupMenuItem(
+                              value: false,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.arrow_upward, color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'inventory.sorting.ascending'.tr(),
+                                    style: TextStyle(color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          PopupMenuItem(
-                            value: true,
-                            child: Row(
-                              children: [
-                                Icon(Icons.arrow_downward, color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
-                                const SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  'inventory.sorting.descending'.tr(),
-                                  style: TextStyle(
-                                    color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                            PopupMenuItem(
+                              value: true,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.arrow_downward, color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'inventory.sorting.descending'.tr(),
+                                    style: TextStyle(color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ];
-                      },
+                          ];
+                        },
+                      ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
+                      padding: const EdgeInsets.only(left: 4.0, right: 8.0),
                       child: PopupMenuButton(
+                        tooltip: "inventory.sorting.sortByTooltip".tr(),
                         icon: const Icon(Icons.sort),
                         onSelected: (value) {
                           iClient.sortMode = value;
@@ -110,18 +120,11 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                   value: e,
                                   child: Row(
                                     children: [
-                                      Icon(
-                                        e.icon,
-                                        color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                      ),
-                                      const SizedBox(
-                                        width: 8,
-                                      ),
+                                      Icon(e.icon, color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                      const SizedBox(width: 8),
                                       Text(
                                         'inventory.sorting.${e.name}'.tr(),
-                                        style: TextStyle(
-                                          color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                        ),
+                                        style: TextStyle(color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
                                       ),
                                     ],
                                   ),
@@ -143,139 +146,137 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                     icon: const Icon(Icons.close),
                   ),
                   actions: [
-                    if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
+                    if (iClient.selectedRecordCount == 1 &&
+                        ((iClient.selectedRecords.first.recordType == RecordType.directory && iClient.canWrite(iClient.selectedRecords.first.ownerId)) ||
+                            iClient.selectedRecords.first.recordType != RecordType.directory))
                       IconButton(
-                        onPressed: () {
-                          final text = iClient.selectedRecords.first.assetUri;
-                          if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
-                            Clipboard.setData(ClipboardData(text: text));
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied asset URL to clipboard.")));
+                        onPressed: () async {
+                          final record = iClient.selectedRecords.first;
+                          if (record.recordType == RecordType.directory) {
+                            await showDialog(
+                              context: context,
+                              builder: (context) => ChangeNotifierProvider.value(
+                                value: iClient,
+                                child: ShareDialog(record: record),
+                              ),
+                            );
                           } else {
-                            SharePlus.instance.share(ShareParams(text: text));
+                            final shareUrl = record.recordType == RecordType.link ? record.assetUri : "resrec:///${record.ownerId}/${record.id}";
+                            if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+                              await Clipboard.setData(ClipboardData(text: shareUrl));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("inventory.share.copiedLong").tr()));
+                              }
+                            } else {
+                              await SharePlus.instance.share(ShareParams(text: shareUrl));
+                            }
                           }
+
                         },
                         icon: const Icon(Icons.share),
                       ),
                     if (iClient.onlyFilesSelected)
-                      IconButton(
-                        onPressed: () async {
-                          final selectedRecords = iClient.selectedRecords;
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4.0),
+                        child: IconButton(
+                          onPressed: () async {
+                            final selectedRecords = iClient.selectedRecords;
 
-                          final assetUris = selectedRecords.map((record) => record.assetUri).toList();
-                          final thumbUris = selectedRecords.map((record) => record.thumbnailUri).toList();
+                            final assetUris = selectedRecords.map((record) => record.assetUri).toList();
+                            final thumbUris = selectedRecords.map((record) => record.thumbnailUri).toList();
 
-                          final selectedUris = await showDialog<List<String>>(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                icon: const Icon(Icons.download),
-                                title: const Text('inventory.download.title').tr(),
-                                content: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Divider(),
-                                    const SizedBox(height: 8),
-                                    ListTile(
-                                      onTap: () {
-                                        Navigator.of(context).pop(assetUris);
-                                      },
-                                      leading: const Icon(Icons.data_object),
-                                      title: Text(
-                                        "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(extension).toList().unique().join(", ")})",
+                            final selectedUris = await showDialog<List<String>>(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  icon: const Icon(Icons.download),
+                                  title: const Text('inventory.download.title').tr(),
+                                  content: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Divider(),
+                                      const SizedBox(height: 8),
+                                      ListTile(
+                                        onTap: () {
+                                          Navigator.of(context).pop(assetUris);
+                                        },
+                                        leading: const Icon(Icons.data_object),
+                                        title: Text("Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(path.extension).toList().unique().join(", ")})"),
                                       ),
-                                    ),
-                                    ListTile(
-                                      onTap: () {
-                                        Navigator.of(context).pop(thumbUris);
-                                      },
-                                      leading: const Icon(Icons.image),
-                                      title: Text(
-                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.nonNulls.map(extension).toList().unique().join(", ")})",
+                                      ListTile(
+                                        onTap: () {
+                                          Navigator.of(context).pop(thumbUris);
+                                        },
+                                        leading: const Icon(Icons.image),
+                                        title: Text(
+                                          "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.nonNulls.map(path.extension).toList().unique().join(", ")})",
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                          if (selectedUris == null) return;
-
-                          final directory = await FilePicker.getDirectoryPath(dialogTitle: "Download to...");
-                          if (directory == null) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('inventory.download.selectionAborted').tr(),
-                                ),
-                              );
-                            }
-                            return;
-                          }
-                          if (directory == "/") {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('inventory.download.selectionInvalid').tr(),
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          for (final record in selectedRecords) {
-                            final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
-                            final filename =
-                                "${record.id.split("-")[1]}-${record.formattedName}${extension(uri ?? "")}";
-                            try {
-                              final downloadTask = DownloadTask(
-                                url: Aux.resdbToHttp(uri),
-                                allowPause: true,
-                                baseDirectory: BaseDirectory.temporary,
-                                filename: filename,
-                                updates: Updates.statusAndProgress,
-                              );
-                              final downloadStatus = await FileDownloader().download(downloadTask);
-                              if (downloadStatus.status == TaskStatus.complete) {
-                                final tempDirectory = await _tempDirectoryFuture;
-                                final file = File(
-                                  "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${extension(uri ?? "")}",
-                                );
-                                if (file.existsSync()) {
-                                  final newFile = File("$directory/$filename");
-                                  await file.copy(newFile.absolute.path);
-                                  await file.delete();
-                                }
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('inventory.download.downloadSuccess'.tr(args: [record.formattedName.toString()])),
-                                    ),
-                                  );
-                                } else {
-                                  throw downloadStatus.exception ?? 'inventory.download.downloadError'.tr();
-                                }
-                              }
-                            } catch (e, s) {
-                              FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'inventory.download.downloadFailed'.tr(args: [record.formattedName.toString(), e.toString()]),
-                                    ),
+                                    ],
                                   ),
                                 );
+                              },
+                            );
+                            if (selectedUris == null) return;
+
+                            final directory = await FilePicker.getDirectoryPath(dialogTitle: "Download to...");
+                            if (directory == null) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('inventory.download.selectionAborted').tr()));
+                              }
+                              return;
+                            }
+                            if (directory == "/") {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('inventory.download.selectionInvalid').tr()));
+                              }
+                              return;
+                            }
+
+                            for (final record in selectedRecords) {
+                              final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
+                              final filename = "${record.id.split("-")[1]}-${record.formattedName}${path.extension(uri ?? "")}";
+                              try {
+                                final downloadTask = DownloadTask(
+                                  url: Aux.resdbToHttp(uri),
+                                  allowPause: true,
+                                  baseDirectory: BaseDirectory.temporary,
+                                  filename: filename,
+                                  updates: Updates.statusAndProgress,
+                                );
+                                final downloadStatus = await FileDownloader().download(downloadTask);
+                                if (downloadStatus.status == TaskStatus.complete) {
+                                  final tempDirectory = await _tempDirectoryFuture;
+                                  final file = File("${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${path.extension(uri ?? "")}");
+                                  if (file.existsSync()) {
+                                    final newFile = File("$directory/$filename");
+                                    await file.copy(newFile.absolute.path);
+                                    await file.delete();
+                                  }
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(SnackBar(content: Text('inventory.download.downloadSuccess'.tr(args: [record.formattedName.toString()]))));
+                                  } else {
+                                    throw downloadStatus.exception ?? 'inventory.download.downloadError'.tr();
+                                  }
+                                }
+                              } catch (e, s) {
+                                FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(SnackBar(content: Text('inventory.download.downloadFailed'.tr(args: [record.formattedName.toString(), e.toString()]))));
+                                }
                               }
                             }
-                          }
-                          iClient.clearSelectedRecords();
-                        },
-                        icon: const Icon(Icons.download),
+                            iClient.clearSelectedRecords();
+                          },
+                          icon: const Icon(Icons.download),
+                        ),
                       ),
-                    const SizedBox(
-                      width: 4,
-                    ),
+                    const SizedBox(width: 4),
                     IconButton(
                       onPressed: () async {
                         var loading = false;
@@ -305,14 +306,8 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (loading)
-                                          const SizedBox.square(
-                                            dimension: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
-                                        const SizedBox(
-                                          width: 4,
-                                        ),
+                                        if (loading) const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                                        const SizedBox(width: 4),
                                         TextButton(
                                           onPressed: loading
                                               ? null
@@ -324,11 +319,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                     await iClient.deleteSelectedRecords();
                                                   } catch (e) {
                                                     if (context.mounted) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text('inventory.delete.failed'.tr(args: [e.toString()])),
-                                                        ),
-                                                      );
+                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('inventory.delete.failed'.tr(args: [e.toString()]))));
                                                     }
                                                     setState(() {
                                                       loading = false;
@@ -339,9 +330,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                                                   }
                                                   await iClient.reloadCurrentDirectory();
                                                 },
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: Theme.of(context).colorScheme.error,
-                                          ),
+                                          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
                                           child: const Text('inventory.delete.confirm').tr(),
                                         ),
                                       ],
@@ -355,9 +344,7 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
                       },
                       icon: const Icon(Icons.delete),
                     ),
-                    const SizedBox(
-                      width: 4,
-                    ),
+                    const SizedBox(width: 4),
                   ],
                 ),
         );

@@ -100,8 +100,12 @@ class ApiClient {
     return AuthenticationData.unauthenticated();
   }
 
+  void dispose() {
+    _client.close();
+    _logoutNotifier.dispose();
+  }
+
   Future<void> logout() async {
-    //TODO: Fix messaging/hub clients not being disposed on logout
     const storage = FlutterSecureStorage(aOptions: AndroidOptions.defaultOptions);
     await storage.delete(key: userIdKey);
     await storage.delete(key: machineIdKey);
