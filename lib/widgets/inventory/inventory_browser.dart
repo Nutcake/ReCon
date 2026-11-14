@@ -87,6 +87,7 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                               child: Wrap(
+                                runSpacing: 8,
                                 children: pathSegments
                                     .mapIndexed(
                                       (idx, segment) => Row(
