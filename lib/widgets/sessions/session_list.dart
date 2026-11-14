@@ -19,15 +19,6 @@ class SessionList extends StatefulWidget {
 
 class _SessionListState extends State<SessionList> with AutomaticKeepAliveClientMixin {
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final sClient = Provider.of<SessionClient>(context, listen: false);
-    if (sClient.sessionsFuture == null) {
-      sClient.initSessions();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
     return ChangeNotifierProvider.value(
