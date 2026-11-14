@@ -54,8 +54,6 @@ class MessagingClient extends ChangeNotifier {
     required this._notificationClient,
     required this._settingsClient,
   }) {
-    _apiClient.addLogoutListener(dispose);
-
     SessionApi.getSessions(_apiClient).then(
       (sessions) async {
         try {

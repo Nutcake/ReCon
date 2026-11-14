@@ -20,6 +20,7 @@ import 'package:recon/client_holder.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/inventory_client.dart';
 import 'package:recon/clients/messaging_client.dart';
+import 'package:recon/clients/notification_client.dart';
 import 'package:recon/clients/session_client.dart';
 import 'package:recon/clients/settings_client.dart';
 import 'package:recon/models/sem_ver.dart';
@@ -97,6 +98,8 @@ class _ReConState extends State<ReCon> {
   final Typography _typography = Typography.material2021(platform: defaultTargetPlatform);
   final ReceivePort _port = ReceivePort();
   late AuthenticationData _authData = widget.cachedAuthentication;
+  ApiClient? _apiClient;
+  late NotificationClient _notificationClient;
   bool _checkedForUpdate = false;
 
   void showUpdateDialogOnFirstBuild(BuildContext context) {
@@ -156,6 +159,21 @@ class _ReConState extends State<ReCon> {
     });
 
     FileDownloader().updates.listen(downloadCallback);
+    _initApiClient();
+    _notificationClient = NotificationClient();
+  }
+
+  void _initApiClient() {
+    _apiClient?.dispose();
+    _apiClient = ApiClient(authenticationData: _authData, pkgInfo: widget.packageInfo)
+      ..addLogoutListener(_logOutListener);
+  }
+
+  void _logOutListener() {
+    setState(() {
+      _authData = AuthenticationData.unauthenticated();
+      _initApiClient();
+    });
   }
 
   @override
@@ -207,93 +225,92 @@ class _ReConState extends State<ReCon> {
   @override
   Widget build(BuildContext context) {
     return Phoenix(
-      child: Builder(
-        builder: (context) {
-          final apiClient = ApiClient(authenticationData: _authData, pkgInfo: widget.packageInfo)
-            ..addLogoutListener(() {
-              setState(() {
-                _authData = AuthenticationData.unauthenticated();
-              });
-              Phoenix.rebirth(context);
-            });
-          return ClientHolder(
-            settingsClient: widget.settingsClient,
-            apiClient: apiClient,
-            child: DynamicColorBuilder(
-              builder: (lightDynamic, darkDynamic) {
-                if (lightDynamic != null && darkDynamic != null) {
-                  (lightDynamic, darkDynamic) = _generateDynamicColourSchemes(lightDynamic, darkDynamic);
-                }
-                return MaterialApp(
-                  debugShowCheckedModeBanner: true,
-                  title: 'ReCon',
-                  theme: ThemeData(
-                    useMaterial3: true,
-                    textTheme: _typography.black,
-                    colorScheme: lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
-                  ),
-                  darkTheme: ThemeData(
-                    useMaterial3: true,
-                    textTheme: _typography.white,
-                    colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
-                  ),
-                  themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
-                  locale: context.locale,
-                  localizationsDelegates: context.localizationDelegates,
-                  supportedLocales: const [
-                    Locale('af'), // testing only
-                    Locale('en'),
-                    //Locale('eo'), // Not supported by MaterialLocalizations
-                    Locale('es'),
-                    Locale('fr'),
-                    Locale('de'),
-                    Locale('ja'),
-                    Locale('ko'),
-                    Locale('ru'),
-                    Locale('zh'), // only base supported, not zh-cn?
-                  ],
-                  home: Builder(
-                    // Builder is necessary here since we need a context which has access to the ClientHolder
-                    builder: (context) {
-                      showUpdateDialogOnFirstBuild(context);
-                      final clientHolder = ClientHolder.of(context);
-                      if (_authData.isAuthenticated) {
-                        final mClient = MessagingClient(
-                          apiClient: clientHolder.apiClient,
-                          settingsClient: clientHolder.settingsClient,
-                          notificationClient: clientHolder.notificationClient,
-                        );
-                        return MultiProvider(
-                          providers: [
-                            ChangeNotifierProvider.value(value: mClient),
-                            ChangeNotifierProvider(
-                              create: (context) => SessionClient(apiClient: clientHolder.apiClient, messagingClient: mClient, settingsClient: clientHolder.settingsClient),
+      child: KeyedSubtree(
+        key: ObjectKey(_apiClient),
+        child: Builder(
+          builder: (context) {
+            return ClientHolder(
+              settingsClient: widget.settingsClient,
+              apiClient: _apiClient!,
+              notificationClient: _notificationClient,
+              child: DynamicColorBuilder(
+                builder: (lightDynamic, darkDynamic) {
+                  if (lightDynamic != null && darkDynamic != null) {
+                    (lightDynamic, darkDynamic) = _generateDynamicColourSchemes(lightDynamic, darkDynamic);
+                  }
+                  return MaterialApp(
+                    debugShowCheckedModeBanner: true,
+                    title: 'ReCon',
+                    theme: ThemeData(
+                      useMaterial3: true,
+                      textTheme: _typography.black,
+                      colorScheme: lightDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.light),
+                    ),
+                    darkTheme: ThemeData(
+                      useMaterial3: true,
+                      textTheme: _typography.white,
+                      colorScheme: darkDynamic ?? ColorScheme.fromSeed(seedColor: Colors.purple, brightness: Brightness.dark),
+                    ),
+                    themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
+                    locale: context.locale,
+                    localizationsDelegates: context.localizationDelegates,
+                    supportedLocales: const [
+                      Locale('af'), // testing only
+                      Locale('en'),
+                      //Locale('eo'), // Not supported by MaterialLocalizations
+                      Locale('es'),
+                      Locale('fr'),
+                      Locale('de'),
+                      Locale('ja'),
+                      Locale('ko'),
+                      Locale('ru'),
+                      Locale('zh'), // only base supported, not zh-cn?
+                    ],
+                    home: Builder(
+                      // Builder is necessary here since we need a context which has access to the ClientHolder
+                      builder: (context) {
+                        showUpdateDialogOnFirstBuild(context);
+                        final clientHolder = ClientHolder.of(context);
+                        if (_authData.isAuthenticated) {
+                          return MultiProvider(
+                            providers: [
+                              ChangeNotifierProvider(
+                                create: (context) => MessagingClient(
+                                  apiClient: clientHolder.apiClient,
+                                  settingsClient: clientHolder.settingsClient,
+                                  notificationClient: clientHolder.notificationClient,
+                                ),
+                              ),
+                              ChangeNotifierProvider(
+                                create: (context) => SessionClient(apiClient: clientHolder.apiClient, messagingClient: context.read<MessagingClient>(), settingsClient: clientHolder.settingsClient),
+                              ),
+                              ChangeNotifierProvider(create: (context) => InventoryClient(apiClient: clientHolder.apiClient)),
+                            ],
+                            child: AnnotatedRegion<SystemUiOverlayStyle>(
+                              value: SystemUiOverlayStyle(statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest),
+                              child: const Home(),
                             ),
-                            ChangeNotifierProvider(create: (context) => InventoryClient(apiClient: clientHolder.apiClient)),
-                          ],
-                          child: AnnotatedRegion<SystemUiOverlayStyle>(
-                            value: SystemUiOverlayStyle(statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest),
-                            child: const Home(),
-                          ),
-                        );
-                      } else {
-                        return LoginScreen(
-                          onLoginSuccessful: (authData) async {
-                            if (authData.isAuthenticated) {
-                              setState(() {
-                                _authData = authData;
-                              });
-                            }
-                          },
-                        );
-                      }
-                    },
-                  ),
-                );
-              },
-            ),
-          );
-        },
+                          );
+                        } else {
+                          return LoginScreen(
+                            onLoginSuccessful: (authData) async {
+                              if (authData.isAuthenticated) {
+                                setState(() {
+                                  _authData = authData;
+                                  _initApiClient();
+                                });
+                              }
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
