@@ -29,6 +29,13 @@ class RecordApi {
     _ => throw "Invalid ownerId: $ownerId",
   };
 
+  static Future<Record> getRecord(ApiClient client, {required String ownerId, required String recordId, required bool includeDeleted}) async {
+    final response = await client.get("/${getOwnerPath(ownerId)}/$ownerId/records/$recordId${includeDeleted ? "?includeDeleted=true" : ""}");
+    client.checkResponse(response);
+    final body = jsonDecode(response.body) as Map;
+    return Record.fromMap(body);
+  }
+
   static Future<List<Record>> searchWorldRecords(
     ApiClient client, {
     List<String> requiredTags = const [],
@@ -158,8 +165,8 @@ class RecordApi {
     return chunkedUploads;
   }
 
-  static Future<Record> createRecord(ApiClient client, {required Record record, bool ensureFolder = false}) async {
-    final response = await client.put("/users/${client.userId}/records/${record.id}?ensureFolder=$ensureFolder", body: jsonEncode(record.toMap()));
+  static Future<Record> upsertRecord(ApiClient client, {required Record record, bool ensureFolder = false}) async {
+    final response = await client.put("/${getOwnerPath(record.ownerId)}/${record.ownerId}/records/${record.id}?ensureFolder=$ensureFolder", body: jsonEncode(record.toMap()));
     client.checkResponse(response);
     final body = jsonDecode(response.body);
     return Record.fromMap(body);
@@ -260,7 +267,7 @@ class RecordApi {
       }
     }
 
-    await createRecord(client, record: record);
+    await upsertRecord(client, record: record);
 
     progressCallback?.call(1);
     return record;
@@ -315,7 +322,7 @@ class RecordApi {
       }
     }
 
-    await createRecord(client, record: record);
+    await upsertRecord(client, record: record);
 
     progressCallback?.call(1);
     return record;

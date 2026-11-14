@@ -153,8 +153,12 @@
 	},
 	"inventory": {
 		"title": "Inventory",
+		"rootDirName": "My Inventory",
 		"selection": "{} Selected",
+		"groupInvTooltip": "Select group inventory",
 		"sorting": {
+			"orderTooltip": "Sort order",
+			"sortByTooltip": "Sort by",
 			"ascending": "Ascending",
 			"descending": "Descending",
 			"name": "Name",
@@ -177,6 +181,17 @@
 			"success": "Deleted {}",
 			"failed": "Failed to delete one or more records: {}",
 			"error": "Unknown Error"
+		},
+		"share": {
+			"makePublic": "This directory is private. Do you want to make it public so you can share it? \n\nThis will recursively make all items and directory inside this directory public too",
+			"makePrivate": "This directory has been previously made public. Do you want to make it private again? \n\nThis will break any links to this directory you have already shared.",
+			"copyUrlButton": "Copy URL",
+			"shareUrlButton": "Share URL",
+			"copiedLong": "Copied URL to clipboard.",
+			"copied": "Copied",
+			"shareDir": "Share directory",
+			"makePublicButton": "Make public",
+			"makePrivateButton": "Make private"
 		}
 	},
 	"login": {

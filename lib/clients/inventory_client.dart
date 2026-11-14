@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:recon/apis/record_api.dart';
 import 'package:recon/clients/api_client.dart';
+import 'package:recon/clients/settings_client.dart';
 import 'package:recon/models/inventory/membership.dart';
 import 'package:recon/models/inventory/resonite_directory.dart';
 import 'package:recon/models/records/record.dart';
+import 'package:recon/models/records/record_version.dart';
 
 enum SortMode {
   name,
@@ -39,14 +41,21 @@ enum SortMode {
 
 class InventoryClient extends ChangeNotifier {
   final ApiClient apiClient;
+  final SettingsClient settingsClient;
   final Map<String, Record> _selectedRecords = {};
+  List<Membership>? memberships;
 
   Future<ResoniteDirectory>? _currentDirectory;
   SortMode _sortMode = SortMode.resonite;
   bool _sortReverse = false;
   Membership? _selectedGroup;
 
-  InventoryClient({required this.apiClient});
+  InventoryClient({required this.apiClient, required this.settingsClient}) {
+    RecordApi.getMemberships(apiClient).then((value) {
+      memberships = value;
+      notifyListeners();
+    });
+  }
 
   SortMode get sortMode => _sortMode;
 
@@ -79,6 +88,47 @@ class InventoryClient extends ChangeNotifier {
   List<Record> get selectedRecords => _selectedRecords.values.toList();
 
   Future<ResoniteDirectory>? get directoryFuture => _currentDirectory;
+
+  Future<void> saveRecord(Record record, Record Function(Record current) modify) async {
+    final current = await RecordApi.getRecord(apiClient, ownerId: record.ownerId, recordId: record.id, includeDeleted: true);
+    if (current.isDeleted) return;
+
+    final changed = modify(current);
+    final toSave = changed.copyWith(
+      lastModificationTime: DateTime.now().toUtc(),
+      version: RecordVersion(
+        globalVersion: current.version.globalVersion,
+        localVersion: current.version.localVersion + 1,
+        lastModifyingUserId: apiClient.userId,
+        lastModifyingMachineId: settingsClient.currentSettings.machineId.valueOrDefault,
+      ),
+    );
+    await RecordApi.upsertRecord(apiClient, record: toSave);
+  }
+
+  bool canWrite(String ownerId) {
+    if (ownerId.isEmpty) return false;
+    if (ownerId == "G-Resonite") return false;
+    if (ownerId == apiClient.userId) return true;
+    return (memberships ?? []).any((m) => m.groupId == ownerId);
+  }
+
+  Future<void> setPublicRecursively(Record dirRecord, bool isPublic) async {
+    if (dirRecord.recordType == RecordType.link || !canWrite(dirRecord.ownerId)) {
+      return;
+    }
+    if (dirRecord.isPublic != isPublic) {
+      await saveRecord(dirRecord, (current) => current.copyWith(isPublic: isPublic));
+    }
+    final children = await RecordApi.getRecordsAt(apiClient, ownerId: dirRecord.ownerId, path: "${dirRecord.path}\\${dirRecord.name}");
+    for (final child in children) {
+      if (child.recordType == RecordType.directory) {
+        await setPublicRecursively(child, isPublic);
+      } else if (child.recordType != RecordType.link && child.isPublic != isPublic) {
+        await saveRecord(child, (current) => current.copyWith(isPublic: isPublic));
+      }
+    }
+  }
 
   void _ensureDirectorySorted() {
     _currentDirectory = _currentDirectory?.then((value) {

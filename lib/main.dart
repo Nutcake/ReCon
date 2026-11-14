@@ -165,8 +165,7 @@ class _ReConState extends State<ReCon> {
 
   void _initApiClient() {
     _apiClient?.dispose();
-    _apiClient = ApiClient(authenticationData: _authData, pkgInfo: widget.packageInfo)
-      ..addLogoutListener(_logOutListener);
+    _apiClient = ApiClient(authenticationData: _authData, pkgInfo: widget.packageInfo)..addLogoutListener(_logOutListener);
   }
 
   void _logOutListener() {
@@ -282,9 +281,12 @@ class _ReConState extends State<ReCon> {
                                 ),
                               ),
                               ChangeNotifierProvider(
-                                create: (context) => SessionClient(apiClient: clientHolder.apiClient, messagingClient: context.read<MessagingClient>(), settingsClient: clientHolder.settingsClient),
+                                create: (context) =>
+                                    SessionClient(apiClient: clientHolder.apiClient, messagingClient: context.read<MessagingClient>(), settingsClient: clientHolder.settingsClient),
                               ),
-                              ChangeNotifierProvider(create: (context) => InventoryClient(apiClient: clientHolder.apiClient)),
+                              ChangeNotifierProvider(
+                                create: (context) => InventoryClient(apiClient: clientHolder.apiClient, settingsClient: clientHolder.settingsClient),
+                              ),
                             ],
                             child: AnnotatedRegion<SystemUiOverlayStyle>(
                               value: SystemUiOverlayStyle(statusBarColor: Theme.of(context).colorScheme.surfaceContainerHighest),

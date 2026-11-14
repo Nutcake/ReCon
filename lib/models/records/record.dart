@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:recon/auxiliary.dart';
 import 'package:recon/models/records/asset_manifest.dart';
 import 'package:recon/models/records/record_version.dart';
@@ -13,10 +14,7 @@ enum RecordType {
   audio;
 
   factory RecordType.fromName(String? name) {
-    return RecordType.values.firstWhere(
-      (element) => element.name.toLowerCase() == name?.toLowerCase().trim(),
-      orElse: () => RecordType.unknown,
-    );
+    return RecordType.values.firstWhere((element) => element.name.toLowerCase() == name?.toLowerCase().trim(), orElse: () => RecordType.unknown);
   }
 }
 
@@ -26,13 +24,8 @@ class Record {
     path: "Inventory",
     ownerId: "",
     assetUri: "",
-    name: "My Inventory",
-    version: RecordVersion(
-      globalVersion: 1,
-      localVersion: 1,
-      lastModifyingUserId: null,
-      lastModifyingMachineId: null,
-    ),
+    name: "inventory.rootDirName".tr(),
+    version: RecordVersion(globalVersion: 1, localVersion: 1, lastModifyingUserId: null, lastModifyingMachineId: null),
     description: "",
     tags: [],
     recordType: RecordType.directory,
@@ -105,8 +98,8 @@ class Record {
     required this.isReadOnly,
     required this.firstPublishTime,
     required this.rootRecordId,
-  })  : formattedName = FormatNode.fromText(name),
-        formattedDescription = FormatNode.fromText(description);
+  }) : formattedName = FormatNode.fromText(name),
+       formattedDescription = FormatNode.fromText(description);
 
   factory Record.fromMap(Map map) {
     return Record(
@@ -163,12 +156,7 @@ class Record {
       lastModificationTime: now,
       creationTime: now,
       assetManifest: assetManifest,
-      version: RecordVersion(
-        globalVersion: 0,
-        localVersion: 1,
-        lastModifyingUserId: ownerId,
-        lastModifyingMachineId: lastModifyingMachineId,
-      ),
+      version: RecordVersion(globalVersion: 0, localVersion: 1, lastModifyingUserId: ownerId, lastModifyingMachineId: lastModifyingMachineId),
       visits: 0,
       rating: 0,
       randomOrder: 0,
@@ -183,6 +171,12 @@ class Record {
   factory Record.inventoryRoot({required String ownerId}) {
     return _rootRecord.copyWith(ownerId: ownerId);
   }
+
+  Record withPublic({required bool isPublic, required String userId, required String machineId}) => copyWith(
+    isPublic: isPublic,
+    lastModificationTime: DateTime.now().toUtc(),
+    version: RecordVersion(globalVersion: version.globalVersion, localVersion: version.localVersion + 1, lastModifyingUserId: userId, lastModifyingMachineId: machineId),
+  );
 
   bool get isRoot => path == _rootRecord.path && id == _rootRecord.id;
 
@@ -230,33 +224,32 @@ class Record {
     int? randomOrder,
     List<AssetManifest>? assetManifest,
     String? Function()? rootRecordId,
-  }) =>
-      Record(
-        id: id ?? this.id,
-        path: path == null ? this.path : path(),
-        ownerId: ownerId ?? this.ownerId,
-        assetUri: assetUri ?? this.assetUri,
-        name: name ?? this.name,
-        description: description == null ? this.description : description(),
-        tags: tags ?? this.tags,
-        recordType: recordType ?? this.recordType,
-        thumbnailUri: thumbnailUri == null ? this.thumbnailUri : thumbnailUri(),
-        isPublic: isPublic ?? this.isPublic,
-        isListed: isListed ?? this.isListed,
-        isForPatreons: isForPatreons ?? this.isForPatreons,
-        lastModificationTime: lastModificationTime ?? this.lastModificationTime,
-        creationTime: creationTime ?? this.creationTime,
-        assetManifest: assetManifest ?? this.assetManifest,
-        version: version ?? this.version,
-        visits: visits ?? this.visits,
-        rating: rating ?? this.rating,
-        randomOrder: randomOrder ?? this.randomOrder,
-        ownerName: ownerName == null ? this.ownerName : ownerName(),
-        isDeleted: isDeleted ?? this.isDeleted,
-        isReadOnly: isReadOnly ?? this.isReadOnly,
-        firstPublishTime: firstPublishTime == null ? this.firstPublishTime : firstPublishTime(),
-        rootRecordId: rootRecordId == null ? this.rootRecordId : rootRecordId(),
-      );
+  }) => Record(
+    id: id ?? this.id,
+    path: path == null ? this.path : path(),
+    ownerId: ownerId ?? this.ownerId,
+    assetUri: assetUri ?? this.assetUri,
+    name: name ?? this.name,
+    description: description == null ? this.description : description(),
+    tags: tags ?? this.tags,
+    recordType: recordType ?? this.recordType,
+    thumbnailUri: thumbnailUri == null ? this.thumbnailUri : thumbnailUri(),
+    isPublic: isPublic ?? this.isPublic,
+    isListed: isListed ?? this.isListed,
+    isForPatreons: isForPatreons ?? this.isForPatreons,
+    lastModificationTime: lastModificationTime ?? this.lastModificationTime,
+    creationTime: creationTime ?? this.creationTime,
+    assetManifest: assetManifest ?? this.assetManifest,
+    version: version ?? this.version,
+    visits: visits ?? this.visits,
+    rating: rating ?? this.rating,
+    randomOrder: randomOrder ?? this.randomOrder,
+    ownerName: ownerName == null ? this.ownerName : ownerName(),
+    isDeleted: isDeleted ?? this.isDeleted,
+    isReadOnly: isReadOnly ?? this.isReadOnly,
+    firstPublishTime: firstPublishTime == null ? this.firstPublishTime : firstPublishTime(),
+    rootRecordId: rootRecordId == null ? this.rootRecordId : rootRecordId(),
+  );
 
   Map toMap() {
     return {
