@@ -98,6 +98,12 @@ class _InventoryBrowserState extends State<InventoryBrowser> with AutomaticKeepA
                                             child: TextButton(
                                               style: TextButton.styleFrom(
                                                 foregroundColor: idx == pathSegments.length - 1 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadiusGeometry.circular(16),
+                                                  side: BorderSide(
+                                                    color: idx == 0 ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                                                  )
+                                                )
                                               ),
                                               onPressed: () {
                                                 iClient.navigateUp(times: pathSegments.length - 1 - idx);

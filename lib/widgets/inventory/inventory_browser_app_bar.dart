@@ -7,11 +7,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:recon/apis/record_api.dart';
 import 'package:recon/auxiliary.dart';
+import 'package:recon/client_holder.dart';
 import 'package:recon/clients/inventory_client.dart';
+import 'package:recon/models/inventory/membership.dart';
 import 'package:share_plus/share_plus.dart';
 
 class InventoryBrowserAppBar extends StatefulWidget {
@@ -23,6 +26,7 @@ class InventoryBrowserAppBar extends StatefulWidget {
 
 class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
   final Future<Directory> _tempDirectoryFuture = getTemporaryDirectory();
+  Future<List<Membership>>? _membershipsFuture;
 
   @pragma('vm:entry-point')
   static void downloadCallback(TaskUpdate event) {
@@ -35,331 +39,308 @@ class _InventoryBrowserAppBarState extends State<InventoryBrowserAppBar> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final clientHolder = ClientHolder.of(context);
+    final apiClient = clientHolder.apiClient;
+    _membershipsFuture = RecordApi.getMemberships(apiClient);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<InventoryClient>(
       builder: (context, iClient, _) {
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 350),
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
-          child: !iClient.isAnyRecordSelected
-              ? AppBar(
-                  key: const ValueKey("default-appbar"),
-                  title: const Text('inventory.title').tr(),
-                  actions: [
-                    PopupMenuButton(
-                      icon: const Icon(Icons.swap_vert),
-                      onSelected: (value) {
-                        iClient.sortReverse = value;
-                      },
-                      itemBuilder: (context) {
-                        return [
-                          PopupMenuItem(
-                            value: false,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.arrow_upward,
-                                  color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                ),
-                                const SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  'inventory.sorting.ascending'.tr(),
-                                  style: TextStyle(
-                                    color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: true,
-                            child: Row(
-                              children: [
-                                Icon(Icons.arrow_downward, color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
-                                const SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  'inventory.sorting.descending'.tr(),
-                                  style: TextStyle(
-                                    color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ];
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: PopupMenuButton(
-                        icon: const Icon(Icons.sort),
-                        onSelected: (value) {
-                          iClient.sortMode = value;
-                        },
-                        itemBuilder: (context) {
-                          return SortMode.values
-                              .map(
-                                (e) => PopupMenuItem(
-                                  value: e,
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        e.icon,
-                                        color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                      ),
-                                      const SizedBox(
-                                        width: 8,
-                                      ),
-                                      Text(
-                                        'inventory.sorting.${e.name}'.tr(),
-                                        style: TextStyle(
-                                          color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                              .toList();
-                        },
-                      ),
-                    ),
-                  ],
-                )
-              : AppBar(
-                  key: const ValueKey("selection-appbar"),
-                  title: Text('inventory.selection'.tr(args: [iClient.selectedRecordCount.toString()])),
-                  leading: IconButton(
-                    onPressed: () {
-                      iClient.clearSelectedRecords();
+        return FutureBuilder(
+          future: _membershipsFuture,
+          builder: (context, snapshot) {
+            final groupSelector = snapshot.hasData && (snapshot.data! as List).isNotEmpty
+                ? PopupMenuButton<Membership>(
+                    icon: const Icon(Icons.group),
+                    tooltip: "Select group inventory",
+                    onSelected: (value) {
+                      iClient.selectedGroup = value;
                     },
-                    icon: const Icon(Icons.close),
-                  ),
-                  actions: [
-                    if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
-                      IconButton(
-                        onPressed: () {
-                          final text = iClient.selectedRecords.first.assetUri;
-                          if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
-                            Clipboard.setData(ClipboardData(text: text));
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied asset URL to clipboard.")));
-                          } else {
-                            SharePlus.instance.share(ShareParams(text: text));
-                          }
-                        },
-                        icon: const Icon(Icons.share),
-                      ),
-                    if (iClient.onlyFilesSelected)
-                      IconButton(
-                        onPressed: () async {
-                          final selectedRecords = iClient.selectedRecords;
-
-                          final assetUris = selectedRecords.map((record) => record.assetUri).toList();
-                          final thumbUris = selectedRecords.map((record) => record.thumbnailUri).toList();
-
-                          final selectedUris = await showDialog<List<String>>(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                icon: const Icon(Icons.download),
-                                title: const Text('inventory.download.title').tr(),
-                                content: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
+                    itemBuilder: (context) {
+                      final memberships =
+                          (snapshot.data ?? []) + [Membership(userId: iClient.apiClient.userId, groupId: iClient.apiClient.userId, groupName: "My Inventory", isMigrated: true)];
+                      return memberships.map((e) {
+                        return PopupMenuItem<Membership>(value: e, child: Text(e.groupName));
+                      }).toList();
+                    },
+                  )
+                : null;
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+              child: !iClient.isAnyRecordSelected
+                  ? AppBar(
+                      key: const ValueKey("default-appbar"),
+                      title: const Text('inventory.title').tr(),
+                      actions: [
+                        ?groupSelector,
+                        PopupMenuButton(
+                          tooltip: "Sort order",
+                          icon: const Icon(Icons.swap_vert),
+                          onSelected: (value) {
+                            iClient.sortReverse = value;
+                          },
+                          itemBuilder: (context) {
+                            return [
+                              PopupMenuItem(
+                                value: false,
+                                child: Row(
                                   children: [
-                                    const Divider(),
-                                    const SizedBox(height: 8),
-                                    ListTile(
-                                      onTap: () {
-                                        Navigator.of(context).pop(assetUris);
-                                      },
-                                      leading: const Icon(Icons.data_object),
-                                      title: Text(
-                                        "Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(extension).toList().unique().join(", ")})",
-                                      ),
-                                    ),
-                                    ListTile(
-                                      onTap: () {
-                                        Navigator.of(context).pop(thumbUris);
-                                      },
-                                      leading: const Icon(Icons.image),
-                                      title: Text(
-                                        "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.nonNulls.map(extension).toList().unique().join(", ")})",
-                                      ),
+                                    Icon(Icons.arrow_upward, color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'inventory.sorting.ascending'.tr(),
+                                      style: TextStyle(color: !iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
                                     ),
                                   ],
                                 ),
-                              );
+                              ),
+                              PopupMenuItem(
+                                value: true,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.arrow_downward, color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'inventory.sorting.descending'.tr(),
+                                      style: TextStyle(color: iClient.sortReverse ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ];
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: PopupMenuButton(
+                            tooltip: "Sort by",
+                            icon: const Icon(Icons.sort),
+                            onSelected: (value) {
+                              iClient.sortMode = value;
                             },
-                          );
-                          if (selectedUris == null) return;
-
-                          final directory = await FilePicker.getDirectoryPath(dialogTitle: "Download to...");
-                          if (directory == null) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('inventory.download.selectionAborted').tr(),
-                                ),
-                              );
-                            }
-                            return;
-                          }
-                          if (directory == "/") {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('inventory.download.selectionInvalid').tr(),
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          for (final record in selectedRecords) {
-                            final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
-                            final filename =
-                                "${record.id.split("-")[1]}-${record.formattedName}${extension(uri ?? "")}";
-                            try {
-                              final downloadTask = DownloadTask(
-                                url: Aux.resdbToHttp(uri),
-                                allowPause: true,
-                                baseDirectory: BaseDirectory.temporary,
-                                filename: filename,
-                                updates: Updates.statusAndProgress,
-                              );
-                              final downloadStatus = await FileDownloader().download(downloadTask);
-                              if (downloadStatus.status == TaskStatus.complete) {
-                                final tempDirectory = await _tempDirectoryFuture;
-                                final file = File(
-                                  "${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${extension(uri ?? "")}",
-                                );
-                                if (file.existsSync()) {
-                                  final newFile = File("$directory/$filename");
-                                  await file.copy(newFile.absolute.path);
-                                  await file.delete();
-                                }
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('inventory.download.downloadSuccess'.tr(args: [record.formattedName.toString()])),
+                            itemBuilder: (context) {
+                              return SortMode.values
+                                  .map(
+                                    (e) => PopupMenuItem(
+                                      value: e,
+                                      child: Row(
+                                        children: [
+                                          Icon(e.icon, color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'inventory.sorting.${e.name}'.tr(),
+                                            style: TextStyle(color: iClient.sortMode == e ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  );
-                                } else {
-                                  throw downloadStatus.exception ?? 'inventory.download.downloadError'.tr();
-                                }
-                              }
-                            } catch (e, s) {
-                              FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'inventory.download.downloadFailed'.tr(args: [record.formattedName.toString(), e.toString()]),
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          }
+                                  )
+                                  .toList();
+                            },
+                          ),
+                        ),
+                      ],
+                    )
+                  : AppBar(
+                      key: const ValueKey("selection-appbar"),
+                      title: Text('inventory.selection'.tr(args: [iClient.selectedRecordCount.toString()])),
+                      leading: IconButton(
+                        onPressed: () {
                           iClient.clearSelectedRecords();
                         },
-                        icon: const Icon(Icons.download),
+                        icon: const Icon(Icons.close),
                       ),
-                    const SizedBox(
-                      width: 4,
-                    ),
-                    IconButton(
-                      onPressed: () async {
-                        var loading = false;
-                        await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return StatefulBuilder(
-                              builder: (context, setState) {
-                                return AlertDialog(
-                                  icon: const Icon(Icons.delete),
-                                  title: Text(
-                                    iClient.selectedRecordCount == 1
-                                        ? 'inventory.delete.deleteHeader'.tr()
-                                        : 'inventory.delete.deleteHeaderPlural'.tr(args: [iClient.selectedRecordCount.toString()]),
-                                  ),
-                                  content: const Text('inventory.delete.warning').tr(),
-                                  actionsAlignment: MainAxisAlignment.spaceBetween,
-                                  actions: [
-                                    TextButton(
-                                      onPressed: loading
-                                          ? null
-                                          : () {
-                                              Navigator.of(context).pop(false);
-                                            },
-                                      child: const Text('general.cancel').tr(),
-                                    ),
-                                    Row(
+                      actions: [
+                        ?groupSelector,
+                        if (iClient.selectedRecordCount == 1 && ((iClient.selectedRecords.firstOrNull?.isLink ?? false) || (iClient.selectedRecords.firstOrNull?.isItem ?? false)))
+                          IconButton(
+                            onPressed: () {
+                              final text = iClient.selectedRecords.first.assetUri;
+                              if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+                                Clipboard.setData(ClipboardData(text: text));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied asset URL to clipboard.")));
+                              } else {
+                                SharePlus.instance.share(ShareParams(text: text));
+                              }
+                            },
+                            icon: const Icon(Icons.share),
+                          ),
+                        if (iClient.onlyFilesSelected)
+                          IconButton(
+                            onPressed: () async {
+                              final selectedRecords = iClient.selectedRecords;
+
+                              final assetUris = selectedRecords.map((record) => record.assetUri).toList();
+                              final thumbUris = selectedRecords.map((record) => record.thumbnailUri).toList();
+
+                              final selectedUris = await showDialog<List<String>>(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    icon: const Icon(Icons.download),
+                                    title: const Text('inventory.download.title').tr(),
+                                    content: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (loading)
-                                          const SizedBox.square(
-                                            dimension: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
-                                        const SizedBox(
-                                          width: 4,
+                                        const Divider(),
+                                        const SizedBox(height: 8),
+                                        ListTile(
+                                          onTap: () {
+                                            Navigator.of(context).pop(assetUris);
+                                          },
+                                          leading: const Icon(Icons.data_object),
+                                          title: Text("Asset${iClient.selectedRecordCount != 1 ? "s" : ""} (${assetUris.map(path.extension).toList().unique().join(", ")})"),
                                         ),
-                                        TextButton(
-                                          onPressed: loading
-                                              ? null
-                                              : () async {
-                                                  setState(() {
-                                                    loading = true;
-                                                  });
-                                                  try {
-                                                    await iClient.deleteSelectedRecords();
-                                                  } catch (e) {
-                                                    if (context.mounted) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text('inventory.delete.failed'.tr(args: [e.toString()])),
-                                                        ),
-                                                      );
-                                                    }
-                                                    setState(() {
-                                                      loading = false;
-                                                    });
-                                                  }
-                                                  if (context.mounted) {
-                                                    Navigator.of(context).pop(true);
-                                                  }
-                                                  await iClient.reloadCurrentDirectory();
-                                                },
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: Theme.of(context).colorScheme.error,
+                                        ListTile(
+                                          onTap: () {
+                                            Navigator.of(context).pop(thumbUris);
+                                          },
+                                          leading: const Icon(Icons.image),
+                                          title: Text(
+                                            "Thumbnail${iClient.selectedRecordCount != 1 ? "s" : ""} (${thumbUris.nonNulls.map(path.extension).toList().unique().join(", ")})",
                                           ),
-                                          child: const Text('inventory.delete.confirm').tr(),
                                         ),
                                       ],
                                     ),
-                                  ],
+                                  );
+                                },
+                              );
+                              if (selectedUris == null) return;
+
+                              final directory = await FilePicker.getDirectoryPath(dialogTitle: "Download to...");
+                              if (directory == null) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('inventory.download.selectionAborted').tr()));
+                                }
+                                return;
+                              }
+                              if (directory == "/") {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('inventory.download.selectionInvalid').tr()));
+                                }
+                                return;
+                              }
+
+                              for (final record in selectedRecords) {
+                                final uri = selectedUris == thumbUris ? record.thumbnailUri : record.assetUri;
+                                final filename = "${record.id.split("-")[1]}-${record.formattedName}${path.extension(uri ?? "")}";
+                                try {
+                                  final downloadTask = DownloadTask(
+                                    url: Aux.resdbToHttp(uri),
+                                    allowPause: true,
+                                    baseDirectory: BaseDirectory.temporary,
+                                    filename: filename,
+                                    updates: Updates.statusAndProgress,
+                                  );
+                                  final downloadStatus = await FileDownloader().download(downloadTask);
+                                  if (downloadStatus.status == TaskStatus.complete) {
+                                    final tempDirectory = await _tempDirectoryFuture;
+                                    final file = File("${tempDirectory.path}/${record.id.split("-")[1]}-${record.formattedName}${path.extension(uri ?? "")}");
+                                    if (file.existsSync()) {
+                                      final newFile = File("$directory/$filename");
+                                      await file.copy(newFile.absolute.path);
+                                      await file.delete();
+                                    }
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(SnackBar(content: Text('inventory.download.downloadSuccess'.tr(args: [record.formattedName.toString()]))));
+                                    } else {
+                                      throw downloadStatus.exception ?? 'inventory.download.downloadError'.tr();
+                                    }
+                                  }
+                                } catch (e, s) {
+                                  FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).showSnackBar(SnackBar(content: Text('inventory.download.downloadFailed'.tr(args: [record.formattedName.toString(), e.toString()]))));
+                                  }
+                                }
+                              }
+                              iClient.clearSelectedRecords();
+                            },
+                            icon: const Icon(Icons.download),
+                          ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: () async {
+                            var loading = false;
+                            await showDialog(
+                              context: context,
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return AlertDialog(
+                                      icon: const Icon(Icons.delete),
+                                      title: Text(
+                                        iClient.selectedRecordCount == 1
+                                            ? 'inventory.delete.deleteHeader'.tr()
+                                            : 'inventory.delete.deleteHeaderPlural'.tr(args: [iClient.selectedRecordCount.toString()]),
+                                      ),
+                                      content: const Text('inventory.delete.warning').tr(),
+                                      actionsAlignment: MainAxisAlignment.spaceBetween,
+                                      actions: [
+                                        TextButton(
+                                          onPressed: loading
+                                              ? null
+                                              : () {
+                                                  Navigator.of(context).pop(false);
+                                                },
+                                          child: const Text('general.cancel').tr(),
+                                        ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (loading) const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                                            const SizedBox(width: 4),
+                                            TextButton(
+                                              onPressed: loading
+                                                  ? null
+                                                  : () async {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      try {
+                                                        await iClient.deleteSelectedRecords();
+                                                      } catch (e) {
+                                                        if (context.mounted) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('inventory.delete.failed'.tr(args: [e.toString()]))));
+                                                        }
+                                                        setState(() {
+                                                          loading = false;
+                                                        });
+                                                      }
+                                                      if (context.mounted) {
+                                                        Navigator.of(context).pop(true);
+                                                      }
+                                                      await iClient.reloadCurrentDirectory();
+                                                    },
+                                              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                                              child: const Text('inventory.delete.confirm').tr(),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 );
                               },
                             );
                           },
-                        );
-                      },
-                      icon: const Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                     ),
-                    const SizedBox(
-                      width: 4,
-                    ),
-                  ],
-                ),
+            );
+          },
         );
       },
     );

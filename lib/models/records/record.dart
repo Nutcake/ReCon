@@ -26,7 +26,7 @@ class Record {
     path: "Inventory",
     ownerId: "",
     assetUri: "",
-    name: "Inventory",
+    name: "My Inventory",
     version: RecordVersion(
       globalVersion: 1,
       localVersion: 1,
@@ -124,7 +124,7 @@ class Record {
       isListed: map["isListed"] ?? false,
       lastModificationTime: DateTime.tryParse(map["lastModificationTime"] ?? "") ?? DateTimeX.epoch,
       assetManifest: (map["assetManifest"] as List? ?? []).map((e) => AssetManifest.fromMap(e)).toList(),
-      creationTime: DateTime.tryParse(map["lastModificationTime"] ?? "") ?? DateTimeX.epoch,
+      creationTime: DateTime.tryParse(map["creationTime"] ?? "") ?? DateTimeX.epoch,
       path: map["path"] ?? "",
       visits: map["visits"] ?? 0,
       rating: map["rating"] ?? 0,
@@ -180,28 +180,15 @@ class Record {
     );
   }
 
-  factory Record.inventoryRoot() => _rootRecord;
+  factory Record.inventoryRoot({required String ownerId}) {
+    return _rootRecord.copyWith(ownerId: ownerId);
+  }
 
-  bool get isRoot => this == _rootRecord;
+  bool get isRoot => path == _rootRecord.path && id == _rootRecord.id;
 
   bool get isLink => assetUri.startsWith("resrec");
 
   bool get isItem => assetUri.startsWith("resdb");
-
-  bool get isGroupRecord => linkOwnerId.startsWith("G-");
-
-  String get linkRecordId {
-    if (!isLink) {
-      throw "Record is not a link.";
-    }
-
-    final lastSlashIdx = assetUri.lastIndexOf("/");
-    if (lastSlashIdx == -1) {
-      throw "Record has invalid assetUri";
-    }
-
-    return assetUri.substring(lastSlashIdx + 1);
-  }
 
   String get linkOwnerId {
     if (!assetUri.startsWith("resrec")) {
