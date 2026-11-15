@@ -42,12 +42,15 @@ class MessagingClient extends ChangeNotifier {
   Timer? _statusHeartbeat;
   Timer? _unreadSafeguard;
   String? _initStatus;
-  UserStatus _userStatus = UserStatus.initial();
+  OnlineStatus _onlineStatus = OnlineStatus.offline;
+  UserStatus _broadcastStatus = UserStatus.initial();
   DateTime _lastStatusChange = DateTime.fromMillisecondsSinceEpoch(0);
 
-  UserStatus get userStatus => _userStatus;
+  OnlineStatus get onlineStatus => _onlineStatus;
+  UserStatus get userStatus => _broadcastStatus;
 
   bool _areContactsLoaded = false;
+  bool get _isHidden => _onlineStatus == OnlineStatus.invisible || _onlineStatus == OnlineStatus.offline;
 
   MessagingClient({
     required this._apiClient,
@@ -130,28 +133,32 @@ class MessagingClient extends ChangeNotifier {
       ..forEach(_onReceiveStatusUpdate)
       ..clear();
 
-    final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
-    _hubManager.send("RequestStatus", arguments: [null, lastOnline == OnlineStatus.invisible]);
-    await setOnlineStatus(lastOnline ?? OnlineStatus.online, broadcast: lastOnline != OnlineStatus.invisible);
+    final pkginfo = await PackageInfo.fromPlatform();
+    _broadcastStatus = _broadcastStatus.copyWith(
+      appVersion: "${pkginfo.version} of ${pkginfo.appName}",
+    );
+    _onlineStatus = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault) ?? OnlineStatus.online;
+    _hubManager.send("RequestStatus", arguments: [null, _onlineStatus == OnlineStatus.invisible]);
+    _updateStatus(force: !_isHidden);
+
     _statusHeartbeat?.cancel();
-    _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) async {
-      await setOnlineStatus(_userStatus.onlineStatus, broadcast: _userStatus.onlineStatus != OnlineStatus.invisible && _userStatus.onlineStatus != OnlineStatus.offline);
+    _statusHeartbeat = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      _updateStatus();
     });
+
     await _refreshUnreads();
     _unreadSafeguard?.cancel();
     _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
   }
 
   Future<void> refreshFriendsList() async {
-    final self = getAsFriend(_apiClient.userId);
-    _hubManager.send("RequestStatus", arguments: [null, self?.userStatus.onlineStatus == OnlineStatus.invisible]);
+    _hubManager.send("RequestStatus", arguments: [null, onlineStatus == OnlineStatus.invisible]);
     _initStatus = "";
     notifyListeners();
   }
 
   Future<void> requestUserStatus(String userId) async {
-    final self = getAsFriend(_apiClient.userId);
-    _hubManager.send("RequestStatus", arguments: [userId, self?.userStatus.onlineStatus == OnlineStatus.invisible]);
+    _hubManager.send("RequestStatus", arguments: [userId, onlineStatus == OnlineStatus.invisible]);
   }
 
   void sendMessage(Message message) {
@@ -162,39 +169,48 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void markMessagesRead(MarkReadBatch batch) {
-    if (_userStatus.onlineStatus == OnlineStatus.invisible || _userStatus.onlineStatus == OnlineStatus.offline) return;
+    if (_isHidden) return;
     final msgBody = batch.toMap();
     _hubManager.send("MarkMessagesRead", arguments: [msgBody]);
     clearUnreadsForUser(batch.senderId);
   }
 
-  Future<void> setOnlineStatus(OnlineStatus status, {bool broadcast = true}) async {
-    final pkginfo = await PackageInfo.fromPlatform();
+  void _updateStatus({bool force = false}) {
+    final hidden = _isHidden;
+    final wasHidden = _broadcastStatus.onlineStatus == OnlineStatus.offline;
     final now = DateTime.now();
-    _userStatus = _userStatus.copyWith(
-      userId: _apiClient.userId,
-      appVersion: "${pkginfo.version} of ${pkginfo.appName}",
-      lastPresenceTimestamp: now,
+
+    final changed = hidden ? !wasHidden : _broadcastStatus.onlineStatus != _onlineStatus;
+    final heartbeatDue = !hidden && now.difference(_broadcastStatus.lastStatusChange) >= _statusHeartbeatDuration;
+    if (!force && !changed && !heartbeatDue) return;
+
+    _broadcastStatus = hidden? _broadcastStatus.copyWith(
+      onlineStatus: OnlineStatus.offline,
+      isPresent: false,
+      sessions: [],
+      currentSessionIndex: -1,
+      outputDevice: () => null,
       lastStatusChange: now,
-      onlineStatus: status,
+    ) : _broadcastStatus.copyWith(
+      onlineStatus: _onlineStatus,
       isPresent: true,
+      lastPresenceTimestamp: now,
+      outputDevice: () => "Unknown",
+      lastStatusChange: now,
     );
-    if (broadcast) {
-      _hubManager.send(
-        "BroadcastStatus",
-        arguments: [
-          _userStatus.toMap(),
-          {
-            "group": 1,
-            "targetIds": null,
-          }
-        ],
-      );
+
+    if (!(hidden && wasHidden)) {
+      _hubManager.send("BroadcastStatus", arguments: [_broadcastStatus.toMap(), {"group": 1, "targetIds": null}]);
     }
+
     final self = getAsFriend(_apiClient.userId);
-    if (self != null) {
-      await _updateContact(self.copyWith(userStatus: _userStatus));
-    }
+    if (self == null) return;
+    _updateContact(self.copyWith(userStatus: _broadcastStatus));
+  }
+
+  Future<void> setOnlineStatus(OnlineStatus status) async {
+    _onlineStatus = status;
+    _updateStatus(force: true);
     notifyListeners();
   }
 

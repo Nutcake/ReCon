@@ -30,7 +30,7 @@ class UserStatus {
   final int currentSessionIndex;
   final List<SessionMetadata> sessions;
   final String appVersion;
-  final String outputDevice;
+  final String? outputDevice;
   final bool isMobile;
   final bool isPresent;
   final String compatibilityHash;
@@ -59,9 +59,9 @@ class UserStatus {
   factory UserStatus.initial() =>
       UserStatus.empty().copyWith(
         compatibilityHash: Config.latestCompatHash,
-        onlineStatus: OnlineStatus.online,
+        onlineStatus: OnlineStatus.offline,
         hashSalt: CryptoHelper.cryptoToken(),
-        outputDevice: "Unknown",
+        outputDevice: null,
         userSessionId: const Uuid().v4(),
         sessionType: UserSessionType.chatClient,
         isPresent: true,
@@ -77,7 +77,7 @@ class UserStatus {
         currentSessionIndex: -1,
         sessions: [],
         appVersion: "",
-        outputDevice: "Unknown",
+        outputDevice: null,
         isMobile: false,
         isPresent: false,
         compatibilityHash: "",
@@ -86,11 +86,9 @@ class UserStatus {
       );
 
   factory UserStatus.fromMap(Map map) {
-    final statusString = map["onlineStatus"].toString();
-    final status = OnlineStatus.fromString(statusString);
     return UserStatus(
       userId: map["userId"] ?? "",
-      onlineStatus: status,
+      onlineStatus: OnlineStatus.parse(map["onlineStatus"]),
       lastStatusChange: DateTime.tryParse(map["lastStatusChange"] ?? "") ?? DateTime.now(),
       lastPresenceTimestamp: DateTime.tryParse(map["lastPresenceTimestamp"] ?? "") ?? DateTime.now(),
       userSessionId: map["userSessionId"] ?? "",
@@ -109,7 +107,7 @@ class UserStatus {
   Map toMap({bool shallow = false}) {
     return {
       "userId": userId,
-      "onlineStatus": onlineStatus.index,
+      "onlineStatus": toBeginningOfSentenceCase(onlineStatus.name),
       "lastStatusChange": lastStatusChange.toUtc().toIso8601String(),
       "isPresent": isPresent,
       "lastPresenceTimestamp": lastPresenceTimestamp.toUtc().toIso8601String(),
@@ -140,7 +138,7 @@ class UserStatus {
     int? currentSessionIndex,
     List<SessionMetadata>? sessions,
     String? appVersion,
-    String? outputDevice,
+    String? Function()? outputDevice,
     bool? isMobile,
     String? compatibilityHash,
     String? hashSalt,
@@ -157,7 +155,7 @@ class UserStatus {
         currentSessionIndex: currentSessionIndex ?? this.currentSessionIndex,
         sessions: sessions ?? this.sessions,
         appVersion: appVersion ?? this.appVersion,
-        outputDevice: outputDevice ?? this.outputDevice,
+        outputDevice: outputDevice == null ? this.outputDevice : outputDevice(),
         isMobile: isMobile ?? this.isMobile,
         compatibilityHash: compatibilityHash ?? this.compatibilityHash,
         hashSalt: hashSalt ?? this.hashSalt,

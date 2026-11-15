@@ -35,10 +35,10 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                       child: Icon(
                         Icons.circle,
                         size: 16,
-                        color: client.userStatus.onlineStatus.color(context),
+                        color: client.onlineStatus.color(context),
                       ),
                     ),
-                    Text('contacts.status.${client.userStatus.onlineStatus.name}').tr(),
+                    Text('contacts.status.${client.onlineStatus.name}').tr(),
                   ],
                 ),
               ),
@@ -56,7 +56,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               },
               itemBuilder: (context) => OnlineStatus.values
                   .where(
-                    (element) => element == OnlineStatus.sociable || element == OnlineStatus.online || element == OnlineStatus.busy || element == OnlineStatus.invisible,
+                    (element) => element != OnlineStatus.offline,
                   )
                   .sorted(
                     (a, b) => b.index.compareTo(a.index),
