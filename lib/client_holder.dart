@@ -8,7 +8,7 @@ class ClientHolder extends InheritedWidget {
   final SettingsClient settingsClient;
   final NotificationClient notificationClient;
 
-  ClientHolder({
+  const ClientHolder({
     super.key,
     required this.settingsClient,
     required this.apiClient,

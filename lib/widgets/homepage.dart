@@ -23,11 +23,7 @@ class _HomeState extends State<Home> {
     const SessionListAppBar(),
     WorldListAppBar(
       onQueryChanged: ({required needle, required sortDirection, required sortParameter}) {
-        _worldListKey.currentState?.changeQuery(
-          needle: needle,
-          sortDirection: sortDirection,
-          sortParameter: sortParameter,
-        );
+        _worldListKey.currentState?.changeQuery(needle: needle, sortDirection: sortDirection, sortParameter: sortParameter);
       },
     ),
     const InventoryBrowserAppBar(),
@@ -44,10 +40,7 @@ class _HomeState extends State<Home> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          child: _appBars[_selectedPage],
-        ),
+        child: AnimatedSwitcher(duration: const Duration(milliseconds: 200), child: _appBars[_selectedPage]),
       ),
       body: PageView(
         controller: _pageController,
@@ -62,32 +55,16 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedPage,
         onDestinationSelected: (index) {
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
+          _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
           setState(() {
             _selectedPage = index;
           });
         },
         destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.message),
-            label: 'navigation.chat'.tr(),
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.groups),
-            label: 'navigation.sessions'.tr(),
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.public),
-            label: 'navigation.worlds'.tr(),
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory),
-            label: 'navigation.inventory'.tr(),
-          ),
+          NavigationDestination(icon: Icon(Icons.message), label: 'navigation.chat'.tr()),
+          NavigationDestination(icon: Icon(Icons.groups), label: 'navigation.sessions'.tr()),
+          NavigationDestination(icon: Icon(Icons.public), label: 'navigation.worlds'.tr()),
+          NavigationDestination(icon: Icon(Icons.inventory), label: 'navigation.inventory'.tr()),
         ],
       ),
     );

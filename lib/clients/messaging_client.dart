@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -27,6 +29,8 @@ import 'package:recon/models/users/user_status.dart';
 class MessagingClient extends ChangeNotifier {
   static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
   static const Duration _statusHeartbeatDuration = Duration(seconds: 150);
+  static const Duration _awayAfter = Duration(seconds: 60);
+  static final bool _idleDetection = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
   final ApiClient _apiClient;
   final Map<String, Friend> _contacts = {};
@@ -49,8 +53,8 @@ class MessagingClient extends ChangeNotifier {
   String? _initStatus;
   OnlineStatus _onlineStatus = OnlineStatus.offline;
   UserStatus _broadcastStatus = UserStatus.initial();
-  DateTime _lastStatusChange = DateTimeX.epoch;
   bool _isPresent = true;
+  bool _lifecyclePresent = true;
   DateTime _lastPresence = DateTime.now();
 
   OnlineStatus get onlineStatus => _onlineStatus;
@@ -62,11 +66,17 @@ class MessagingClient extends ChangeNotifier {
   bool get _isHidden => _onlineStatus == OnlineStatus.invisible || _onlineStatus == OnlineStatus.offline;
 
   MessagingClient({required this._apiClient, required this._notificationClient, required this._settingsClient}) {
-    _isPresent = _isPresentState(WidgetsBinding.instance.lifecycleState);
+    _lifecyclePresent = _isPresentState(WidgetsBinding.instance.lifecycleState);
+    _isPresent = _lifecyclePresent;
+    if (_idleDetection) {
+      GestureBinding.instance.pointerRouter.addGlobalRoute(_onGlobalPointer);
+      HardwareKeyboard.instance.addHandler(_onKeyboardKey);
+    }
     _lifecycleListener = AppLifecycleListener(
       onStateChange: _onLifecycleStateChanged,
       onExitRequested: () async {
-        setOnlineStatus(OnlineStatus.offline);
+        _goOffline();
+        await _hubManager.close();
         return AppExitResponse.exit;
       },
     );
@@ -82,6 +92,11 @@ class MessagingClient extends ChangeNotifier {
 
   @override
   void dispose() {
+    if (_idleDetection) {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_onGlobalPointer);
+      HardwareKeyboard.instance.removeHandler(_onKeyboardKey);
+    }
+    _goOffline();
     _lifecycleListener.dispose();
     _statusHeartbeat?.cancel();
     _unreadSafeguard?.cancel();
@@ -111,23 +126,44 @@ class MessagingClient extends ChangeNotifier {
 
   static bool _isPresentState(AppLifecycleState? s) => s == null || s == AppLifecycleState.resumed || s == AppLifecycleState.inactive;
 
+  void updateLastPresence() {
+    _lastPresence = DateTime.now();
+    if (!_isPresent) _recomputePresence();
+  }
+
   void _onLifecycleStateChanged(AppLifecycleState state) {
     final present = _isPresentState(state);
-    if (present == _isPresent) {
+    if (present == _lifecyclePresent) {
       return;
     }
-    if (!present) {
+    _lifecyclePresent = present;
+
+    if (present) {
       _lastPresence = DateTime.now();
     }
-    _isPresent = present;
-    if (!_areContactsLoaded) {
-      return;
-    }
-    _updateStatus();
-    if (present) {
+    _recomputePresence();
+    if (present && _areContactsLoaded) {
       _clearExpired();
       refreshContactsList();
     }
+  }
+
+  void _recomputePresence() {
+    final present = _lifecyclePresent && !(_idleDetection && DateTime.now().difference(_lastPresence) >= _awayAfter);
+    if (present == _isPresent) {
+      return;
+    }
+    _isPresent = present;
+    if (_areContactsLoaded) {
+      _updateStatus();
+    }
+  }
+
+  void _onGlobalPointer(PointerEvent _) => updateLastPresence();
+
+  bool _onKeyboardKey(KeyEvent _) {
+    updateLastPresence();
+    return false;
   }
 
   Future<void> refreshContactsListWithErrorHandler() async {
@@ -143,6 +179,7 @@ class MessagingClient extends ChangeNotifier {
     _areContactsLoaded = false;
     _contacts.clear();
     _userStatuses.clear();
+    _knownSessionKeys.clear();
     var count = 0;
     try {
       await for (final raw in _hubManager.stream("InitializeContacts")) {
@@ -177,6 +214,7 @@ class MessagingClient extends ChangeNotifier {
 
     _statusHeartbeat?.cancel();
     _statusHeartbeat = Timer.periodic(const Duration(seconds: 30), (timer) async {
+      _recomputePresence();
       _updateStatus();
       _clearExpired();
     });
@@ -217,11 +255,8 @@ class MessagingClient extends ChangeNotifier {
     final targetStatus = _onlineStatus == OnlineStatus.online && !_isPresent ? OnlineStatus.away : _onlineStatus;
     final changed = hidden ? !wasHidden : _broadcastStatus.onlineStatus != targetStatus || _broadcastStatus.isPresent != _isPresent;
     final heartbeatDue = !hidden && now.difference(_broadcastStatus.lastStatusChange) >= _statusHeartbeatDuration;
+    if (!hidden && _isPresent && !_idleDetection) _lastPresence = now;
     if (!force && !changed && !heartbeatDue) return;
-
-    if (!hidden && _isPresent) {
-      _lastPresence = now;
-    }
 
     _broadcastStatus = hidden
         ? _broadcastStatus.copyWith(onlineStatus: OnlineStatus.offline, isPresent: false, sessions: [], currentSessionIndex: -1, outputDevice: () => null, lastStatusChange: now)
@@ -272,6 +307,13 @@ class MessagingClient extends ChangeNotifier {
     if (changed) {
       notifyListeners();
     }
+  }
+
+  void _goOffline() {
+    _onlineStatus = OnlineStatus.offline;
+    try {
+      _updateStatus();
+    } catch (_) {}
   }
 
   void setOnlineStatus(OnlineStatus status) {
@@ -410,9 +452,6 @@ class MessagingClient extends ChangeNotifier {
 
   Future<void> _updateContact(Friend friend) async {
     _contacts[friend.contactUserId] = friend;
-    if (friend.userStatus.lastStatusChange.isAfter(_lastStatusChange)) {
-      _lastStatusChange = friend.userStatus.lastStatusChange;
-    }
     final sIndex = _sortedContactsCache.indexWhere((element) => element.contactUserId == friend.contactUserId);
     if (sIndex == -1) {
       _sortedContactsCache.add(friend);

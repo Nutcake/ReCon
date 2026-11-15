@@ -214,6 +214,11 @@ class HubManager {
     return result;
   }
 
+  Future<void> close() async {
+    _disposed = true;
+    await _wsChannel?.close().timeout(const Duration(seconds: 1), onTimeout: () {});
+  }
+
   void dispose() {
     _wsChannel?.close();
     _disposed = true;
