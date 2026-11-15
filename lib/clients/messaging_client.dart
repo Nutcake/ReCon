@@ -11,7 +11,6 @@ import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/apis/message_api.dart';
 import 'package:recon/apis/session_api.dart';
-import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/notification_client.dart';
 import 'package:recon/clients/settings_client.dart';
@@ -81,11 +80,8 @@ class MessagingClient extends ChangeNotifier {
       },
     );
     SessionApi.getSessions(_apiClient).then((sessions) async {
-      try {
-        _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
-      } catch (e, s) {
-        _logger.severe("Failed to initialize session list", e, s);
-      }
+      _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
+      _redecodeAll();
     });
     _setupHub();
   }
@@ -164,6 +160,11 @@ class MessagingClient extends ChangeNotifier {
   bool _onKeyboardKey(KeyEvent _) {
     updateLastPresence();
     return false;
+  }
+
+  UserStatus _decodeSessionsInStatus(UserStatus status) {
+    final sessionMap = createSessionMap(status.hashSalt);
+    return status.copyWith(decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
   }
 
   Future<void> refreshContactsListWithErrorHandler() async {
@@ -548,14 +549,43 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _onSessionChanged(String sessionId, Session? session) {
+    final dirty = <String>{};
+    for (final MapEntry(key: userId, value: statuses) in _userStatuses.entries) {
+      for (final userSessionId in statuses.keys.toList()) {
+        final status = statuses[userSessionId]!;
+        final hash = CryptoHelper.idHash(sessionId + status.hashSalt);
+        final index = status.sessions.indexWhere((m) => m.sessionHash == hash);
+        if (index == -1) continue;
+        final decoded = [...status.decodedSessions];
+        decoded[index] = session ?? Session.none().copyWith(accessLevel: status.sessions[index].accessLevel);
+        statuses[userSessionId] = status.copyWith(decodedSessions: decoded);
+        dirty.add(userId);
+      }
+    }
+    for (final userId in dirty) {
+      final contact = _contacts[userId];
+      if (contact != null) _setContactFinalStatus(contact);
+    }
+    if (dirty.isNotEmpty) notifyListeners();
+  }
+
+  void _redecodeAll() {
+    _userStatuses.forEach((userId, statuses) {
+      statuses.updateAll((_, s) => _decodeSessionsInStatus(s));
+      final contact = _contacts[userId];
+      if (contact != null) _setContactFinalStatus(contact);
+    });
+    notifyListeners();
+  }
+
   void _onReceiveStatusUpdate(List args) {
     if (!_areContactsLoaded) {
       _statusUpdateQueue.add(args);
       _logger.info("Deferring status update to after contacts are loaded");
       return;
     }
-    final statusUpdate = args[0] as Map;
-    var status = UserStatus.fromMap(statusUpdate);
+    var status = _decodeSessionsInStatus(UserStatus.fromMap(args[0] as Map));
     final sessionMap = createSessionMap(status.hashSalt);
     status = status.copyWith(decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
     if (!_applyStatus(status)) {
@@ -579,13 +609,15 @@ class MessagingClient extends ChangeNotifier {
     final oldSession = _sessionMap[session.id!];
     _sessionMap[session.id!] = session;
     if (oldSession != session) {
+      _onSessionChanged(session.id!, session);
       notifyListeners();
     }
   }
 
   void _onRemoveSession(List args) {
-    final session = args[0];
-    _sessionMap.remove(session);
+    final sessionId = args[0] as String;
+    _sessionMap.remove(sessionId);
+    _onSessionChanged(sessionId, null);
     notifyListeners();
   }
 }
