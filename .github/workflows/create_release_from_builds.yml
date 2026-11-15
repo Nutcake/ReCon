@@ -70,7 +70,8 @@ jobs:
             squashfs-tools \
             strace \
             util-linux \
-            zsync
+            zsync \
+            libjson-glib-dev
 
       - name: Setup Flutter
         uses: flutter-actions/setup-flutter@v4
