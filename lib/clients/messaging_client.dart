@@ -208,7 +208,7 @@ class MessagingClient extends ChangeNotifier {
       ..clear();
 
     final pkginfo = await PackageInfo.fromPlatform();
-    _broadcastStatus = _broadcastStatus.copyWith(userId: _apiClient.userId, isMobile: Platform.isAndroid || Platform.isIOS, appVersion: "${pkginfo.version} of ${pkginfo.appName}");
+    _broadcastStatus = _broadcastStatus.copyWith(userId: _apiClient.userId, isMobile: Platform.isAndroid || Platform.isIOS, appVersion: "${pkginfo.version} of ReCon");
     _onlineStatus = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault) ?? OnlineStatus.online;
     _hubManager.send("RequestStatus", arguments: [null, _onlineStatus == OnlineStatus.invisible]);
     _updateStatus(force: !_isHidden);
