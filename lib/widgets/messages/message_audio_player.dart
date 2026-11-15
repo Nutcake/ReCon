@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:just_audio/just_audio.dart';
 import 'package:material_ui/material_ui.dart';
@@ -19,49 +21,36 @@ class MessageAudioPlayer extends StatefulWidget {
 }
 
 class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBindingObserver {
+  static final bool _backendReportsPosition = Platform.isLinux || Platform.isWindows;
+
   final AudioPlayer _audioPlayer = AudioPlayer();
+  late final Stream<Duration> _positionStream = _backendReportsPosition ? _audioPlayer.playbackEventStream.map((e) => e.updatePosition).distinct() : _audioPlayer.positionStream;
   Future? _audioFileFuture;
-  double _sliderValue = 0;
+  double? _dragValue;
+  bool _resumeAfterDrag = false;
+  String? _filePath;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _audioFileFuture = _loadAudio();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused) {
-      _audioPlayer.stop();
+      _audioPlayer.pause();
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final audioCache = Provider.of<AudioCacheClient>(context);
-    _audioFileFuture = Future(
-      () async {
-        return audioCache
-            .cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content)))
-            .then((value) => _audioPlayer.setFilePath(value.path))
-            .whenComplete(() => _audioPlayer.setLoopMode(LoopMode.off));
-      },
-    );
   }
 
   @override
   void didUpdateWidget(covariant MessageAudioPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.message.id == widget.message.id) return;
-    final audioCache = Provider.of<AudioCacheClient>(context);
-    _audioFileFuture = audioCache.cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content))).then((value) async {
-      final path = _audioPlayer.setFilePath(value.path);
-      await _audioPlayer.setLoopMode(LoopMode.off);
-      await _audioPlayer.pause();
-      await _audioPlayer.seek(Duration.zero);
-      return path;
-    });
+    _audioPlayer.stop();
+    _dragValue = null;
+    _audioFileFuture = _loadAudio();
   }
 
   @override
@@ -71,19 +60,30 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
     super.dispose();
   }
 
+  Future<void> _loadAudio() async {
+    final audioCache = Provider.of<AudioCacheClient>(context, listen: false);
+    final file = await audioCache.cachedNetworkAudioFile(AudioClipContent.fromMap(jsonDecode(widget.message.content)));
+    _filePath = file.path;
+    await _audioPlayer.setFilePath(file.path);
+    await _audioPlayer.setLoopMode(LoopMode.off);
+  }
+
+  Future<void> _restartAt(Duration position, {required bool play}) async {
+    final path = _filePath;
+    if (path == null) return;
+    await _audioPlayer.pause();
+    await _audioPlayer.setFilePath(path, initialPosition: position);
+    if (play) unawaited(_audioPlayer.play());
+  }
+
   Widget _createErrorWidget(String error) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: Theme.of(context).colorScheme.error,
-          ),
-          const SizedBox(
-            height: 4,
-          ),
+          Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+          const SizedBox(height: 4),
           Text(
             error,
             textAlign: TextAlign.center,
@@ -122,14 +122,12 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                       builder: (context, fileSnapshot) {
                         if (fileSnapshot.hasError) {
                           FlutterError.reportError(FlutterErrorDetails(exception: fileSnapshot.error!, stack: fileSnapshot.stackTrace));
-                          return const IconButton(
-                            icon: Icon(Icons.warning),
-                            tooltip: "Failed to load audio-message.",
-                            onPressed: null,
-                          );
+                          return const IconButton(icon: Icon(Icons.warning), tooltip: "Failed to load audio-message.", onPressed: null);
                         }
+                        final fileReady = fileSnapshot.connectionState == ConnectionState.done && !fileSnapshot.hasError;
+
                         return IconButton(
-                          onPressed: fileSnapshot.hasData && snapshot.hasData && playerState != null && playerState.processingState != ProcessingState.loading
+                          onPressed: fileReady && snapshot.hasData && playerState != null && playerState.processingState != ProcessingState.loading
                               ? () {
                                   switch (playerState.processingState) {
                                     case ProcessingState.idle:
@@ -144,51 +142,57 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                                       }
                                       break;
                                     case ProcessingState.completed:
-                                      _audioPlayer..seek(Duration.zero)
-                                      ..play();
+                                      _restartAt(Duration.zero, play: true);
                                       break;
                                   }
                                 }
                               : null,
                           color: widget.foregroundColor,
                           icon: Icon(
-                            ((_audioPlayer.duration ?? const Duration(days: 9999)) - _audioPlayer.position).inMilliseconds < 10
+                            playerState?.processingState == ProcessingState.completed
                                 ? Icons.replay
-                                : ((playerState?.playing ?? false) ? Icons.pause : Icons.play_arrow),
+                                : (playerState?.playing ?? false)
+                                ? Icons.pause
+                                : Icons.play_arrow,
                           ),
                         );
                       },
                     ),
-                    StreamBuilder(
-                      stream: _audioPlayer.positionStream,
+                    StreamBuilder<Duration>(
+                      stream: _positionStream,
                       builder: (context, snapshot) {
-                        _sliderValue = _audioPlayer.duration == null ? 0 : (_audioPlayer.position.inMilliseconds / (_audioPlayer.duration!.inMilliseconds)).clamp(0, 1);
-                        return StatefulBuilder(
-                          // Not sure if this makes sense here...
-                          builder: (context, setState) {
-                            return SliderTheme(
-                              data: SliderThemeData(
-                                inactiveTrackColor: widget.foregroundColor?.withAlpha(100),
-                              ),
-                              child: Slider(
-                                thumbColor: widget.foregroundColor,
-                                value: _sliderValue,
-                                min: 0.0,
-                                max: 1.0,
-                                onChanged: (value) async {
-                                  await _audioPlayer.pause();
-                                  setState(() {
-                                    _sliderValue = value;
-                                  });
-                                  await _audioPlayer.seek(
-                                    Duration(
-                                      milliseconds: (value * (_audioPlayer.duration?.inMilliseconds ?? 0)).round(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            );
-                          },
+                        final duration = _audioPlayer.duration;
+                        final completed = _audioPlayer.processingState == ProcessingState.completed;
+                        final canSeek = duration != null && duration > Duration.zero;
+                        final position = completed ? (duration ?? Duration.zero) : (snapshot.data ?? Duration.zero);
+                        final playbackValue = canSeek ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0) : 0.0;
+                        return SliderTheme(
+                          data: SliderThemeData(inactiveTrackColor: widget.foregroundColor?.withAlpha(100)),
+                          child: Slider(
+                            thumbColor: widget.foregroundColor,
+                            value: _dragValue ?? playbackValue,
+                            onChangeStart: canSeek
+                                ? (value) {
+                                    _resumeAfterDrag = _audioPlayer.playing && _audioPlayer.processingState != ProcessingState.completed;
+                                    _audioPlayer.pause();
+                                    setState(() => _dragValue = value);
+                                  }
+                                : null,
+                            onChanged: canSeek ? (value) => setState(() => _dragValue = value) : null,
+                            onChangeEnd: canSeek
+                                ? (value) async {
+                                    final target = duration * value;
+                                    if (_audioPlayer.processingState == ProcessingState.completed) {
+                                      await _restartAt(target, play: false);
+                                    } else {
+                                      await _audioPlayer.seek(target);
+                                    }
+                                    if (!mounted) return;
+                                    setState(() => _dragValue = null);
+                                    if (_resumeAfterDrag) unawaited(_audioPlayer.play());
+                                  }
+                                : null,
+                          ),
                         );
                       },
                     ),
@@ -198,23 +202,22 @@ class _MessageAudioPlayerState extends State<MessageAudioPlayer> with WidgetsBin
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    const SizedBox(
-                      width: 4,
-                    ),
+                    const SizedBox(width: 4),
                     StreamBuilder(
-                      stream: _audioPlayer.positionStream,
+                      stream: _positionStream,
                       builder: (context, snapshot) {
+                        final duration = _audioPlayer.duration;
+                        final completed = _audioPlayer.processingState == ProcessingState.completed;
+                        final position = completed ? (duration ?? Duration.zero) : (snapshot.data ?? Duration.zero);
+                        final shown = _dragValue != null && duration != null ? duration * _dragValue! : position;
                         return Text(
-                          "${snapshot.data?.format() ?? "??"}/${_audioPlayer.duration?.format() ?? "??"}",
+                          "${shown.format()}/${duration?.format() ?? "??"}",
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: widget.foregroundColor?.withAlpha(150)),
                         );
                       },
                     ),
                     const Spacer(),
-                    MessageStateIndicator(
-                      message: widget.message,
-                      foregroundColor: widget.foregroundColor,
-                    ),
+                    MessageStateIndicator(message: widget.message, foregroundColor: widget.foregroundColor),
                   ],
                 ),
               ],
