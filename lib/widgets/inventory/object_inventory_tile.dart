@@ -39,19 +39,22 @@ class ObjectInventoryTile extends StatelessWidget {
                 child: Hero(
                   tag: record.id,
                   child: Center(
-                    child: CachedNetworkImage(
-                      height: double.infinity,
-                      width: double.infinity,
-                      imageUrl: Aux.resdbToHttp(record.thumbnailUri),
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          size: 64,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CachedNetworkImage(
+                        height: double.infinity,
+                        width: double.infinity,
+                        imageUrl: Aux.resdbToHttp(record.thumbnailUri),
+                        fit: BoxFit.contain,
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            size: 64,
+                          ),
                         ),
+                        placeholder: (context, uri) =>
+                        const Center(child: CircularProgressIndicator()),
                       ),
-                      placeholder: (context, uri) =>
-                      const Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ),

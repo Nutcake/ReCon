@@ -16,5 +16,4 @@ The app works on other platforms, though not every feature will be functional.
 For example, notifications are currently not supported on non-android builds.
 
 ## Screenshots
-
-<img src="https://github.com/Nutcake/ReCon/assets/10452593/a46ccf8a-0a9f-4518-98e6-84fad2d7bf26" width=198/> <img src="https://github.com/Nutcake/ReCon/assets/10452593/5d158f58-cd27-4a68-abf3-9068e92b6a82" width=198/> <img src="https://github.com/Nutcake/ReCon/assets/10452593/f2ce95ef-e513-46cb-9654-31e74cdc7c09" width=198/> <img src="https://github.com/Nutcake/ReCon/assets/10452593/58ef5e5e-1b53-4a47-92f8-bcbcba7a1e86" width=198/>
+<img alt="Screenshot of ReCon's chat view" src="https://github.com/user-attachments/assets/3264ed1d-8b95-462f-a76f-0a1be64b3af4" width=198/> <img alt="Screenshot of ReCon's sessions menu" src="https://github.com/user-attachments/assets/5c3530e0-5e54-4c86-a55c-83219132f24c" width=198/> <img alt="Screenshot of ReCon's worlds menu" src="https://github.com/user-attachments/assets/69d04467-6500-4236-8b89-b81c118d7fe1" width=198/> <img alt="Screenshot of ReCon's inventory menu" src="https://github.com/user-attachments/assets/a19dbf0f-b962-453f-8004-306a4f3adb5b" width=198/>

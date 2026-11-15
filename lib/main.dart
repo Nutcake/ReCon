@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -252,7 +253,7 @@ class _ReConState extends State<ReCon> {
                     ),
                     themeMode: ThemeMode.values[widget.settingsClient.currentSettings.themeMode.valueOrDefault],
                     locale: context.locale,
-                    localizationsDelegates: context.localizationDelegates,
+                    localizationsDelegates: [GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate, ...context.localizationDelegates],
                     supportedLocales: const [
                       Locale('af'), // testing only
                       Locale('en'),
