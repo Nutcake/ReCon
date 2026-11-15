@@ -44,6 +44,7 @@ class MessagingClient extends ChangeNotifier {
   final SettingsClient _settingsClient;
   final Queue<List<dynamic>> _statusUpdateQueue = Queue();
   final Map<String, Map<String, UserStatus>> _userStatuses = {};
+  final ValueNotifier<int> sessionsRevision = ValueNotifier(0);
   late final AppLifecycleListener _lifecycleListener;
 
   Friend? selectedFriend;
@@ -79,10 +80,7 @@ class MessagingClient extends ChangeNotifier {
         return AppExitResponse.exit;
       },
     );
-    SessionApi.getSessions(_apiClient).then((sessions) async {
-      _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
-      _redecodeAll();
-    });
+    fetchSessions().catchError((e, s) => _logger.severe("Failed to fetch sessions", e, s));
     _setupHub();
   }
 
@@ -93,6 +91,7 @@ class MessagingClient extends ChangeNotifier {
       HardwareKeyboard.instance.removeHandler(_onKeyboardKey);
     }
     _goOffline();
+    sessionsRevision.dispose();
     _lifecycleListener.dispose();
     _statusHeartbeat?.cancel();
     _unreadSafeguard?.cancel();
@@ -218,6 +217,7 @@ class MessagingClient extends ChangeNotifier {
       _recomputePresence();
       _updateStatus();
       _clearExpired();
+      _clearExpiredSessions();
     });
 
     await _refreshUnreads();
@@ -321,6 +321,35 @@ class MessagingClient extends ChangeNotifier {
     _onlineStatus = status;
     _updateStatus(force: true);
     notifyListeners();
+  }
+
+  bool _upsertSession(Session session) {
+    final id = session.id;
+    if (id == null) return false;
+    final existing = _sessionMap[id];
+    if (existing != null && !session.lastUpdate.isAfter(existing.lastUpdate)) return false;
+    _sessionMap[id] = session;
+    _onSessionChanged(id, session);
+    return true;
+  }
+
+  Future<void> fetchSessions() async {
+    final sessions = await SessionApi.getSessions(_apiClient);
+    var changed = false;
+    for (final s in sessions) {
+      changed |= _upsertSession(s);
+    }
+    if (changed) sessionsRevision.value++;
+  }
+
+  void _clearExpiredSessions() {
+    final now = DateTime.now();
+    final expired = _sessionMap.entries.where((e) => now.difference(e.value.lastUpdate) > UserStatus.statusExpiration).map((e) => e.key).toList();
+    for (final id in expired) {
+      _sessionMap.remove(id);
+      _onSessionChanged(id, null);
+    }
+    if (expired.isNotEmpty) sessionsRevision.value++;
   }
 
   Future<Friend> addContact(User user) async {
@@ -570,15 +599,6 @@ class MessagingClient extends ChangeNotifier {
     if (dirty.isNotEmpty) notifyListeners();
   }
 
-  void _redecodeAll() {
-    _userStatuses.forEach((userId, statuses) {
-      statuses.updateAll((_, s) => _decodeSessionsInStatus(s));
-      final contact = _contacts[userId];
-      if (contact != null) _setContactFinalStatus(contact);
-    });
-    notifyListeners();
-  }
-
   void _onReceiveStatusUpdate(List args) {
     if (!_areContactsLoaded) {
       _statusUpdateQueue.add(args);
@@ -606,10 +626,8 @@ class MessagingClient extends ChangeNotifier {
     if (session.id == null) {
       return;
     }
-    final oldSession = _sessionMap[session.id!];
-    _sessionMap[session.id!] = session;
-    if (oldSession != session) {
-      _onSessionChanged(session.id!, session);
+    if (_upsertSession(session)) {
+      sessionsRevision.value++;
       notifyListeners();
     }
   }
@@ -618,6 +636,7 @@ class MessagingClient extends ChangeNotifier {
     final sessionId = args[0] as String;
     _sessionMap.remove(sessionId);
     _onSessionChanged(sessionId, null);
+    sessionsRevision.value++;
     notifyListeners();
   }
 }
