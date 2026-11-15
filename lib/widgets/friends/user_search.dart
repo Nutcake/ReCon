@@ -67,7 +67,7 @@ class _UserSearchState extends State<UserSearch> {
                         return UserListTile(
                           user: user,
                           onChanged: () {
-                            mClient.refreshFriendsList();
+                            mClient.refreshContactsList();
                           },
                         );
                       },

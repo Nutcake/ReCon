@@ -35,17 +35,17 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
                       child: Icon(
                         Icons.circle,
                         size: 16,
-                        color: client.userStatus.onlineStatus.color(context),
+                        color: client.onlineStatus.color(context),
                       ),
                     ),
-                    Text('contacts.status.${client.userStatus.onlineStatus.name}').tr(),
+                    Text('contacts.status.${client.onlineStatus.name}').tr(),
                   ],
                 ),
               ),
               onSelected: (onlineStatus) async {
                 final settingsClient = ClientHolder.of(context).settingsClient;
                 try {
-                  await client.setOnlineStatus(onlineStatus);
+                  client.setOnlineStatus(onlineStatus);
                   await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(lastOnlineStatus: onlineStatus.index));
                 } catch (e, s) {
                   FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));
@@ -56,7 +56,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               },
               itemBuilder: (context) => OnlineStatus.values
                   .where(
-                    (element) => element == OnlineStatus.sociable || element == OnlineStatus.online || element == OnlineStatus.busy || element == OnlineStatus.invisible,
+                    (element) => element != OnlineStatus.offline,
                   )
                   .sorted(
                     (a, b) => b.index.compareTo(a.index),

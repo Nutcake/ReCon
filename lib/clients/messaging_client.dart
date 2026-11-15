@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -24,10 +28,12 @@ import 'package:recon/models/users/user_status.dart';
 class MessagingClient extends ChangeNotifier {
   static const Duration _unreadSafeguardDuration = Duration(seconds: 120);
   static const Duration _statusHeartbeatDuration = Duration(seconds: 150);
+  static const Duration _awayAfter = Duration(seconds: 60);
+  static final bool _idleDetection = Platform.isLinux || Platform.isWindows || Platform.isMacOS;
 
   final ApiClient _apiClient;
   final Map<String, Friend> _contacts = {};
-  final List<Friend> _sortedFriendsCache = []; // Keep a sorted copy so as to not have to sort during build()
+  final List<Friend> _sortedContactsCache = []; // Keep a sorted copy so as to not have to sort during build()
   final Map<String, MessageCache> _messageCache = {};
   final Map<String, List<Message>> _unreads = {};
   final Logger _logger = Logger("Messaging");
@@ -37,37 +43,56 @@ class MessagingClient extends ChangeNotifier {
   final Set<String> _knownSessionKeys = {};
   final SettingsClient _settingsClient;
   final Queue<List<dynamic>> _statusUpdateQueue = Queue();
-  Friend? selectedFriend;
+  final Map<String, Map<String, UserStatus>> _userStatuses = {};
+  final ValueNotifier<int> sessionsRevision = ValueNotifier(0);
+  late final AppLifecycleListener _lifecycleListener;
 
+  Friend? selectedFriend;
   Timer? _statusHeartbeat;
   Timer? _unreadSafeguard;
   String? _initStatus;
-  UserStatus _userStatus = UserStatus.initial();
-  DateTime _lastStatusChange = DateTime.fromMillisecondsSinceEpoch(0);
+  OnlineStatus _onlineStatus = OnlineStatus.offline;
+  UserStatus _broadcastStatus = UserStatus.initial();
+  bool _isPresent = true;
+  bool _lifecyclePresent = true;
+  DateTime _lastPresence = DateTime.now();
 
-  UserStatus get userStatus => _userStatus;
+  OnlineStatus get onlineStatus => _onlineStatus;
+
+  UserStatus get userStatus => _broadcastStatus;
 
   bool _areContactsLoaded = false;
 
-  MessagingClient({
-    required this._apiClient,
-    required this._notificationClient,
-    required this._settingsClient,
-  }) {
-    SessionApi.getSessions(_apiClient).then(
-      (sessions) async {
-        try {
-          _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
-        } catch (e, s) {
-          _logger.severe("Failed to initialize session list", e, s);
-        }
+  bool get _isHidden => _onlineStatus == OnlineStatus.invisible || _onlineStatus == OnlineStatus.offline;
+
+  MessagingClient({required this._apiClient, required this._notificationClient, required this._settingsClient}) {
+    _lifecyclePresent = _isPresentState(WidgetsBinding.instance.lifecycleState);
+    _isPresent = _lifecyclePresent;
+    if (_idleDetection) {
+      GestureBinding.instance.pointerRouter.addGlobalRoute(_onGlobalPointer);
+      HardwareKeyboard.instance.addHandler(_onKeyboardKey);
+    }
+    _lifecycleListener = AppLifecycleListener(
+      onStateChange: _onLifecycleStateChanged,
+      onExitRequested: () async {
+        _goOffline();
+        await _hubManager.close();
+        return AppExitResponse.exit;
       },
     );
+    fetchSessions().catchError((e, s) => _logger.severe("Failed to fetch sessions", e, s));
     _setupHub();
   }
 
   @override
   void dispose() {
+    if (_idleDetection) {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_onGlobalPointer);
+      HardwareKeyboard.instance.removeHandler(_onKeyboardKey);
+    }
+    _goOffline();
+    sessionsRevision.dispose();
+    _lifecycleListener.dispose();
     _statusHeartbeat?.cancel();
     _unreadSafeguard?.cancel();
     _hubManager.dispose();
@@ -76,7 +101,7 @@ class MessagingClient extends ChangeNotifier {
 
   String? get initStatus => _initStatus;
 
-  List<Friend> get cachedFriends => _sortedFriendsCache;
+  List<Friend> get cachedFriends => _sortedContactsCache;
 
   List<Message> getUnreadsForFriend(Friend friend) => _unreads[friend.contactUserId] ?? [];
 
@@ -84,7 +109,7 @@ class MessagingClient extends ChangeNotifier {
 
   bool messageIsUnread(Message message) => _unreads[message.senderId]?.any((element) => element.id == message.id) ?? false;
 
-  Friend? getAsFriend(String userId) => _contacts[userId];
+  Friend? getAsContact(String userId) => _contacts[userId];
 
   MessageCache? getUserMessageCache(String userId) => _messageCache[userId];
 
@@ -92,9 +117,58 @@ class MessagingClient extends ChangeNotifier {
 
   List<Session> get knownSessions => _sessionMap.values.toList();
 
-  Future<void> refreshFriendsListWithErrorHandler() async {
+  List<Session> sessionsOf(String userId) => _userStatuses[userId]?.values.expand((s) => s.decodedSessions).toSet().toList() ?? [];
+
+  static bool _isPresentState(AppLifecycleState? s) => s == null || s == AppLifecycleState.resumed || s == AppLifecycleState.inactive;
+
+  void updateLastPresence() {
+    _lastPresence = DateTime.now();
+    if (!_isPresent) _recomputePresence();
+  }
+
+  void _onLifecycleStateChanged(AppLifecycleState state) {
+    final present = _isPresentState(state);
+    if (present == _lifecyclePresent) {
+      return;
+    }
+    _lifecyclePresent = present;
+
+    if (present) {
+      _lastPresence = DateTime.now();
+    }
+    _recomputePresence();
+    if (present && _areContactsLoaded) {
+      _clearExpired();
+      refreshContactsList();
+    }
+  }
+
+  void _recomputePresence() {
+    final present = _lifecyclePresent && !(_idleDetection && DateTime.now().difference(_lastPresence) >= _awayAfter);
+    if (present == _isPresent) {
+      return;
+    }
+    _isPresent = present;
+    if (_areContactsLoaded) {
+      _updateStatus();
+    }
+  }
+
+  void _onGlobalPointer(PointerEvent _) => updateLastPresence();
+
+  bool _onKeyboardKey(KeyEvent _) {
+    updateLastPresence();
+    return false;
+  }
+
+  UserStatus _decodeSessionsInStatus(UserStatus status) {
+    final sessionMap = createSessionMap(status.hashSalt);
+    return status.copyWith(decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
+  }
+
+  Future<void> refreshContactsListWithErrorHandler() async {
     try {
-      await refreshFriendsList();
+      await refreshContactsList();
     } catch (e) {
       _initStatus = "$e";
       notifyListeners();
@@ -104,6 +178,8 @@ class MessagingClient extends ChangeNotifier {
   Future<void> initFriendsList() async {
     _areContactsLoaded = false;
     _contacts.clear();
+    _userStatuses.clear();
+    _knownSessionKeys.clear();
     var count = 0;
     try {
       await for (final raw in _hubManager.stream("InitializeContacts")) {
@@ -130,28 +206,33 @@ class MessagingClient extends ChangeNotifier {
       ..forEach(_onReceiveStatusUpdate)
       ..clear();
 
-    final lastOnline = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault);
-    _hubManager.send("RequestStatus", arguments: [null, lastOnline == OnlineStatus.invisible]);
-    await setOnlineStatus(lastOnline ?? OnlineStatus.online, broadcast: lastOnline != OnlineStatus.invisible);
+    final pkginfo = await PackageInfo.fromPlatform();
+    _broadcastStatus = _broadcastStatus.copyWith(userId: _apiClient.userId, isMobile: Platform.isAndroid || Platform.isIOS, appVersion: "${pkginfo.version} of ReCon");
+    _onlineStatus = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault) ?? OnlineStatus.online;
+    _hubManager.send("RequestStatus", arguments: [null, _onlineStatus == OnlineStatus.invisible]);
+    _updateStatus(force: !_isHidden);
+
     _statusHeartbeat?.cancel();
-    _statusHeartbeat = Timer.periodic(_statusHeartbeatDuration, (timer) async {
-      await setOnlineStatus(_userStatus.onlineStatus, broadcast: _userStatus.onlineStatus != OnlineStatus.invisible && _userStatus.onlineStatus != OnlineStatus.offline);
+    _statusHeartbeat = Timer.periodic(const Duration(seconds: 30), (timer) async {
+      _recomputePresence();
+      _updateStatus();
+      _clearExpired();
+      _clearExpiredSessions();
     });
+
     await _refreshUnreads();
     _unreadSafeguard?.cancel();
     _unreadSafeguard = Timer.periodic(_unreadSafeguardDuration, (timer) => _refreshUnreads());
   }
 
-  Future<void> refreshFriendsList() async {
-    final self = getAsFriend(_apiClient.userId);
-    _hubManager.send("RequestStatus", arguments: [null, self?.userStatus.onlineStatus == OnlineStatus.invisible]);
+  Future<void> refreshContactsList() async {
+    _hubManager.send("RequestStatus", arguments: [null, onlineStatus == OnlineStatus.invisible]);
     _initStatus = "";
     notifyListeners();
   }
 
   Future<void> requestUserStatus(String userId) async {
-    final self = getAsFriend(_apiClient.userId);
-    _hubManager.send("RequestStatus", arguments: [userId, self?.userStatus.onlineStatus == OnlineStatus.invisible]);
+    _hubManager.send("RequestStatus", arguments: [userId, onlineStatus == OnlineStatus.invisible]);
   }
 
   void sendMessage(Message message) {
@@ -162,49 +243,117 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void markMessagesRead(MarkReadBatch batch) {
-    if (_userStatus.onlineStatus == OnlineStatus.invisible || _userStatus.onlineStatus == OnlineStatus.offline) return;
+    if (_isHidden) return;
     final msgBody = batch.toMap();
     _hubManager.send("MarkMessagesRead", arguments: [msgBody]);
     clearUnreadsForUser(batch.senderId);
   }
 
-  Future<void> setOnlineStatus(OnlineStatus status, {bool broadcast = true}) async {
-    final pkginfo = await PackageInfo.fromPlatform();
+  void _updateStatus({bool force = false}) {
+    final hidden = _isHidden;
+    final wasHidden = _broadcastStatus.onlineStatus == OnlineStatus.offline;
     final now = DateTime.now();
-    _userStatus = _userStatus.copyWith(
-      userId: _apiClient.userId,
-      appVersion: "${pkginfo.version} of ${pkginfo.appName}",
-      lastPresenceTimestamp: now,
-      lastStatusChange: now,
-      onlineStatus: status,
-      isPresent: true,
-    );
-    if (broadcast) {
+    final targetStatus = _onlineStatus == OnlineStatus.online && !_isPresent ? OnlineStatus.away : _onlineStatus;
+    final changed = hidden ? !wasHidden : _broadcastStatus.onlineStatus != targetStatus || _broadcastStatus.isPresent != _isPresent;
+    final heartbeatDue = !hidden && now.difference(_broadcastStatus.lastStatusChange) >= _statusHeartbeatDuration;
+    if (!hidden && _isPresent && !_idleDetection) _lastPresence = now;
+    if (!force && !changed && !heartbeatDue) return;
+
+    _broadcastStatus = hidden
+        ? _broadcastStatus.copyWith(onlineStatus: OnlineStatus.offline, isPresent: false, sessions: [], currentSessionIndex: -1, outputDevice: () => null, lastStatusChange: now)
+        : _broadcastStatus.copyWith(onlineStatus: targetStatus, isPresent: _isPresent, lastPresenceTimestamp: _lastPresence, outputDevice: () => null, lastStatusChange: now);
+
+    if (!(hidden && wasHidden)) {
       _hubManager.send(
         "BroadcastStatus",
         arguments: [
-          _userStatus.toMap(),
-          {
-            "group": 1,
-            "targetIds": null,
-          }
+          _broadcastStatus.toMap(),
+          {"group": 1, "targetIds": null},
         ],
       );
     }
-    final self = getAsFriend(_apiClient.userId);
-    if (self != null) {
-      await _updateContact(self.copyWith(userStatus: _userStatus));
+
+    _applyStatus(_broadcastStatus);
+  }
+
+  void _onSendStatusToUser(List args) {
+    final userId = args[0] as String;
+    if (!_contacts.containsKey(userId)) return;
+    _hubManager.send(
+      "BroadcastStatus",
+      arguments: [
+        _broadcastStatus.toMap(),
+        {
+          "group": 2,
+          "targetIds": [userId],
+        },
+      ],
+    );
+  }
+
+  void _clearExpired() {
+    var changed = false;
+    _userStatuses.forEach((userId, sessions) {
+      final lengthBefore = sessions.length;
+      sessions.removeWhere((_, s) => s.isExpired);
+      if (sessions.length != lengthBefore) {
+        final contact = _contacts[userId];
+        if (contact != null) {
+          _setContactFinalStatus(contact);
+        }
+        changed = true;
+      }
+    });
+    _userStatuses.removeWhere((_, s) => s.isEmpty);
+    if (changed) {
+      notifyListeners();
     }
+  }
+
+  void _goOffline() {
+    _onlineStatus = OnlineStatus.offline;
+    try {
+      _updateStatus();
+    } catch (_) {}
+  }
+
+  void setOnlineStatus(OnlineStatus status) {
+    _onlineStatus = status;
+    _updateStatus(force: true);
     notifyListeners();
   }
 
+  bool _upsertSession(Session session) {
+    final id = session.id;
+    if (id == null) return false;
+    final existing = _sessionMap[id];
+    if (existing != null && !session.lastUpdate.isAfter(existing.lastUpdate)) return false;
+    _sessionMap[id] = session;
+    _onSessionChanged(id, session);
+    return true;
+  }
+
+  Future<void> fetchSessions() async {
+    final sessions = await SessionApi.getSessions(_apiClient);
+    var changed = false;
+    for (final s in sessions) {
+      changed |= _upsertSession(s);
+    }
+    if (changed) sessionsRevision.value++;
+  }
+
+  void _clearExpiredSessions() {
+    final now = DateTime.now();
+    final expired = _sessionMap.entries.where((e) => now.difference(e.value.lastUpdate) > UserStatus.statusExpiration).map((e) => e.key).toList();
+    for (final id in expired) {
+      _sessionMap.remove(id);
+      _onSessionChanged(id, null);
+    }
+    if (expired.isNotEmpty) sessionsRevision.value++;
+  }
+
   Future<Friend> addContact(User user) async {
-    final friend = Friend.empty().copyWith(
-      ownerId: _apiClient.userId,
-      contactUserId: user.id,
-      contactUsername: user.username,
-      contactStatus: ContactStatus.accepted,
-    );
+    final friend = Friend.empty().copyWith(ownerId: _apiClient.userId, contactUserId: user.id, contactUsername: user.username, contactStatus: ContactStatus.accepted);
     if (!await _hubUpdateContact(friend)) {
       throw "Failed to add contact";
     }
@@ -212,23 +361,13 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<bool> removeContact(Friend friend) async {
-    return _hubUpdateContact(
-      friend.copyWith(
-        contactStatus: ContactStatus.ignored,
-      ),
-    );
+    return _hubUpdateContact(friend.copyWith(contactStatus: ContactStatus.ignored));
   }
 
   Future<bool> _hubUpdateContact(Friend friend) async {
-    final response = await _hubManager.sendAndWait<bool>(
-          "UpdateContact",
-          arguments: [
-            friend.toMap(),
-          ],
-        ) ??
-        false;
+    final response = await _hubManager.sendAndWait<bool>("UpdateContact", arguments: [friend.toMap()]) ?? false;
     if (response) {
-      await _updateContact(friend);
+      await _updateContact(friend.copyWith(userStatus: _contacts[friend.contactUserId]?.userStatus));
     }
     return response;
   }
@@ -246,7 +385,7 @@ class MessagingClient extends ChangeNotifier {
     final usernames = <String, String>{};
     for (final msg in messages) {
       final uid = msg.senderId;
-      usernames[uid] = getAsFriend(uid)?.contactUsername ?? uid;
+      usernames[uid] = getAsContact(uid)?.contactUsername ?? uid;
     }
 
     _notificationClient.showUnreadMessagesNotification(messages.reversed, usernames);
@@ -316,7 +455,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _sortFriendsCache() {
-    _sortedFriendsCache
+    _sortedContactsCache
       ..clear()
       ..addAll(_contacts.values)
       ..removeWhere((element) => element.contactStatus != ContactStatus.accepted)
@@ -343,19 +482,45 @@ class MessagingClient extends ChangeNotifier {
 
   Future<void> _updateContact(Friend friend) async {
     _contacts[friend.contactUserId] = friend;
-    if (friend.userStatus.lastStatusChange.isAfter(_lastStatusChange)) {
-      _lastStatusChange = friend.userStatus.lastStatusChange;
-    }
-    final sIndex = _sortedFriendsCache.indexWhere((element) => element.contactUserId == friend.contactUserId);
+    final sIndex = _sortedContactsCache.indexWhere((element) => element.contactUserId == friend.contactUserId);
     if (sIndex == -1) {
-      _sortedFriendsCache.add(friend);
+      _sortedContactsCache.add(friend);
     } else {
-      _sortedFriendsCache[sIndex] = friend;
+      _sortedContactsCache[sIndex] = friend;
     }
     if (friend.contactUserId == selectedFriend?.contactUserId) {
       selectedFriend = friend;
     }
     _sortFriendsCache();
+  }
+
+  bool _applyStatus(UserStatus status) {
+    final contact = _contacts[status.userId];
+    if (contact == null) return false;
+    if (status.isExpired) {
+      _logger.info("Received expired status for user ${status.userId}");
+      return false;
+    }
+    final sessions = _userStatuses.putIfAbsent(status.userId, () => {});
+    final existing = sessions[status.userSessionId];
+    if (existing != null && !status.lastStatusChange.isAfter(existing.lastStatusChange)) return false;
+    sessions[status.userSessionId] = status;
+    _setContactFinalStatus(contact);
+    return true;
+  }
+
+  void _setContactFinalStatus(Friend contact) {
+    UserStatus? dominant;
+    for (final s in _userStatuses[contact.contactUserId]?.values ?? const <UserStatus>[]) {
+      if (s.isDominantOver(dominant)) {
+        dominant = s;
+      }
+    }
+    var aggregate = dominant ?? UserStatus.defaultFor(contact.contactUserId);
+    if (contact.contactUserId == Friend.resoniteBotId) {
+      aggregate = aggregate.copyWith(onlineStatus: OnlineStatus.online);
+    }
+    _updateContact(contact.copyWith(userStatus: aggregate));
   }
 
   Future<void> _setupHub() async {
@@ -367,16 +532,11 @@ class MessagingClient extends ChangeNotifier {
       ..setHeaders(_apiClient.authorizationHeader)
       ..setHandler(EventTarget.messageSent, _onMessageSent)
       ..setHandler(EventTarget.receiveMessage, _onReceiveMessage)
-      ..setHandler(
-        EventTarget.messagesRead,
-        _onMessagesRead,
-      )
+      ..setHandler(EventTarget.messagesRead, _onMessagesRead)
       ..setHandler(EventTarget.receiveStatusUpdate, _onReceiveStatusUpdate)
-      ..setHandler(
-        EventTarget.receiveSessionUpdate,
-        _onReceiveSessionUpdate,
-      )
+      ..setHandler(EventTarget.receiveSessionUpdate, _onReceiveSessionUpdate)
       ..setHandler(EventTarget.removeSession, _onRemoveSession)
+      ..setHandler(EventTarget.sendStatusToUser, _onSendStatusToUser)
       ..onConnected = initFriendsList;
     await _hubManager.start();
   }
@@ -418,25 +578,43 @@ class MessagingClient extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _onSessionChanged(String sessionId, Session? session) {
+    final dirty = <String>{};
+    for (final MapEntry(key: userId, value: statuses) in _userStatuses.entries) {
+      for (final userSessionId in statuses.keys.toList()) {
+        final status = statuses[userSessionId]!;
+        final hash = CryptoHelper.idHash(sessionId + status.hashSalt);
+        final index = status.sessions.indexWhere((m) => m.sessionHash == hash);
+        if (index == -1) continue;
+        final decoded = [...status.decodedSessions];
+        decoded[index] = session ?? Session.none().copyWith(accessLevel: status.sessions[index].accessLevel);
+        statuses[userSessionId] = status.copyWith(decodedSessions: decoded);
+        dirty.add(userId);
+      }
+    }
+    for (final userId in dirty) {
+      final contact = _contacts[userId];
+      if (contact != null) _setContactFinalStatus(contact);
+    }
+    if (dirty.isNotEmpty) notifyListeners();
+  }
+
   void _onReceiveStatusUpdate(List args) {
     if (!_areContactsLoaded) {
       _statusUpdateQueue.add(args);
       _logger.info("Deferring status update to after contacts are loaded");
       return;
     }
-    final statusUpdate = args[0] as Map;
-    var status = UserStatus.fromMap(statusUpdate);
+    var status = _decodeSessionsInStatus(UserStatus.fromMap(args[0] as Map));
     final sessionMap = createSessionMap(status.hashSalt);
-    status = status.copyWith(
-      decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList(),
-    );
-    final friend = getAsFriend(statusUpdate["userId"])?.copyWith(userStatus: status);
-    if (friend != null) {
-      _updateContact(friend);
+    status = status.copyWith(decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
+    if (!_applyStatus(status)) {
+      return;
     }
     for (final session in status.sessions) {
-      if (session.broadcastKey != null && _knownSessionKeys.add(session.broadcastKey ?? "")) {
-        _hubManager.send("ListenOnKey", arguments: [session.broadcastKey]);
+      final key = session.broadcastKey;
+      if (key != null && _knownSessionKeys.add(key)) {
+        _hubManager.send("ListenOnKey", arguments: [key]);
       }
     }
     notifyListeners();
@@ -448,16 +626,17 @@ class MessagingClient extends ChangeNotifier {
     if (session.id == null) {
       return;
     }
-    final oldSession = _sessionMap[session.id!];
-    _sessionMap[session.id!] = session;
-    if (oldSession != session) {
+    if (_upsertSession(session)) {
+      sessionsRevision.value++;
       notifyListeners();
     }
   }
 
   void _onRemoveSession(List args) {
-    final session = args[0];
-    _sessionMap.remove(session);
+    final sessionId = args[0] as String;
+    _sessionMap.remove(sessionId);
+    _onSessionChanged(sessionId, null);
+    sessionsRevision.value++;
     notifyListeners();
   }
 }

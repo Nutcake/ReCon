@@ -36,7 +36,7 @@ class _FriendsListState extends State<FriendsList> with AutomaticKeepAliveClient
                           message: mClient.initStatus,
                           onRetry: () async {
                             mClient.resetInitStatus();
-                            await mClient.refreshFriendsListWithErrorHandler();
+                            await mClient.refreshContactsListWithErrorHandler();
                           },
                         ),
                       ),
@@ -51,7 +51,7 @@ class _FriendsListState extends State<FriendsList> with AutomaticKeepAliveClient
                   return RefreshIndicator(
                     onRefresh: () async {
                       mClient.resetInitStatus();
-                      await mClient.refreshFriendsListWithErrorHandler();
+                      await mClient.refreshContactsListWithErrorHandler();
                       await Future.delayed(const Duration(seconds: 2)); // Just to show the refresh indicator, since we don't know how many status update events will be received.
                     },
                     child: ListView.builder(

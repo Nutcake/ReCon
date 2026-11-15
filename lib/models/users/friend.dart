@@ -6,7 +6,7 @@ import 'package:recon/models/users/user_status.dart';
 
 class Friend implements Comparable {
   static const _emptyId = "-1";
-  static const _resoniteBotId = "U-Resonite";
+  static const resoniteBotId = "U-Resonite";
   final String contactUserId;
   final String contactUsername;
   final String ownerId;
@@ -33,7 +33,7 @@ class Friend implements Comparable {
 
   bool get isOnReCon => userStatus.appVersion.contains("ReCon");
 
-  bool get isBot => userStatus.sessionType == UserSessionType.bot || contactUserId == _resoniteBotId;
+  bool get isBot => userStatus.sessionType == UserSessionType.bot || contactUserId == resoniteBotId;
 
   bool get isSociable => (userStatus.onlineStatus == OnlineStatus.sociable) && !isBot && !isHeadless;
 
@@ -48,10 +48,10 @@ class Friend implements Comparable {
       contactUsername: map["contactUsername"],
       ownerId: map["ownerId"] ?? map["id"],
       // Resonite bot status is always offline but should be displayed as online
-      userStatus: map["id"] == _resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
+      userStatus: map["id"] == resoniteBotId ? userStatus.copyWith(onlineStatus: OnlineStatus.online) : userStatus,
       userProfile: UserProfile.fromMap(map["profile"] ?? {}),
       contactStatus: ContactStatus.fromString(map["contactStatus"]),
-      latestMessageTime: map["latestMessageTime"] == null ? DateTime.fromMillisecondsSinceEpoch(0) : DateTime.parse(map["latestMessageTime"]),
+      latestMessageTime: map["latestMessageTime"] == null ? DateTimeX.epoch : DateTime.parse(map["latestMessageTime"]),
       isAccepted: map["isAccepted"] ?? false,
     );
   }

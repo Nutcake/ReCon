@@ -33,7 +33,7 @@ class _UserListTileState extends State<UserListTile> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.user.id != widget.user.id) {
       final mClient = Provider.of<MessagingClient>(context, listen: false);
-      _asFriend = mClient.getAsFriend(widget.user.id);
+      _asFriend = mClient.getAsContact(widget.user.id);
     }
   }
 
@@ -41,7 +41,7 @@ class _UserListTileState extends State<UserListTile> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final mClient = Provider.of<MessagingClient>(context, listen: false);
-    _asFriend = mClient.getAsFriend(widget.user.id);
+    _asFriend = mClient.getAsContact(widget.user.id);
   }
 
   @override

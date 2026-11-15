@@ -21,12 +21,12 @@ enum OnlineStatus {
       ? Theme.of(context).colorScheme.onSecondaryContainer.withAlpha(150)
       : _colors[index];
 
-  factory OnlineStatus.fromString(String? text) {
-    return OnlineStatus.values.firstWhere(
-      (element) => element.name.toLowerCase() == text?.toLowerCase(),
-      orElse: () => OnlineStatus.online,
-    );
-  }
+  factory OnlineStatus.parse(Object? value) => switch (value) {
+    int i when i >= 0 && i < OnlineStatus.values.length => OnlineStatus.values[i],
+    String s => OnlineStatus.values.firstWhere((e) => e.name.toLowerCase() == s.toLowerCase(), orElse: () => OnlineStatus.offline),
+    _ => OnlineStatus.offline,
+  };
+
 
   int compareTo(OnlineStatus other) {
     if (this == other) return 0;

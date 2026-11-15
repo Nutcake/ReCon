@@ -10,8 +10,9 @@ class SessionClient extends ChangeNotifier {
   final ApiClient apiClient;
   final SettingsClient settingsClient;
   final MessagingClient messagingClient;
+  bool _isLoading = false;
 
-  Future<List<Session>>? _sessionsFuture;
+  bool get isLoading => _isLoading;
 
   SessionFilterSettings _filterSettings = SessionFilterSettings.empty();
 
@@ -24,26 +25,16 @@ class SessionClient extends ChangeNotifier {
       minActiveUsers: settingsClient.currentSettings.sessionViewLastMinimumUsers.valueOrDefault,
       includeEmptyHeadless: settingsClient.currentSettings.sessionViewLastIncludeEmpty.valueOrDefault,
     );
-    _sessionsFuture = Future.value(messagingClient.knownSessions.sorted((a, b) => b.sessionUsers.length.compareTo(a.sessionUsers.length)))
-      ..whenComplete(() async {
-        notifyListeners();
-        await Future.delayed(const Duration(seconds: 1)); // need this or the API get's mad at me :c
-        reloadSessions();
-      });
+    messagingClient.sessionsRevision.addListener(notifyListeners);
   }
 
   SessionFilterSettings get filterSettings => _filterSettings;
 
-  Future<List<Session>>? get sessionsFuture => _sessionsFuture;
+  List<Session> get sessions => messagingClient.knownSessions.whereNot(shouldFilter).sorted((a, b) => b.sessionUsers.length.compareTo(a.sessionUsers.length));
 
   set filterSettings(SessionFilterSettings value) {
-    if (value.includeEmptyHeadless != _filterSettings.includeEmptyHeadless) {
-      _filterSettings = value;
-      reloadSessions();
-    } else {
-      _filterSettings = value;
-      notifyListeners();
-    }
+    _filterSettings = value;
+    notifyListeners();
   }
 
   bool shouldFilter(Session session) {
@@ -78,15 +69,20 @@ class SessionClient extends ChangeNotifier {
     return false;
   }
 
-  void initSessions() {
-    _sessionsFuture = SessionApi.getSessions(
-      apiClient,
-      filterSettings: _filterSettings,
-    ).then((value) => value.sorted((a, b) => b.sessionUsers.length.compareTo(a.sessionUsers.length)));
+  Future<void> reloadSessions() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await messagingClient.fetchSessions();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void reloadSessions() {
-    initSessions();
-    notifyListeners();
+  @override
+  void dispose() {
+    messagingClient.sessionsRevision.removeListener(notifyListeners);
+    super.dispose();
   }
 }
