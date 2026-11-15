@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:recon/apis/message_api.dart';
 import 'package:recon/apis/session_api.dart';
+import 'package:recon/auxiliary.dart';
 import 'package:recon/clients/api_client.dart';
 import 'package:recon/clients/notification_client.dart';
 import 'package:recon/clients/settings_client.dart';
@@ -37,14 +38,15 @@ class MessagingClient extends ChangeNotifier {
   final Set<String> _knownSessionKeys = {};
   final SettingsClient _settingsClient;
   final Queue<List<dynamic>> _statusUpdateQueue = Queue();
-  Friend? selectedFriend;
+  final Map<String, Map<String, UserStatus>> _userStatuses = {};
 
+  Friend? selectedFriend;
   Timer? _statusHeartbeat;
   Timer? _unreadSafeguard;
   String? _initStatus;
   OnlineStatus _onlineStatus = OnlineStatus.offline;
   UserStatus _broadcastStatus = UserStatus.initial();
-  DateTime _lastStatusChange = DateTime.fromMillisecondsSinceEpoch(0);
+  DateTime _lastStatusChange = DateTimeX.epoch;
 
   OnlineStatus get onlineStatus => _onlineStatus;
 
@@ -92,6 +94,8 @@ class MessagingClient extends ChangeNotifier {
 
   List<Session> get knownSessions => _sessionMap.values.toList();
 
+  List<Session> sessionsOf(String userId) => _userStatuses[userId]?.values.expand((s) => s.decodedSessions).toSet().toList() ?? [];
+
   Future<void> refreshContactsListWithErrorHandler() async {
     try {
       await refreshContactsList();
@@ -104,6 +108,7 @@ class MessagingClient extends ChangeNotifier {
   Future<void> initFriendsList() async {
     _areContactsLoaded = false;
     _contacts.clear();
+    _userStatuses.clear();
     var count = 0;
     try {
       await for (final raw in _hubManager.stream("InitializeContacts")) {
@@ -131,7 +136,7 @@ class MessagingClient extends ChangeNotifier {
       ..clear();
 
     final pkginfo = await PackageInfo.fromPlatform();
-    _broadcastStatus = _broadcastStatus.copyWith(appVersion: "${pkginfo.version} of ${pkginfo.appName}");
+    _broadcastStatus = _broadcastStatus.copyWith(userId: _apiClient.userId, appVersion: "${pkginfo.version} of ${pkginfo.appName}");
     _onlineStatus = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault) ?? OnlineStatus.online;
     _hubManager.send("RequestStatus", arguments: [null, _onlineStatus == OnlineStatus.invisible]);
     _updateStatus(force: !_isHidden);
@@ -139,6 +144,7 @@ class MessagingClient extends ChangeNotifier {
     _statusHeartbeat?.cancel();
     _statusHeartbeat = Timer.periodic(const Duration(seconds: 30), (timer) async {
       _updateStatus();
+      _clearExpired();
     });
 
     await _refreshUnreads();
@@ -174,14 +180,9 @@ class MessagingClient extends ChangeNotifier {
     final hidden = _isHidden;
     final wasHidden = _broadcastStatus.onlineStatus == OnlineStatus.offline;
     final now = DateTime.now();
-
     final changed = hidden ? !wasHidden : _broadcastStatus.onlineStatus != _onlineStatus;
     final heartbeatDue = !hidden && now.difference(_broadcastStatus.lastStatusChange) >= _statusHeartbeatDuration;
     if (!force && !changed && !heartbeatDue) return;
-
-    if (heartbeatDue) {
-      _clearExpired();
-    }
 
     _broadcastStatus = hidden
         ? _broadcastStatus.copyWith(onlineStatus: OnlineStatus.offline, isPresent: false, sessions: [], currentSessionIndex: -1, outputDevice: () => null, lastStatusChange: now)
@@ -197,9 +198,7 @@ class MessagingClient extends ChangeNotifier {
       );
     }
 
-    final self = getAsContact(_apiClient.userId);
-    if (self == null) return;
-    _updateContact(self.copyWith(userStatus: _broadcastStatus));
+    _applyStatus(_broadcastStatus);
   }
 
   void _onSendStatusToUser(List args) {
@@ -218,25 +217,25 @@ class MessagingClient extends ChangeNotifier {
   }
 
   void _clearExpired() {
-    final now = DateTime.now();
-    for (var contact in _contacts.values.whereNot((element) => element.userStatus.onlineStatus == OnlineStatus.offline)) {
-      if (contact.userStatus.lastStatusChange.isBefore(now.subtract(UserStatus.statusExpiration))) {
-        contact = contact.copyWith(
-          userStatus: contact.userStatus.copyWith(
-            onlineStatus: OnlineStatus.offline,
-            isPresent: false,
-            sessions: [],
-            currentSessionIndex: -1,
-            outputDevice: () => null,
-            lastStatusChange: now,
-          ),
-        );
-        _updateContact(contact);
+    var changed = false;
+    _userStatuses.forEach((userId, sessions) {
+      final lengthBefore = sessions.length;
+      sessions.removeWhere((_, s) => s.isExpired);
+      if (sessions.length != lengthBefore) {
+        final contact = _contacts[userId];
+        if (contact != null) {
+          _setContactFinalStatus(contact);
+        }
+        changed = true;
       }
+    });
+    _userStatuses.removeWhere((_, s) => s.isEmpty);
+    if (changed) {
+      notifyListeners();
     }
   }
 
-  Future<void> setOnlineStatus(OnlineStatus status) async {
+  void setOnlineStatus(OnlineStatus status) {
     _onlineStatus = status;
     _updateStatus(force: true);
     notifyListeners();
@@ -257,7 +256,7 @@ class MessagingClient extends ChangeNotifier {
   Future<bool> _hubUpdateContact(Friend friend) async {
     final response = await _hubManager.sendAndWait<bool>("UpdateContact", arguments: [friend.toMap()]) ?? false;
     if (response) {
-      await _updateContact(friend);
+      await _updateContact(friend.copyWith(userStatus: _contacts[friend.contactUserId]?.userStatus));
     }
     return response;
   }
@@ -387,6 +386,36 @@ class MessagingClient extends ChangeNotifier {
     _sortFriendsCache();
   }
 
+  bool _applyStatus(UserStatus status) {
+    final contact = _contacts[status.userId];
+    if (contact == null) return false;
+    if (status.isExpired) {
+      _logger.info("Received expired status for user ${status.userId}");
+      return false;
+    }
+    final sessions = _userStatuses.putIfAbsent(status.userId, () => {});
+    final existing = sessions[status.userSessionId];
+    if (existing != null && !status.lastStatusChange.isAfter(existing.lastStatusChange)) return false;
+    sessions[status.userSessionId] = status;
+    _setContactFinalStatus(contact);
+    return true;
+
+  }
+
+  void _setContactFinalStatus(Friend contact) {
+    UserStatus? dominant;
+    for (final s in _userStatuses[contact.contactUserId]?.values ?? const <UserStatus>[]) {
+      if (s.isDominantOver(dominant)) {
+        dominant = s;
+      }
+    }
+    var aggregate = dominant ?? UserStatus.defaultFor(contact.contactUserId);
+    if (contact.contactUserId == Friend.resoniteBotId) {
+      aggregate = aggregate.copyWith(onlineStatus: OnlineStatus.online);
+    }
+    _updateContact(contact.copyWith(userStatus: aggregate));
+  }
+
   Future<void> _setupHub() async {
     if (!_apiClient.isAuthenticated) {
       _logger.info("Tried to connect to Resonite Hub without authentication, this is probably fine for now.");
@@ -452,13 +481,13 @@ class MessagingClient extends ChangeNotifier {
     var status = UserStatus.fromMap(statusUpdate);
     final sessionMap = createSessionMap(status.hashSalt);
     status = status.copyWith(decodedSessions: status.sessions.map((e) => sessionMap[e.sessionHash] ?? Session.none().copyWith(accessLevel: e.accessLevel)).toList());
-    final friend = getAsContact(statusUpdate["userId"])?.copyWith(userStatus: status);
-    if (friend != null) {
-      _updateContact(friend);
+    if (!_applyStatus(status)) {
+      return;
     }
     for (final session in status.sessions) {
-      if (session.broadcastKey != null && _knownSessionKeys.add(session.broadcastKey ?? "")) {
-        _hubManager.send("ListenOnKey", arguments: [session.broadcastKey]);
+      final key = session.broadcastKey;
+      if (key != null && _knownSessionKeys.add(key)) {
+        _hubManager.send("ListenOnKey", arguments: [key]);
       }
     }
     notifyListeners();

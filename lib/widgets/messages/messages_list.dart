@@ -60,7 +60,7 @@ class _MessagesListState extends State<MessagesList> with SingleTickerProviderSt
       builder: (context, mClient, _) {
         final friend = mClient.selectedFriend ?? Friend.empty();
         final cache = mClient.getUserMessageCache(friend.contactUserId);
-        final sessions = friend.userStatus.decodedSessions.where((element) => element.isVisible).toList();
+        final sessions = mClient.sessionsOf(friend.contactUserId).where((element) => element.isVisible).toList();
         return Scaffold(
           appBar: AppBar(
             title: Row(

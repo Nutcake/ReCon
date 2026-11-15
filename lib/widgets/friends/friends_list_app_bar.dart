@@ -45,7 +45,7 @@ class _FriendsListAppBarState extends State<FriendsListAppBar> with AutomaticKee
               onSelected: (onlineStatus) async {
                 final settingsClient = ClientHolder.of(context).settingsClient;
                 try {
-                  await client.setOnlineStatus(onlineStatus);
+                  client.setOnlineStatus(onlineStatus);
                   await settingsClient.changeSettings(settingsClient.currentSettings.copyWith(lastOnlineStatus: onlineStatus.index));
                 } catch (e, s) {
                   FlutterError.reportError(FlutterErrorDetails(exception: e, stack: s));

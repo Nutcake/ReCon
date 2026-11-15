@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:recon/auxiliary.dart';
 import 'package:recon/config.dart';
 import 'package:recon/crypto_helper.dart';
 import 'package:recon/models/session.dart';
@@ -22,7 +23,7 @@ enum UserSessionType
 }
 
 class UserStatus {
-  static const statusExpiration = const Duration(minutes: 5);
+  static const statusExpiration = Duration(minutes: 5);
   final String userId;
   final OnlineStatus onlineStatus;
   final DateTime lastStatusChange;
@@ -90,19 +91,35 @@ class UserStatus {
     return UserStatus(
       userId: map["userId"] ?? "",
       onlineStatus: OnlineStatus.parse(map["onlineStatus"]),
-      lastStatusChange: DateTime.tryParse(map["lastStatusChange"] ?? "") ?? DateTime.now(),
-      lastPresenceTimestamp: DateTime.tryParse(map["lastPresenceTimestamp"] ?? "") ?? DateTime.now(),
+      lastStatusChange: DateTime.tryParse(map["lastStatusChange"] ?? "") ?? DateTimeX.epoch,
+      lastPresenceTimestamp: DateTime.tryParse(map["lastPresenceTimestamp"] ?? "") ?? DateTimeX.epoch,
       userSessionId: map["userSessionId"] ?? "",
       isPresent: map["isPresent"] ?? false,
       currentSessionIndex: map["currentSessionIndex"] ?? -1,
       sessions: (map["sessions"] as List? ?? []).map((e) => SessionMetadata.fromMap(e)).toList(),
       appVersion: map["appVersion"] ?? "",
-      outputDevice: map["outputDevice"] ?? "Unknown",
+      outputDevice: map["outputDevice"],
       isMobile: map["isMobile"] ?? false,
       compatibilityHash: map["compatibilityHash"] ?? "",
       hashSalt: map["hashSalt"] ?? "",
       sessionType: UserSessionType.fromString(map["sessionType"])
     );
+  }
+
+  factory UserStatus.defaultFor(String userId) => UserStatus.empty().copyWith(
+    userId: userId,
+    userSessionId: "DEFAULT",
+    lastStatusChange: DateTimeX.epoch,
+    lastPresenceTimestamp: DateTimeX.epoch,
+  );
+
+  bool get isExpired => DateTime.now().difference(lastStatusChange) > statusExpiration;
+
+  bool isDominantOver(UserStatus? other) {
+    if (other == null) return true;
+    if (isPresent && !other.isPresent) return true;
+    if (lastPresenceTimestamp.isAfter(other.lastPresenceTimestamp)) return true;
+    return false;
   }
 
   Map toMap({bool shallow = false}) {
