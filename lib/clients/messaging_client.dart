@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
@@ -39,6 +41,7 @@ class MessagingClient extends ChangeNotifier {
   final SettingsClient _settingsClient;
   final Queue<List<dynamic>> _statusUpdateQueue = Queue();
   final Map<String, Map<String, UserStatus>> _userStatuses = {};
+  late final AppLifecycleListener _lifecycleListener;
 
   Friend? selectedFriend;
   Timer? _statusHeartbeat;
@@ -47,6 +50,8 @@ class MessagingClient extends ChangeNotifier {
   OnlineStatus _onlineStatus = OnlineStatus.offline;
   UserStatus _broadcastStatus = UserStatus.initial();
   DateTime _lastStatusChange = DateTimeX.epoch;
+  bool _isPresent = true;
+  DateTime _lastPresence = DateTime.now();
 
   OnlineStatus get onlineStatus => _onlineStatus;
 
@@ -57,6 +62,14 @@ class MessagingClient extends ChangeNotifier {
   bool get _isHidden => _onlineStatus == OnlineStatus.invisible || _onlineStatus == OnlineStatus.offline;
 
   MessagingClient({required this._apiClient, required this._notificationClient, required this._settingsClient}) {
+    _isPresent = _isPresentState(WidgetsBinding.instance.lifecycleState);
+    _lifecycleListener = AppLifecycleListener(
+      onStateChange: _onLifecycleStateChanged,
+      onExitRequested: () async {
+        setOnlineStatus(OnlineStatus.offline);
+        return AppExitResponse.exit;
+      },
+    );
     SessionApi.getSessions(_apiClient).then((sessions) async {
       try {
         _sessionMap.addEntries(sessions.whereNot((s) => s.id == null).map((s) => MapEntry(s.id!, s)));
@@ -69,7 +82,7 @@ class MessagingClient extends ChangeNotifier {
 
   @override
   void dispose() {
-    setOnlineStatus(OnlineStatus.offline);
+    _lifecycleListener.dispose();
     _statusHeartbeat?.cancel();
     _unreadSafeguard?.cancel();
     _hubManager.dispose();
@@ -95,6 +108,27 @@ class MessagingClient extends ChangeNotifier {
   List<Session> get knownSessions => _sessionMap.values.toList();
 
   List<Session> sessionsOf(String userId) => _userStatuses[userId]?.values.expand((s) => s.decodedSessions).toSet().toList() ?? [];
+
+  static bool _isPresentState(AppLifecycleState? s) => s == null || s == AppLifecycleState.resumed || s == AppLifecycleState.inactive;
+
+  void _onLifecycleStateChanged(AppLifecycleState state) {
+    final present = _isPresentState(state);
+    if (present == _isPresent) {
+      return;
+    }
+    if (!present) {
+      _lastPresence = DateTime.now();
+    }
+    _isPresent = present;
+    if (!_areContactsLoaded) {
+      return;
+    }
+    _updateStatus();
+    if (present) {
+      _clearExpired();
+      refreshContactsList();
+    }
+  }
 
   Future<void> refreshContactsListWithErrorHandler() async {
     try {
@@ -136,7 +170,7 @@ class MessagingClient extends ChangeNotifier {
       ..clear();
 
     final pkginfo = await PackageInfo.fromPlatform();
-    _broadcastStatus = _broadcastStatus.copyWith(userId: _apiClient.userId, appVersion: "${pkginfo.version} of ${pkginfo.appName}");
+    _broadcastStatus = _broadcastStatus.copyWith(userId: _apiClient.userId, isMobile: Platform.isAndroid || Platform.isIOS, appVersion: "${pkginfo.version} of ${pkginfo.appName}");
     _onlineStatus = OnlineStatus.values.elementAtOrNull(_settingsClient.currentSettings.lastOnlineStatus.valueOrDefault) ?? OnlineStatus.online;
     _hubManager.send("RequestStatus", arguments: [null, _onlineStatus == OnlineStatus.invisible]);
     _updateStatus(force: !_isHidden);
@@ -180,13 +214,18 @@ class MessagingClient extends ChangeNotifier {
     final hidden = _isHidden;
     final wasHidden = _broadcastStatus.onlineStatus == OnlineStatus.offline;
     final now = DateTime.now();
-    final changed = hidden ? !wasHidden : _broadcastStatus.onlineStatus != _onlineStatus;
+    final targetStatus = _onlineStatus == OnlineStatus.online && !_isPresent ? OnlineStatus.away : _onlineStatus;
+    final changed = hidden ? !wasHidden : _broadcastStatus.onlineStatus != targetStatus || _broadcastStatus.isPresent != _isPresent;
     final heartbeatDue = !hidden && now.difference(_broadcastStatus.lastStatusChange) >= _statusHeartbeatDuration;
     if (!force && !changed && !heartbeatDue) return;
 
+    if (!hidden && _isPresent) {
+      _lastPresence = now;
+    }
+
     _broadcastStatus = hidden
         ? _broadcastStatus.copyWith(onlineStatus: OnlineStatus.offline, isPresent: false, sessions: [], currentSessionIndex: -1, outputDevice: () => null, lastStatusChange: now)
-        : _broadcastStatus.copyWith(onlineStatus: _onlineStatus, isPresent: true, lastPresenceTimestamp: now, outputDevice: () => "Unknown", lastStatusChange: now);
+        : _broadcastStatus.copyWith(onlineStatus: targetStatus, isPresent: _isPresent, lastPresenceTimestamp: _lastPresence, outputDevice: () => null, lastStatusChange: now);
 
     if (!(hidden && wasHidden)) {
       _hubManager.send(
@@ -399,7 +438,6 @@ class MessagingClient extends ChangeNotifier {
     sessions[status.userSessionId] = status;
     _setContactFinalStatus(contact);
     return true;
-
   }
 
   void _setContactFinalStatus(Friend contact) {
