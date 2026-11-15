@@ -22,6 +22,7 @@ enum UserSessionType
 }
 
 class UserStatus {
+  static const statusExpiration = const Duration(minutes: 5);
   final String userId;
   final OnlineStatus onlineStatus;
   final DateTime lastStatusChange;
