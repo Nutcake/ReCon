@@ -137,9 +137,12 @@ class MessagingClient extends ChangeNotifier {
       _lastPresence = DateTime.now();
     }
     _recomputePresence();
-    if (present && _areContactsLoaded) {
-      _clearExpired();
-      refreshContactsList();
+    if (present) {
+      _hubManager.reconnectNow();
+      if (_areContactsLoaded && _hubManager.isConnected) {
+        _clearExpired();
+        refreshContactsListWithErrorHandler();
+      }
     }
   }
 
@@ -226,6 +229,7 @@ class MessagingClient extends ChangeNotifier {
   }
 
   Future<void> refreshContactsList() async {
+    _hubManager.reconnectNow();
     _hubManager.send("RequestStatus", arguments: [null, onlineStatus == OnlineStatus.invisible]);
     _initStatus = "";
     notifyListeners();

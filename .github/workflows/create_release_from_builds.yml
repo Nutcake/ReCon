@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@v4
+        uses: flutter-actions/setup-flutter@v5
         with:
           channel: stable
           version: 3.50.0
@@ -28,7 +28,7 @@ jobs:
       - name: Zip Windows build
         # Compress the entire Release folder into a single zip for attaching to the GitHub Release.
         run: |
-          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'recon-windows.zip' -Force
+          Compress-Archive -Path 'build/windows/x64/runner/Release/*' -DestinationPath 'recon-windows.zip' -Force
         shell: powershell
 
       - name: Upload Windows artifact
@@ -74,7 +74,7 @@ jobs:
             libjson-glib-dev
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@v4
+        uses: flutter-actions/setup-flutter@v5
         with:
           channel: stable
           version: 3.50.0
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@v4
+        uses: flutter-actions/setup-flutter@v5
         with:
           channel: stable
           version: 3.50.0
