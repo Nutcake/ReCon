@@ -21,8 +21,19 @@ class ApiClient {
   static const String tokenKey = "token";
   static const String passwordKey = "password";
   static const String uidKey = "uid";
+  static const Duration sessionExtendInterval = Duration(hours: 1);
 
-  ApiClient({required this._authenticationData, required this._pkgInfo});
+  ApiClient({required this._authenticationData, required this._pkgInfo}) {
+    if (_authenticationData.isAuthenticated) {
+      _sessionExtender = Timer.periodic(sessionExtendInterval, (_) async {
+        try {
+          await extendSession();
+        } catch (e, s) {
+          _logger.warning("Failed to extend session", e, s);
+        }
+      });
+    }
+  }
 
   final AuthenticationData _authenticationData;
   final Logger _logger = Logger("API");
@@ -30,6 +41,7 @@ class ApiClient {
   final _logoutNotifier = EventNotifier();
   late final _client = IOClient(HttpClient()..userAgent = "${_pkgInfo.appName}/${_pkgInfo.version}");
   final PackageInfo _pkgInfo;
+  Timer? _sessionExtender;
 
   AuthenticationData get authenticationData => _authenticationData;
 
@@ -101,6 +113,7 @@ class ApiClient {
   }
 
   void dispose() {
+    _sessionExtender?.cancel();
     _client.close();
     _logoutNotifier.dispose();
   }
@@ -116,9 +129,7 @@ class ApiClient {
 
   Future<void> extendSession() async {
     final response = await patch("/userSessions");
-    if (response.statusCode != 204) {
-      throw "Failed to extend session.";
-    }
+    checkResponse(response);
   }
 
   void checkResponse(http.Response response) {
