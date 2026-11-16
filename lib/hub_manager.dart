@@ -12,7 +12,10 @@ import 'package:uuid/uuid.dart';
 class HubManager {
   static const String _eofChar = "";
   static const String _negotiationPacket = '{"protocol":"json", "version":1}$_eofChar';
+  static const String _pingPacket = '{"type":6}$_eofChar';
   static const List<int> _reconnectTimeoutsSeconds = [0, 5, 10, 20, 60];
+  static const Duration _connectTimeout = Duration(seconds: 15);
+  static const Duration _keepAliveInterval = Duration(seconds: 15);
 
   final Logger _logger = Logger("Hub");
   final Map<String, dynamic> _headers = {};
@@ -24,6 +27,8 @@ class HubManager {
   WebSocket? _wsChannel;
   bool _isConnecting = false;
   int _attempts = 0;
+  Timer? _keepAliveTimer;
+  Completer<void>? _retryDelay;
 
   void setHandler(EventTarget target, Function(List args) function) {
     _handlers[target] = function;
@@ -33,30 +38,74 @@ class HubManager {
     _headers.addAll(headers);
   }
 
-  Future<void> _onDisconnected(dynamic error) async {
+  bool get isConnected => _wsChannel != null;
+
+  void _onDisconnected(WebSocket socket, dynamic error) {
+    if (!identical(socket, _wsChannel)) return;
+    _wsChannel = null;
+    _keepAliveTimer?.cancel();
+    _keepAliveTimer = null;
     final openStreams = _streams.values.toList();
     _streams.clear();
     for (final stream in openStreams) {
       stream.addError(error);
       unawaited(stream.close());
     }
-    _wsChannel = null;
+    if (_disposed) return;
     _logger.warning("Hub connection died with error '$error', reconnecting...");
-    await start();
+    unawaited(start());
   }
 
   Future<void> start() async {
-    if (_isConnecting || _disposed) {
+    if (_isConnecting || _disposed || _wsChannel != null) {
       return;
     }
     _isConnecting = true;
-    _wsChannel = await _tryConnect();
-    _isConnecting = false;
+    final WebSocket? initialWs;
+    try {
+      initialWs = await _tryConnect();
+    } finally {
+      _isConnecting = false;
+    }
+    if (initialWs == null) return;
+    final ws = initialWs;
+    if (_disposed) {
+      unawaited(ws.close());
+      return;
+    }
+    _wsChannel = ws;
     _logger.info("Connected to Resonite Hub.");
-    unawaited(_wsChannel!.done.then(_onDisconnected));
-    _wsChannel!.listen(_handleEvent, onDone: () => _onDisconnected("Connection closed."), onError: _onDisconnected);
-    _wsChannel!.add(_negotiationPacket);
-    await onConnected();
+    ws.pingInterval = _keepAliveInterval;
+    ws.listen(
+      _handleEvent,
+      onDone: () => _onDisconnected(ws, "Connection closed (${ws.closeCode}: ${ws.closeReason})."),
+      onError: (e) => _onDisconnected(ws, e),
+    );
+    ws.add(_negotiationPacket);
+    _keepAliveTimer = Timer.periodic(_keepAliveInterval, (_) {
+      if (!identical(ws, _wsChannel)) return;
+      try {
+        ws.add(_pingPacket);
+      } catch (e) {
+        _onDisconnected(ws, e);
+      }
+    });
+    try {
+      await onConnected();
+    } catch (e, s) {
+      _logger.severe("Error while initializing hub connection", e, s);
+    }
+  }
+
+  void reconnectNow() {
+    if (_disposed || _wsChannel != null) return;
+    if (_isConnecting) {
+      _attempts = 0;
+      final delay = _retryDelay;
+      if (delay != null && !delay.isCompleted) delay.complete();
+      return;
+    }
+    unawaited(start());
   }
 
   Stream<dynamic> stream(String target, {List args = const []}) {
@@ -90,10 +139,17 @@ class HubManager {
     return controller.stream;
   }
 
-  Future<WebSocket> _tryConnect() async {
-    while (true) {
+  Future<WebSocket?> _tryConnect() async {
+    while (!_disposed) {
       try {
-        final ws = await WebSocket.connect(Config.resoniteHubUrl.replaceFirst("https://", "wss://"), headers: _headers);
+        final connectFuture = WebSocket.connect(Config.resoniteHubUrl.replaceFirst("https://", "wss://"), headers: _headers);
+        final ws = await connectFuture.timeout(
+          _connectTimeout,
+          onTimeout: () {
+            unawaited(connectFuture.then((ws) => ws.close(), onError: (_) {}));
+            throw TimeoutException("Timed out connecting to Resonite Hub", _connectTimeout);
+          },
+        );
         _attempts = 0;
         return ws;
       } catch (e) {
@@ -101,10 +157,22 @@ class HubManager {
         _logger
           ..severe(e)
           ..severe("Retrying in $timeout seconds");
-        await Future.delayed(Duration(seconds: timeout));
+        await _waitForRetry(Duration(seconds: timeout));
         _attempts++;
       }
     }
+    return null;
+  }
+
+  Future<void> _waitForRetry(Duration duration) async {
+    final completer = Completer<void>();
+    _retryDelay = completer;
+    final timer = Timer(duration, () {
+      if (!completer.isCompleted) completer.complete();
+    });
+    await completer.future;
+    timer.cancel();
+    _retryDelay = null;
   }
 
   void _handleEvent(dynamic event) {
@@ -117,7 +185,7 @@ class HubManager {
         _logger.warning("Received empty event, content was $event");
         continue;
       }
-      if (rawType > EventType.values.length) {
+      if (rawType >= EventType.values.length) {
         _logger.info("Unhandled event type $rawType: $body");
         continue;
       }
@@ -216,11 +284,17 @@ class HubManager {
 
   Future<void> close() async {
     _disposed = true;
+    _keepAliveTimer?.cancel();
+    final delay = _retryDelay;
+    if (delay != null && !delay.isCompleted) delay.complete();
     await _wsChannel?.close().timeout(const Duration(seconds: 1), onTimeout: () {});
   }
 
   void dispose() {
-    _wsChannel?.close();
     _disposed = true;
+    _keepAliveTimer?.cancel();
+    final delay = _retryDelay;
+    if (delay != null && !delay.isCompleted) delay.complete();
+    _wsChannel?.close();
   }
 }
