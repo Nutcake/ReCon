@@ -28,7 +28,7 @@ jobs:
       - name: Zip Windows build
         # Compress the entire Release folder into a single zip for attaching to the GitHub Release.
         run: |
-          Compress-Archive -Path (Get-ChildItem -Path 'build/windows/x64/runner/Release' -Recurse | ForEach-Object FullName) -DestinationPath 'recon-windows.zip' -Force
+          Compress-Archive -Path 'build/windows/x64/runner/Release/*' -DestinationPath 'recon-windows.zip' -Force
         shell: powershell
 
       - name: Upload Windows artifact
