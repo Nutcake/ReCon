@@ -136,6 +136,7 @@
 		"details": "Details:",
 		"tags": "Tags:",
 		"noTags": "None",
+		"createdBy": "By:",
 		"createdAt": "Created at:",
 		"lastModified": "Last modified:",
 		"visits": "Visits:",
@@ -149,6 +150,10 @@
 			"totalVisits": "Total Visits",
 			"name": "Name",
 			"random": "Random"
+		},
+		"share": {
+			"record": "Share ResRec",
+			"web": "Share Web Link"
 		}
 	},
 	"inventory": {
