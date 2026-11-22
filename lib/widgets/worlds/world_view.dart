@@ -172,9 +172,16 @@ class _WorldViewState extends State<WorldView> {
                     softWrap: true,
                   ),
                 ),
-                ListSectionHeader(
-                  leadingText: 'worlds.details'.tr(),
-                  showLine: false,
+                ListSectionHeader(leadingText: 'worlds.details'.tr(), showLine: false),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('worlds.createdBy'.tr(), style: Theme.of(context).textTheme.labelLarge),
+                      Text(widget.world.ownerName, style: Theme.of(context).textTheme.labelMedium),
+                    ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
