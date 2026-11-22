@@ -41,17 +41,46 @@ class _WorldViewState extends State<WorldView> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         actions: [
-          IconButton(
+          PopupMenuButton<String>(
             icon: const Icon(Icons.share),
-            onPressed: () {
-              final text = "resrec:///${widget.world.ownerId}/${widget.world.id}";
+            onSelected: (value) {
+              final text = switch (value) {
+                'resrec' => 'resrec:///${widget.world.ownerId}/${widget.world.id}',
+                'web' => 'https://go.resonite.com/world/${widget.world.ownerId}/${widget.world.id}',
+                _ => '',
+              };
+
               if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
                 Clipboard.setData(ClipboardData(text: text));
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Copied to clipboard.")));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('messaging.copiedToClipboard').tr()),
+                );
               } else {
                 SharePlus.instance.share(ShareParams(text: text));
               }
             },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'resrec',
+                child: Row(
+                  children: [
+                    Icon(Icons.copy),
+                    SizedBox(width: 8),
+                    Text('worlds.share.record').tr(),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'web',
+                child: Row(
+                  children: [
+                    Icon(Icons.language),
+                    SizedBox(width: 8),
+                    Text('worlds.share.web').tr(),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
         scrolledUnderElevation: 0,
