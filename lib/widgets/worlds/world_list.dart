@@ -181,7 +181,21 @@ class WorldListState extends State<WorldList> {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  'worlds.lastModified'.tr(args: [_dateFormat.format(world.lastModificationTime)]),
+                                                  '${'worlds.createdBy'.tr()} ${world.ownerName}',
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .5),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  '${'worlds.lastModified'.tr()} ${_dateFormat.format(world.lastModificationTime)}',
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
                                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(

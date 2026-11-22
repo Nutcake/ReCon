@@ -39,7 +39,7 @@ class Record {
     visits: 0,
     rating: 0,
     randomOrder: 0,
-    ownerName: null,
+    ownerName: "",
     isDeleted: false,
     isReadOnly: true,
     firstPublishTime: DateTimeX.epoch,
@@ -55,7 +55,7 @@ class Record {
   final String? description;
   final FormatNode? formattedDescription;
   final RecordType recordType;
-  final String? ownerName;
+  final String ownerName;
   final List<String> tags;
   final String? path;
   final String? thumbnailUri;
@@ -122,7 +122,7 @@ class Record {
       visits: map["visits"] ?? 0,
       rating: map["rating"] ?? 0,
       randomOrder: map["randomOrder"] ?? 0,
-      ownerName: map["ownerName"],
+      ownerName: map["ownerName"] ?? "",
       isDeleted: map["isDeleted"] ?? false,
       isReadOnly: map["isReadOnly"] ?? false,
       firstPublishTime: DateTime.tryParse(map["firstPublishTime"] ?? ""),
@@ -160,7 +160,7 @@ class Record {
       visits: 0,
       rating: 0,
       randomOrder: 0,
-      ownerName: null,
+      ownerName: "",
       isDeleted: false,
       isReadOnly: false,
       firstPublishTime: null,
@@ -207,7 +207,7 @@ class Record {
     String? name,
     String? Function()? description,
     RecordType? recordType,
-    String? Function()? ownerName,
+    String Function()? ownerName,
     List<String>? tags,
     String? Function()? path,
     String? Function()? thumbnailUri,
