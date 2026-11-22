@@ -152,8 +152,8 @@
 			"random": "Random"
 		},
 		"share": {
-			"record": "Copy ResRec",
-			"web": "Copy Web Link"
+			"record": "Share ResRec",
+			"web": "Share Web Link"
 		}
 	},
 	"inventory": {
