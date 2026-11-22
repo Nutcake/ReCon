@@ -11,6 +11,7 @@ class InviteRequest {
   final bool? isContactOfHost;
   final String? response;
   final Session? invite;
+  final String hostUsername;
 
   InviteRequest({
     required this.inviteRequestId,
@@ -23,7 +24,7 @@ class InviteRequest {
     required this.isContactOfHost,
     required this.response,
     required this.invite,
-    
+    required this.hostUsername,
   });
 
   factory InviteRequest.none() {
@@ -38,6 +39,7 @@ class InviteRequest {
       isContactOfHost: null,
       response: null,
       invite: null,
+      hostUsername: "",
     );
   }
 
@@ -54,6 +56,7 @@ class InviteRequest {
       isContactOfHost: map["isContactOfHost"],
       response: map["response"],
       invite: Session.fromMap(map["invite"]),
+      hostUsername: map["invite"]?["hostUsername"] ?? "",
     );
   }
 
@@ -69,6 +72,7 @@ class InviteRequest {
       "isContactOfHost": isContactOfHost,
       "response": response,
       "invite": invite,
+      "hostUsername": hostUsername,
     };
   }
 
@@ -83,6 +87,7 @@ class InviteRequest {
     bool? isContactOfHost,
     String? response,
     Session? invite,
+    String? hostUsername,
   }) {
     return InviteRequest(
       inviteRequestId: inviteRequestId ?? this.inviteRequestId,
@@ -95,6 +100,7 @@ class InviteRequest {
       isContactOfHost: isContactOfHost ?? this.isContactOfHost,
       response: response ?? this.response,
       invite: invite ?? this.invite,
+      hostUsername: hostUsername ?? this.hostUsername,
     );
   }
 }

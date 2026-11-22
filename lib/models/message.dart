@@ -112,6 +112,50 @@ class Message implements Comparable {
     );
   }
 
+  factory Message.inviteRequestResponse({
+    required String senderId,
+    required String recipientId,
+    required InviteRequest inviteRequest,
+    required String response,
+  }) {
+    return Message(
+      id: generateId(),
+      recipientId: recipientId,
+      senderId: senderId,
+      type: MessageType.inviteRequest,
+      content: jsonEncode(
+        inviteRequest.copyWith(
+          response: response,
+        ).toMap(),
+      ),
+      sendTime: DateTime.now(),
+      state: MessageState.local,
+    );
+  }
+
+factory Message.forwardedInviteRequest({
+  required String senderId,
+  required String recipientId,
+  required InviteRequest inviteRequest,
+  required String sessionId,
+  required String sessionName,
+}) {
+  return Message(
+    id: generateId(),
+    recipientId: recipientId,
+    senderId: senderId,
+    type: MessageType.inviteRequest,
+    content: jsonEncode(
+      inviteRequest.copyWith(
+        forSessionId: sessionId,
+        forSessionName: sessionName,
+      ).toMap(),
+    ),
+    sendTime: DateTime.now(),
+    state: MessageState.local,
+  );
+}
+
   Message copy() => copyWith();
 
   Message copyWith({
