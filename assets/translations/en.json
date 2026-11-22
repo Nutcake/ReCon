@@ -75,7 +75,10 @@
 			"requestForwarded": "{} wants to invite {} to {}",
 			"requestToYou": "{} would like to join you in '{}'",
 			"requestGeneric": "{} would like to join you",
-			"hostedBy": "Hosted by {}"
+			"hostedBy": "Hosted by {}",
+			"forwardToHost": "Forwarded to host: {}",
+			"grantInvite": "Grant Invite (one time)",
+			"addUserAsContact": "Add {} as a contact of the headless"
 		},
 		"send": "Send",
 		"copiedToClipboard": "Copied to clipboard"

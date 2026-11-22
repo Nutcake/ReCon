@@ -74,7 +74,10 @@
 			"requestForwarded": "xxx",
 			"requestToYou": "xxx",
 			"requestGeneric": "xxx",
-			"hostedBy": "xxx"
+			"hostedBy": "xxx",
+			"forwardToHost": "xxx",
+			"grantInvite": "xxx",
+			"addUserAsContact": "xxx"
 		},
 		"send": "xxx",
 		"copiedToClipboard": "xxx"
