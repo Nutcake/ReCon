@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:recon/apis/user_api.dart';
@@ -48,7 +49,7 @@ class _UserSearchState extends State<UserSearch> {
     final mClient = Provider.of<MessagingClient>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Find Users"),
+        title: const Text('navigation.findUsers').tr(),
       ),
       body: SafeArea(
         top: false,
